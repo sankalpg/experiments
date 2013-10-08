@@ -31,10 +31,15 @@ def classificationDTWkNN(root_dir):
         labels = annotations[:,2]
         segments= (segments/ph_obj.phop).astype(np.int)
 
-        tsc_obj = tsc.tsClassification()
-        accuracy, confMTX, classification_output = tsc_obj.classificationDTWkNN(ph_obj.pCents,segments, labels)
 
+    tsc_obj = tsc.tsClassification()
+    accuracy, decArray, classification_output = tsc_obj.classificationDTWkNN(ph_obj.pCents,segments, labels)
 
+    decArray = np.array(decArray)
+    ind_nyas = np.where(labels == 'nyas')[0]
+    nyasAccuracy = sum(decArray[ind_nyas])/float(len(ind_nyas))
+
+    return accuracy, nyasAccuracy, classification_output
 
 
 
