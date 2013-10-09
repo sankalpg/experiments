@@ -17,7 +17,11 @@ def classificationDTWkNN(root_dir):
 
     nyasproc = ms.NyasProcessing()
 
-    for filename in filenames:
+    pitchArray=np.array([])
+    segmentsArray = np.array([])
+    labelsArray = np.array([])
+
+    for i,filename in enumerate(filenames):
 
         file, ext = os.path.splitext(filename)
         nyasproc.ReadNyasAnnotationsAsList(file + ".NyasAnnotation.TextGrid")
@@ -31,9 +35,20 @@ def classificationDTWkNN(root_dir):
         labels = annotations[:,2]
         segments= (segments/ph_obj.phop).astype(np.int)
 
+        if i==0:
+            pitchArray = ph_obj.pCents
+            segmentsArray = segments
+            labelsArray = labels
+        else:
+            time_off = ph_obj.pCents.shape[0]
+            segments = segments + time_off
+            pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
+            segmentsArray = np.append(segmentsArray,segments,axis=0)
+            labelsArray = np.append(labelsArray, labels, axis=0)
+
 
     tsc_obj = tsc.tsClassification()
-    accuracy, decArray, classification_output = tsc_obj.classificationDTWkNN(ph_obj.pCents,segments, labels)
+    accuracy, decArray, classification_output = tsc_obj.classificationDTWkNN(pitchArray,segmentsArray, labelsArray)
 
     decArray = np.array(decArray)
     ind_nyas = np.where(labels == 'nyas')[0]
