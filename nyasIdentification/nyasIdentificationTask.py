@@ -1,0 +1,205 @@
+
+import numpy as np
+import sys,os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/MelodySegmentation/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/Batch_Processing/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TextGrid_Parsing/'))
+
+import textgrid as tgp
+import Batch_Proc_Essentia as BP
+import MelodySegmentation as MS
+
+nyasAnnotationFileSuffix = ".nyas"
+
+class nyasAnnotations():
+    """
+    This class assists in the process of obtaining nyas annotations. The idea is to help the annotator by already providing him a textgrid file with segmented flat regions. So that the
+    just have to matk whether a section is nyas or not. Also if a nyas swar is divided into two segments the space between these two segments are marked as "c" by the annotator to say join
+    this segment for obtaining nyas annotations. Also the annotator validated the segment boundaries.
+    """
+
+    seedFileExt = ".wav"
+    tonicFileExt = ".tonic"
+    pitchFileExt = ".essentia.pitch"
+    segmentTGFileSuffix = ".NyasCand.textgrid"
+    annotatedFileSuffix = ".NyasAnnotation.TextGrid"
+    nyasAnnotationFileSuffix = nyasAnnotationFileSuffix
+
+
+    def __init__(self, root_dir):
+        self.root_dir  = root_dir
+        pass
+
+
+
+    def generateTG2Annotate(self):
+        """
+        This function generates the textgrid file containing segments corresponding to flat regions in pitch. These are kind of nyas candidates and the annotator has to mark which of these segments
+        are nyas swars
+        """
+        filenames = BP.GetFileNamesInDir(self.root_dir,filter=self.seedFileExt)
+
+        for filename in filenames:
+            print "Generating segmentation textgrid for file %s"%filename
+            file, ext = os.path.splitext(filename)
+            nobj = MS.PitchProcessing(pitchfile = file+ self.pitchFileExt, tonicfile=file+ self.tonicFileExt)
+            nobj.ComputeNyasCandidates()
+            nobj.FilterNyasCandidates()
+            nobj.DumpNyasInfo(filename=file+self.segmentTGFileSuffix)
+
+
+    def extractNyasAnnotations(self):
+        """
+        This function takes the annotation file and combine the "c" segments into neighboring nyas segments and generate another text file with just nyas segments and nothing else.
+        """
+
+        filenames = BP.GetFileNamesInDir(self.root_dir,filter=self.seedFileExt)
+
+        for filename in filenames:
+            print "Extract only the Nyas regions from annotated textgrid and making another textgrid %s"%filename + self.nyasAnnotationFileSuffix
+            file, ext = os.path.splitext(filename)
+            par_obj = tgp.TextGrid.load(file+self.annotatedFileSuffix)	#loading the object
+            tiers= tgp.TextGrid._find_tiers(par_obj)	#finding existing tiers
+
+            #reading the segments from the annotation file
+            nyasSegments = []
+            for tier in tiers:
+                tier_details = tier.make_simple_transcript()
+                for line in tier_details:
+
+                    if line[2].find('-y')!=-1:
+                        nyasSegments.append([float(line[0]), float(line[1]),'nyas'])
+                    elif line[2] == "c":
+                        nyasSegments.append([float(line[0]), float(line[1]),'c'])
+
+            #combining the "c" labelled segments to their neighboring nyas segments
+            popList = []
+            for i,segment in enumerate(nyasSegments):
+                if segment[2] =="c":
+                    cAlreadyCombined=0
+                    try:
+                        if abs(nyasSegments[i-1][1]-segment[0])<.02 and abs(nyasSegments[i+1][0]-segment[1])<.02:     #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                            nyasSegments[i-1][1] = nyasSegments[i+1][1]
+                            popList.append(i)
+                            popList.append(i+1)
+                            cAlreadyCombined=1
+
+                    except:
+                            print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+                    try:
+                        if cAlreadyCombined ==0 and abs(nyasSegments[i-1][1]-segment[0])<.02:     #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                            nyasSegments[i-1][1] = segment[1]
+                            popList.append(i)
+                            cAlreadyCombined=1
+
+                    except:
+                            print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+                    try:
+                        if cAlreadyCombined ==0 and abs(nyasSegments[i+1][0]-segment[1])<.02:    #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                            nyasSegments[i+1][0] = segment[0]
+                            popList.append(i)
+                            cAlreadyCombined=1
+                    except:
+                            print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+            #removing the combined segments
+            for i in reversed(popList):
+                nyasSegments.pop(i)
+
+            fid = open(file+self.nyasAnnotationFileSuffix,'w')
+
+            for segment in nyasSegments:
+                fid.write("%f\t%f\t%s\n"%(segment[0],segment[1],segment[2]))
+
+            fid.close()
+
+
+class nyasIdentification():
+
+    seedFileExt = ".wav"
+    tonicFileExt = ".tonic"
+    pitchFileExt = ".essentia.pitch"
+    nyasAnnotationFileSuffix = nyasAnnotationFileSuffix
+
+
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+
+    def pitchSegmentation(self, root_dir, method, segmentFileExt = ""):
+
+        if isinstance(root_dir,list):
+            filenames = root_dir
+        else:
+            filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
+
+
+        for filename in filenames:
+
+            file, ext = os.path.splitext(filename)
+
+            #initializing an object for pitch proessing
+            pPbj = MS.PitchProcessing(pitchfile = file + self.pitchFileExt, tonicfile = file + self.tonicFileExt)
+            pPbj.PitchHz2Cents()
+
+            if method =="own":
+                segments = pPbj.segmentPitch()
+            elif method =="keogh":
+                pass
+            else:
+                print "Please specify a valid method name"
+
+            #generating segmentation file
+            np.savetxt(file + segmentFileExt, segments,delimiter='\t')
+
+    def extractFeatures(self, root_dir, segmentFileExt, featureFileName):
+
+        if isinstance(root_dir,list):
+            filenames = root_dir
+        else:
+            filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
+
+        aggLabels = []
+        aggFeatures = []
+
+        for filename in filenames:
+            print "processing file %s "%filename
+            file, ext = os.path.splitext(filename)
+
+            #initializing an object for pitch proessing
+            nObj = MS.NyasProcessing()
+
+            segments, labels, features = nObj.NyasFeatureExtraction(file + self.pitchFileExt, file + self.tonicFileExt, file + segmentFileExt, file+ self.nyasAnnotationFileSuffix)
+            for i,label in enumerate(labels):
+                features[i]['type']=label
+            aggLabels.extend(labels)
+            aggFeatures.extend(features)
+
+        nAggObj = MS.NyasAggFeatureProcessing()
+        nAggObj.GenerateNyasARFF(featureFileName, aggFeatures)
+
+
+    def evalClassifiers(self):
+
+        pass
+
+
+class nyasIdentification2():
+
+    def __init__(self, root_dir):
+        pass
+
+    def segmentation(self):
+        pass
+
+    def extractFeatures(self):
+        pass
+
+    def evalKnnDtw(self):
+
+        pass
+
+
+
