@@ -5,9 +5,11 @@ import sys,os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/MelodySegmentation/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/Batch_Processing/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TextGrid_Parsing/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TimeSeriesAnalysis/classification/'))
 
 import textgrid as tgp
 import Batch_Proc_Essentia as BP
+import timeSeriesClassification as tsc
 import MelodySegmentation as MS
 
 nyasAnnotationFileSuffix = ".nyas"
@@ -117,7 +119,7 @@ class nyasAnnotations():
             fid.close()
 
 
-class nyasIdentification():
+class nyasIdentification1():
 
     seedFileExt = ".wav"
     tonicFileExt = ".tonic"
@@ -188,18 +190,69 @@ class nyasIdentification():
 
 class nyasIdentification2():
 
+    seedFileExt = ".wav"
+    tonicFileExt = ".tonic"
+    pitchFileExt = ".essentia.pitch"
+    nyasAnnotationFileSuffix = nyasAnnotationFileSuffix
+
     def __init__(self, root_dir):
         pass
 
     def segmentation(self):
         pass
 
-    def extractFeatures(self):
-        pass
+    def extractFeatures(self, root_dir, segmentFileExt):
+
+        if isinstance(root_dir,list):
+            filenames = root_dir
+        else:
+            filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
+
+        #initializing the nyas processing class object
+        nyasproc = MS.NyasProcessing()
+
+        pitchArray=np.array([])
+        segmentsArray = np.array([])
+        labelsArray = np.array([])
+
+        for i,filename in enumerate(filenames):
+            print "processing file %s "%filename
+            file, ext = os.path.splitext(filename)
+
+            ph_obj = MS.PitchProcessing(pitchfile = file + '.essentia.pitch', tonicfile = file +'.tonic')
+            ph_obj.PitchHz2Cents()
+
+            pitchSegments = np.loadtxt(file + segmentFileExt)
+
+            #Since all the segments are read, remove the trivial once which have mainly silence in them.
+            pitchSegments = nyasproc.removeSegmentsWithSilence(ph_obj.timepitch, ph_obj.phop,pitchSegments)
+
+
+            labels = np.array(nyasproc.obtainClassLabels(pitchSegments,file+nyasAnnotationFileSuffix, ph_obj.phop ,ph_obj.pCents.shape[0]))
+
+            pitchSegments = pitchSegments/ph_obj.phop
+
+            if i==0:
+                pitchArray = ph_obj.pCents
+                segmentsArray = pitchSegments
+                labelsArray = labels
+            else:
+                time_off = ph_obj.pCents.shape[0]
+                segments = pitchSegments + time_off
+                pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
+                segmentsArray = np.append(segmentsArray,segments,axis=0)
+                labelsArray = np.append(labelsArray, labels, axis=0)
+
+        tsc_obj = tsc.tsClassification()
+        accuracy, decArray, classification_output = tsc_obj.classificationDTWkNN(pitchArray,segmentsArray, labelsArray)
+
+        decArray = np.array(decArray)
+        ind_nyas = np.where(labels == 'nyas')[0]
+        nyasAccuracy = sum(decArray[ind_nyas])/float(len(ind_nyas))
+
+        return accuracy, nyasAccuracy, classification_output
+
 
     def evalKnnDtw(self):
 
         pass
-
-
-
