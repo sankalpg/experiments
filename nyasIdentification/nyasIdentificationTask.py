@@ -5,12 +5,16 @@ import sys,os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/MelodySegmentation/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/Batch_Processing/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TextGrid_Parsing/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/mlWrapper/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TimeSeriesAnalysis/classification/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/TimeSeriesAnalysis/similarity/'))
 
 import textgrid as tgp
 import Batch_Proc_Essentia as BP
 import timeSeriesClassification as tsc
 import MelodySegmentation as MS
+import timeSeriesSimilarity as tss
+import mlWrapper as mlw
 
 nyasAnnotationFileSuffix = ".nyas"
 
@@ -256,3 +260,85 @@ class nyasIdentification2():
     def evalKnnDtw(self):
 
         pass
+
+
+
+class nyasIdentification3():
+
+    seedFileExt = ".wav"
+    tonicFileExt = ".tonic"
+    pitchFileExt = ".essentia.pitch"
+    nyasAnnotationFileSuffix = nyasAnnotationFileSuffix
+
+    def __init__(self, root_dir):
+        pass
+
+    def segmentation(self):
+        pass
+
+    def extractFeatures(self, root_dir, segmentFileExt):
+
+        if isinstance(root_dir,list):
+            filenames = root_dir
+        else:
+            filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
+
+        #initializing the nyas processing class object
+        nyasproc = MS.NyasProcessing()
+
+        pitchArray=np.array([])
+        segmentsArray = np.array([])
+        labelsArray = np.array([])
+
+        for i,filename in enumerate(filenames):
+            print "processing file %s "%filename
+            file, ext = os.path.splitext(filename)
+
+            ph_obj = MS.PitchProcessing(pitchfile = file + '.essentia.pitch', tonicfile = file +'.tonic')
+            ph_obj.PitchHz2Cents()
+
+            pitchSegments = np.loadtxt(file + segmentFileExt)
+
+            #Since all the segments are read, remove the trivial once which have mainly silence in them.
+            pitchSegments = nyasproc.removeSegmentsWithSilence(ph_obj.timepitch, ph_obj.phop,pitchSegments)
+
+
+            labels = np.array(nyasproc.obtainClassLabels(pitchSegments,file+nyasAnnotationFileSuffix, ph_obj.phop ,ph_obj.pCents.shape[0]))
+
+            pitchSegments = pitchSegments/ph_obj.phop
+
+            if i==0:
+                pitchArray = ph_obj.pCents
+                segmentsArray = pitchSegments
+                labelsArray = labels
+            else:
+                time_off = ph_obj.pCents.shape[0]
+                segments = pitchSegments + time_off
+                pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
+                segmentsArray = np.append(segmentsArray,segments,axis=0)
+                labelsArray = np.append(labelsArray, labels, axis=0)
+
+        matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray)
+
+        #filling the other half of matrix
+        for i in xrange(matchMTX.shape[0]):
+            for j in range(i):
+                matchMTX[i,j]=matchMTX[j,i]
+        #np.save('matchMTX',matchMTX)
+        accuracy, decArray = self.evalKnnDtw(matchMTX, labelsArray)
+
+        return accuracy, decArray
+
+
+    def evalKnnDtw(self, matrix, labels):
+
+        mlObj = mlw.experimenter()
+
+        mlObj.setFeaturesAndClassLabels(matrix,labels)
+
+        mlObj.setExperimentParams(nExp = 10, typeEval = ("kFoldCrossVal",-1), nInstPerClass = -1, classifier = ('mYkNN',"default"))
+
+        mlObj.runExperiment()
+
+        return mlObj.overallAccuracy, mlObj.decArray
+
