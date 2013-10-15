@@ -318,13 +318,14 @@ class nyasIdentification3():
                 segmentsArray = np.append(segmentsArray,segments,axis=0)
                 labelsArray = np.append(labelsArray, labels, axis=0)
 
-        matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray)
+        """matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray)
 
         #filling the other half of matrix
         for i in xrange(matchMTX.shape[0]):
             for j in range(i):
                 matchMTX[i,j]=matchMTX[j,i]
-        #np.save('matchMTX',matchMTX)
+        #np.save('matchMTX',matchMTX)"""
+        matchMTX = np.load('matchMTX_all.npy')
         accuracy, decArray = self.evalKnnDtw(matchMTX, labelsArray)
 
         return accuracy, decArray
