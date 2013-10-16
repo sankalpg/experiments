@@ -343,3 +343,31 @@ class nyasIdentification3():
 
         return mlObj.overallAccuracy, mlObj.decArray
 
+class classificationExperiment():
+
+    expParam = {}
+
+    def __init__(self, nExp = 10, typeEval = ("kFoldCrossVal",10)):
+
+        self.expParam['nExp'] = nExp
+        self.expParam['typeEval'] = typeEval
+
+    def featureSelectionManual(self):
+
+        arffFile = 'Features_All.arff'
+        result_dir = 'local_context_features'
+        logfile = 'local_context_features.txt'
+
+        classifierSet = [('svm','default'), ('tree','default'),('kNN','default'),('nbMulti','default'),('logReg','default'),('randC','default')]
+
+        local = ['length', 'mean','varPeakDist', 'tCentroid', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp']
+        context= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length']
+
+        try_local = [local[:i] for i in range(1,len(local)+1)]
+        try_context = [context[:i] for i in range(1,len(context)+1)]
+        local_context = local[:4] + context[:5]
+        try_local_context = [local_context[:i] for i in range(1,len(local_context)+1)]
+        mlObj = mlw.advanceExperimenter(arffFile=arffFile)
+        mlObj.runCompoundExperiment(try_local_context,classifierSet,self.expParam, result_dir, logfile)
+
+
