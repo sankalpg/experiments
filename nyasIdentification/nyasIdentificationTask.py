@@ -153,7 +153,7 @@ class nyasIdentification1():
             if method =="own":
                 segments = pPbj.segmentPitch()
             elif method =="keogh":
-                pass
+                segments = pPbj.segmentPitchKeogh(10)
             else:
                 print "Please specify a valid method name"
 
