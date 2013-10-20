@@ -276,7 +276,7 @@ class nyasIdentification3():
     def segmentation(self):
         pass
 
-    def extractFeatures(self, root_dir, segmentFileExt):
+    def extractFeatures(self, root_dir, segmentFileExt, featureType):
 
         if isinstance(root_dir,list):
             filenames = root_dir
@@ -318,7 +318,7 @@ class nyasIdentification3():
                 segmentsArray = np.append(segmentsArray,segments,axis=0)
                 labelsArray = np.append(labelsArray, labels, axis=0)
 
-        matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray, "local")
+        matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray, featureType)
 
         #filling the other half of matrix
         for i in xrange(matchMTX.shape[0]):
