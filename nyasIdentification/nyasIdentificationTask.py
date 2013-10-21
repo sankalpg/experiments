@@ -151,14 +151,14 @@ class nyasIdentification1():
             pPbj.PitchHz2Cents()
 
             if method =="own":
-                segments = pPbj.segmentPitch()
+                segmentsAll, segmentsNyas = pPbj.segmentPitch()
             elif method =="keogh":
-                segments = pPbj.segmentPitchKeogh(10)
+                segmentsAll = pPbj.segmentPitchKeogh(10)
             else:
                 print "Please specify a valid method name"
 
             #generating segmentation file
-            np.savetxt(file + segmentFileExt, segments,delimiter='\t')
+            np.savetxt(file + segmentFileExt, segmentsAll,delimiter='\t')
 
     def extractFeatures(self, root_dir, segmentFileExt, featureFileName):
 
