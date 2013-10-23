@@ -153,7 +153,7 @@ class nyasIdentification1():
             if method =="own":
                 segmentsAll, segmentsNyas = pPbj.segmentPitch()
             elif method =="keogh":
-                segmentsAll = pPbj.segmentPitchKeogh(10)
+                segmentsAll = pPbj.segmentPitchKeogh(75)
             else:
                 print "Please specify a valid method name"
 
@@ -324,7 +324,7 @@ class nyasIdentification3():
         for i in xrange(matchMTX.shape[0]):
             for j in range(i):
                 matchMTX[i,j]=matchMTX[j,i]
-        #np.save('matchMTX',matchMTX)
+        np.save('matchMTX' + featureType+segmentFileExt, matchMTX)
         #matchMTX = np.load('matchMTX_all.npy')
         accuracy, decArray = self.evalKnnDtw(matchMTX, labelsArray)
 
@@ -354,20 +354,20 @@ class classificationExperiment():
 
     def featureSelectionManual(self):
 
-        arffFile = 'Features_All.arff'
-        result_dir = 'local_context'
-        logfile = 'local_context.txt'
+        arffFile = 'KeoghSegAllFeat.arff'
+        result_dir = 'context'
+        logfile = 'context.txt'
 
         classifierSet = [('svm','default'), ('tree','default'),('kNN','default'),('nbMulti','default'),('logReg','default'),('randC','default')]
 
-        local = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length']
-        context= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length']
+        local = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
+        context= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
 
         try_local = [local[:i] for i in range(1,len(local)+1)]
         try_context = [context[:i] for i in range(1,len(context)+1)]
         local_context = local+ context
         try_local_context = [local_context[:i] for i in range(1,len(local_context)+1)]
         mlObj = mlw.advanceExperimenter(arffFile=arffFile)
-        mlObj.runCompoundExperiment(try_local_context,classifierSet,self.expParam, result_dir, logfile)
+        mlObj.runCompoundExperiment([local_context],classifierSet,self.expParam, result_dir, logfile)
 
 
