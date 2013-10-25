@@ -80,7 +80,43 @@ class nyasAnnotations():
                         nyasSegments.append([float(line[0]), float(line[1]),'c'])
 
             #combining the "c" labelled segments to their neighboring nyas segments
-            popList = []
+            thereisC=1
+            while thereisC ==1:
+                thereisC=0
+                for i,segment in enumerate(nyasSegments):
+                    if segment[2] =="c":
+                        try:
+                            if abs(nyasSegments[i-1][1]-segment[0])<.02 and abs(nyasSegments[i+1][0]-segment[1])<.02:     #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                                nyasSegments[i-1][1] = nyasSegments[i+1][1]
+                                nyasSegments.pop(i+1)
+                                nyasSegments.pop(i)
+                                thereisC=1
+                                break
+                        except:
+                                print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+                        try:
+                            if abs(nyasSegments[i-1][1]-segment[0])<.02:     #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                                nyasSegments[i-1][1] = segment[1]
+                                nyasSegments.pop(i)
+                                thereisC=1
+                                break
+                        except:
+                                print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+                        try:
+                            if abs(nyasSegments[i+1][0]-segment[1])<.02:     #if the diff in time is less than 20 ms which it will, just for a safety purpose
+                                nyasSegments[i+1][0] = segment[0]
+                                nyasSegments.pop(i)
+                                thereisC=1
+                                break
+                        except:
+                                print "This is a rare scenario, check the cause. Details are: C segment starting %f"%segment[0]
+
+
+
+
+            """popList = []
             for i,segment in enumerate(nyasSegments):
                 if segment[2] =="c":
                     cAlreadyCombined=0
@@ -114,6 +150,7 @@ class nyasAnnotations():
             #removing the combined segments
             for i in reversed(popList):
                 nyasSegments.pop(i)
+            """
 
             fid = open(file+self.nyasAnnotationFileSuffix,'w')
 
@@ -201,7 +238,7 @@ class nyasIdentification():
         foldInfo={}
         segment_index_pointer=0
         for filename in filenames:
-            foldInfo[filename]=[]
+            foldInfo[filename]={}
 
             fname, ext = os.path.splitext(filename)
 
@@ -209,6 +246,11 @@ class nyasIdentification():
             nyasSeg = np.genfromtxt(nfile)  #this file contains only the information about valid nyas segments.
             nyasSeg = nyasSeg[:,:2]
             nyasSeg = nyasSeg.astype(np.float)
+
+            #because in the annotations there were two tired for annotation, all the nyas segments in thsi files might not be in order
+            #sorting nyas annotations
+            sort_arg = np.argsort(nyasSeg[:,0])
+            nyasSeg = nyasSeg[sort_arg,:]
 
             #initializing an object for pitch proessing
             nyasObj = MS.NyasProcessing()
@@ -222,15 +264,23 @@ class nyasIdentification():
             n_folds_current = np.floor((nyasSeg.shape[0]/min_Num_Nyas)).astype(np.int16)
             remainder = nyasSeg.shape[0] - n_folds_current*min_Num_Nyas
             str_fold=0
+            foldInfo[filename]['guessSeg']=[]
+            foldInfo[filename]['trueSeg']=[]
             for i in range(n_folds_current):
                 ind_fold_more = np.where(segments[:,0]>=str_fold)[0]
                 if not (i == n_folds_current-1):
                     ind_fold_less = np.where(segments[:,0]<nyasSeg[(i*min_Num_Nyas) +min_Num_Nyas-1,1])[0]
                     ind_fold = np.array(list(set(list(ind_fold_more)) & set(list(ind_fold_less))))
+                    foldInfo[filename]['trueSeg'].append(nyasSeg[i*min_Num_Nyas:i*min_Num_Nyas+min_Num_Nyas,:].tolist())
+
                 else:
                     ind_fold = ind_fold_more
+                    foldInfo[filename]['trueSeg'].append(nyasSeg[i*min_Num_Nyas:,:].tolist())
 
-                foldInfo[filename].append([segments[ind_fold,:].tolist(), (ind_fold+segment_index_pointer).tolist()])
+                if ind_fold.shape[0] == 0:
+                    print "Something is terribly wrong"
+
+                foldInfo[filename]['guessSeg'].append([segments[ind_fold,:].tolist(), (ind_fold+segment_index_pointer).tolist()])
 
                 str_fold = nyasSeg[(i*min_Num_Nyas) +min_Num_Nyas-1,1]
 
@@ -244,26 +294,173 @@ class nyasIdentification():
         fid.close()
 
 
-    def performTrainTest(self, featureFIle, foldINfoFIle, featureType = 'local', classifierInfo = ('svm','default')):
+    def performTrainTest(self, featureFIle, foldINfoFIle, featureType = 'local', classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1):
 
+        localFeatures = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
+        contextFeatures= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
+
+        if featureType == 'local':
+            finalFeatureSet = localFeatures
+        elif featureType == 'context':
+            finalFeatureSet = contextFeatures
+        elif featureType == 'local_context':
+            finalFeatureSet =  local + contextFeatures
+        else:
+            print "Please select a valid feature set"
+            return False
 
         mlObj = mlw.experimenter()
-        mlObj.readArffFile(arffFile=arffFile)
+        mlObj.readArffFile(featureFIle)
 
+        mlObj.setExperimentParams(classifier = classifierInfo)
 
-        indicesFile = []
+        #feature selection step
+        mlObj.featureSelection(features2Use=finalFeatureSet)
+
+        #feature normalization
+        mlObj.normalizeFeatures()
+
+        total_features = mlObj.features.shape[0]
+        total_indices = range(total_features)
+
         foldInfo = json.load(open(foldINfoFIle))
 
-        for key in foldInfo.keys():
-            for singleFileInfo in foldInfo[key]:
+        self.accuracy=[]
+        self.stats=[]
+        fold_cnt=0
 
-                for fold in singleFileInfo:
-                    indicesFile.append(fold[1])
+        for key, val in foldInfo.items():
+            indicesFile = []
+            for singleFileInfo in val['guessSeg']:
+                indicesFile.extend(singleFileInfo[1])
+
+            train_indices = list(set(total_indices) - set(indicesFile))
+
+            for i,singleFileInfo in enumerate(val['guessSeg']):
+                test_ind = singleFileInfo[1]
+
+                prediction = mlObj.performTrainTest(mlObj.featuresSelected[train_indices,:], mlObj.classLabelsInt[train_indices], mlObj.featuresSelected[test_ind,:])
+
+                resultPFold = np.where(prediction==mlObj.classLabelsInt[test_ind])[0]
+                accuracy = float(resultPFold.shape[0])/float(len(test_ind))
+                self.accuracy.append(accuracy)
+
+                #computing affective boundaries generated by overall classification using class label information
+                predictedClasses = np.array(mlObj.cNames)[prediction]
+                predicted_nyas_ind = np.where(predictedClasses=='nyas')[0]
+                pred_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_nyas_ind].tolist()
+
+                if mergeGuessNyasSegments:
+                    #merge nyas segments if they are close
+                    mergeFlag=1
+                    while mergeFlag ==1:
+                        mergeFlag=0
+                        for k in range(len(pred_nyas_segments)-1):
+                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<.02:
+                                pred_nyas_segments[k][1] = pred_nyas_segments[k+1][1]
+                                pred_nyas_segments.pop(k+1)
+                                mergeFlag =1
+                                break
+
+                pred_nyas_segments = np.array(pred_nyas_segments)
+                guessboundaries = np.append(pred_nyas_segments[:,0],pred_nyas_segments[:,1])
+                guessboundaries = list(set(guessboundaries.tolist()))
+                guessboundaries = np.sort(guessboundaries).tolist()
 
 
-        out = np.sort(indicesFile)
-        len(out)
-        print max(abs(out[1:]-out[:-1])), min(abs(out[1:]-out[:-1]))
+                gt_nyas_segments = val['trueSeg'][i]
+                gt_nyas_segments = np.array(gt_nyas_segments)
+                trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                trueboundaries = list(set(trueboundaries.tolist()))
+                trueboundaries = np.sort(trueboundaries).tolist()
+
+                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries)
+
+                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
+
+                self.stats.append([ boundP, boundR, boundF, overlapP, overlapR, overlapF, accuracy])
+                fold_cnt+=1
+
+        self.overallAccuracy = np.mean(self.accuracy)
+
+    def calculateBoundaryPRF(self, resBoundaries, gtBoundaries):
+
+        THRESHOLD_FINE=0.1
+
+
+        # Evaluate boundaries (Precision)
+        fineMatches=0
+        for i in range(0,len(resBoundaries)):
+            for j in range(0,len(gtBoundaries)):
+                if abs(gtBoundaries[j]-resBoundaries[i])<THRESHOLD_FINE:
+                    fineMatches+=1
+                    break
+        fP=float(fineMatches)/float(len(resBoundaries))
+        # Evaluate boundaries (guess to true)
+        gtt=[]
+        for i in range(0,len(resBoundaries)):
+            minTime=10000000
+            for j in range(0,len(gtBoundaries)):
+                dif=abs(gtBoundaries[j]-resBoundaries[i])
+                if dif<minTime: minTime=dif
+            gtt.append(minTime)
+        # Evaluate boundaries (Recall)
+        fineMatches=0
+        for i in range(0,len(gtBoundaries)):
+            for j in range(0,len(resBoundaries)):
+                if abs(gtBoundaries[i]-resBoundaries[j])<THRESHOLD_FINE:
+                    fineMatches+=1
+                    break
+        fR=float(fineMatches)/float(len(gtBoundaries))
+        # Evaluate boundaries (true to guess)
+        ttg=[]
+        for i in range(0,len(gtBoundaries)):
+            minTime=10000000
+            for j in range(0,len(resBoundaries)):
+                dif=abs(gtBoundaries[i]-resBoundaries[j])
+                if dif<minTime: minTime=dif
+            ttg.append(minTime)
+        # Evaluate boundaries (F-measure)
+        if fP>0 or fR>0: fF=2.0*fP*fR/(fP+fR)
+        else: fF=0.0
+
+        return fP,fR,fF, np.median(gtt), np.median(ttg)
+
+    def calculateOverlapPRF(self, guessNyas, trueNyas):
+
+        RESOLUTION = 0.1
+
+        min_time = np.min([np.min(guessNyas),np.min(guessNyas)])
+        max_time = np.max([np.max(trueNyas),np.max(trueNyas)])
+
+        vals = np.arange(min_time, max_time,RESOLUTION)
+        vals = np.append(vals, RESOLUTION+ vals[-1])
+
+        guessNyas_flag = np.zeros(len(vals))
+        trueNyas_flag = np.zeros(len(vals))
+
+        for seg in guessNyas:
+            ind_str = np.argmin(abs(vals-seg[0]))
+            ind_end = np.argmin(abs(vals-seg[1]))
+            guessNyas_flag[ind_str:ind_end+1] = 1
+
+        for seg in trueNyas:
+            ind_str = np.argmin(abs(vals-seg[0]))
+            ind_end = np.argmin(abs(vals-seg[1]))
+            trueNyas_flag[ind_str:ind_end+1] = 1
+
+        N_ind_guess = np.where(guessNyas_flag==1)[0]
+        N_ind_true = np.where(trueNyas_flag==1)[0]
+
+        N_match_ind = list(set(N_ind_guess.tolist()) & set(N_ind_true.tolist()))
+
+        Precision = len(N_match_ind)/float(N_ind_guess.shape[0])
+        Recall = len(N_match_ind)/float(N_ind_true.shape[0])
+
+        if Precision>0 or Recall>0: Fmeas=2.0*Precision*Recall/(Precision+Recall)
+        else: Fmeas=0.0
+
+        return Precision, Recall, Fmeas
 
 
 class nyasIdentification2():
