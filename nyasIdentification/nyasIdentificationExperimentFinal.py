@@ -244,9 +244,26 @@ class nyasIdentification():
         fid.close()
 
 
-    def evalClassifiers(self):
+    def performTrainTest(self, featureFIle, foldINfoFIle, featureType = 'local', classifierInfo = ('svm','default')):
 
-        pass
+
+        mlObj = mlw.experimenter()
+        mlObj.readArffFile(arffFile=arffFile)
+
+
+        indicesFile = []
+        foldInfo = json.load(open(foldINfoFIle))
+
+        for key in foldInfo.keys():
+            for singleFileInfo in foldInfo[key]:
+
+                for fold in singleFileInfo:
+                    indicesFile.append(fold[1])
+
+
+        out = np.sort(indicesFile)
+        len(out)
+        print max(abs(out[1:]-out[:-1])), min(abs(out[1:]-out[:-1]))
 
 
 class nyasIdentification2():
