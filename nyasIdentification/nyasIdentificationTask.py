@@ -241,8 +241,8 @@ class nyasIdentification2():
                 segmentsArray = pitchSegments
                 labelsArray = labels
             else:
-                time_off = ph_obj.pCents.shape[0]
-                segments = pitchSegments + time_off
+                sample_off = pitchArray.shape[0]
+                segments = pitchSegments + sample_off
                 pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
                 segmentsArray = np.append(segmentsArray,segments,axis=0)
                 labelsArray = np.append(labelsArray, labels, axis=0)
@@ -312,8 +312,8 @@ class nyasIdentification3():
                 segmentsArray = pitchSegments
                 labelsArray = labels
             else:
-                time_off = ph_obj.pCents.shape[0]
-                segments = pitchSegments + time_off
+                sample_off = pitchArray.shape[0]
+                segments = pitchSegments + sample_off
                 pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
                 segmentsArray = np.append(segmentsArray,segments,axis=0)
                 labelsArray = np.append(labelsArray, labels, axis=0)
