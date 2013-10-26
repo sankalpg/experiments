@@ -206,7 +206,7 @@ class nyasIdentification():
             np.savetxt(file + segmentFileExt, segmentsAll,delimiter='\t')
 
 
-    def extractFeatures(self, root_dir, segmentFileExt, featureFileName, foldInformationFileName, category = 'features'):
+    def extractFeatures(self, root_dir, segmentFileExt, featureFileName, foldInformationFileName, category = 'features', segMthd = 'own'):
         """
         This function generates with features for each segment or computes DTW distances between segments. You have to give informaiton regarding which segmentation extension (which eventually is the segmentation logic) to use.
         And what should be the name of the output file and what is the name of the file in which you will store the information regarding indices of each fold, i.e. indices for training and testing of each fold.
@@ -254,7 +254,7 @@ class nyasIdentification():
 
             #initializing an object for pitch proessing
             nyasObj = MS.NyasProcessing()
-            segments, labels, features = nyasObj.NyasFeatureExtraction(fname + self.pitchFileExt, fname + self.tonicFileExt, fname + segmentFileExt, fname+ self.nyasAnnotationFileSuffix)
+            segments, labels, features = nyasObj.NyasFeatureExtraction(fname + self.pitchFileExt, fname + self.tonicFileExt, fname + segmentFileExt, fname+ self.nyasAnnotationFileSuffix,segMthod = segMthd)
             for i,label in enumerate(labels):
                 features[i]['type']=label
             aggLabels.extend(labels)
