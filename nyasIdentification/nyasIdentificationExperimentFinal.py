@@ -293,9 +293,9 @@ class nyasIdentification():
         json.dump(foldInfo,fid, indent=4)
         fid.close()
 
-    def performTrainTest(self, featureFIle, foldINfoFIle, featureType = 'local', classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1):
+    def performTrainTest(self, featureFIle, foldINfoFIle, finalFeatureSet, classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1):
 
-        localFeatures = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
+        """localFeatures = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
         contextFeatures= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
 
         if featureType == 'local':
@@ -307,6 +307,7 @@ class nyasIdentification():
         else:
             print "Please select a valid feature set"
             return False
+        """
 
         mlObj = mlw.experimenter()
         mlObj.readArffFile(featureFIle)
@@ -657,111 +658,44 @@ class nyasIdentification():
         json.dump(foldInfo,fid, indent=4)
         fid.close()
 
-class nyasIdentification3():
 
-    seedFileExt = ".wav"
-    tonicFileExt = ".tonic"
-    pitchFileExt = ".essentia.pitch"
-    nyasAnnotationFileSuffix = nyasAnnotationFileSuffix
-
-    def __init__(self, root_dir):
-        pass
-
-    def segmentation(self):
-        pass
-
-    def extractFeatures(self, root_dir, segmentFileExt, featureType):
-
-        if isinstance(root_dir,list):
-            filenames = root_dir
-        else:
-            filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
-
-        #initializing the nyas processing class object
-        nyasproc = MS.NyasProcessing()
-
-        pitchArray=np.array([])
-        segmentsArray = np.array([])
-        labelsArray = np.array([])
-
-        for i,filename in enumerate(filenames):
-            print "processing file %s "%filename
-            file, ext = os.path.splitext(filename)
-
-            ph_obj = MS.PitchProcessing(pitchfile = file + '.essentia.pitch', tonicfile = file +'.tonic')
-            ph_obj.PitchHz2Cents()
-
-            pitchSegments = np.loadtxt(file + segmentFileExt)
-
-            #Since all the segments are read, remove the trivial once which have mainly silence in them.
-            pitchSegments = nyasproc.removeSegmentsWithSilence(ph_obj.timepitch, ph_obj.phop,pitchSegments)
-
-
-            labels = np.array(nyasproc.obtainClassLabels(pitchSegments,file+nyasAnnotationFileSuffix, ph_obj.phop ,ph_obj.pCents.shape[0]))
-
-            pitchSegments = pitchSegments/ph_obj.phop
-
-            if i==0:
-                pitchArray = ph_obj.pCents
-                segmentsArray = pitchSegments
-                labelsArray = labels
-            else:
-                sample_off = pitchArray.shape[0]
-                segments = pitchSegments + sample_off
-                pitchArray = np.append(pitchArray, ph_obj.pCents,axis=0)
-                segmentsArray = np.append(segmentsArray,segments,axis=0)
-                labelsArray = np.append(labelsArray, labels, axis=0)
-
-        matchMTX = tss.computeMatchMatrix(pitchArray, segmentsArray, pitchArray, segmentsArray, featureType)
-
-        #filling the other half of matrix
-        for i in xrange(matchMTX.shape[0]):
-            for j in range(i):
-                matchMTX[i,j]=matchMTX[j,i]
-        np.save('matchMTX' + featureType+segmentFileExt, matchMTX)
-        #matchMTX = np.load('matchMTX_all.npy')
-        accuracy, decArray = self.evalKnnDtw(matchMTX, labelsArray)
-
-        return accuracy
-
-
-    def evalKnnDtw(self, matrix, labels):
-
-        mlObj = mlw.experimenter()
-
-        mlObj.setFeaturesAndClassLabels(matrix,labels)
-
-        mlObj.setExperimentParams(nExp = 10, typeEval = ("kFoldCrossVal",-1), nInstPerClass = -1, classifier = ('mYkNN',"default"))
-
-        mlObj.runExperiment()
-
-        return mlObj.overallAccuracy, mlObj.decArray
 
 class classificationExperiment():
 
     expParam = {}
 
-    def __init__(self, nExp = 10, typeEval = ("kFoldCrossVal",10)):
-
-        self.expParam['nExp'] = nExp
-        self.expParam['typeEval'] = typeEval
-
+    def __init__(self):
+        pass
     def featureSelectionManual(self):
 
-        arffFile = 'KeoghSegAllFeat.arff'
-        result_dir = 'context'
-        logfile = 'context.txt'
+        l1 = ['length']
+        l2 = ['isflat']
+        l3 = ['variance']
+        l4 = l1+l2+l3
+        l5 = l4 + ['mean']
+        l6 = l5 + ['varPeakDist']
+        l7 = l6 + ['meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid']
 
-        classifierSet = [('svm','default'), ('tree','default'),('kNN','default'),('nbMulti','default'),('logReg','default'),('randC','default')]
+        local_featureSets = [l1,l2,l3,l4,l5,l6,l7]
 
-        local = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
-        context= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
+        c1 = ['rel_len_longest']
+        c2 = ['prev_variance']
+        c3 = ['post_sil_dur']
+        c4 = [c1 + c2 + c3]
+        c5 = c4 + ['prev_length']
+        c6 = c5 + ['prev_isflat']
+        c7 = c6 + ['pre_sil_dur']
+        c8 = c7 + ['rel_len_BP', 'rel_len_pre_segment', 'rel_len_post_segment', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp']
 
-        try_local = [local[:i] for i in range(1,len(local)+1)]
-        try_context = [context[:i] for i in range(1,len(context)+1)]
-        local_context = local+ context
-        try_local_context = [local_context[:i] for i in range(1,len(local_context)+1)]
-        mlObj = mlw.advanceExperimenter(arffFile=arffFile)
-        mlObj.runCompoundExperiment([local_context],classifierSet,self.expParam, result_dir, logfile)
+        lc1 = l4 + c4
+        lc2 = l7 + c8
 
+        featureSets = [l1,l2,l3,l4,l5,l6,l7,c1,c2,c3,c4,c5,c6,c7,c8,lc1,lc2]
 
+        classifierSet = [('svm',{'class_weight':auto}), ('tree',{}), ('kNN','default'),('NB','default'),('logReg','default'),('Rand','default')]
+
+        fid= open('ClassificationExperimentLogs.txt','w')
+
+        for feature in featureSets:
+            for classifier in classifierSet:
+                
