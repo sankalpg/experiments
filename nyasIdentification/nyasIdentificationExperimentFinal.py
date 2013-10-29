@@ -1,6 +1,6 @@
 
 import numpy as np
-import sys,os, json, pickle
+import sys,os, json, pickle, shutil
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/MelodySegmentation/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/Batch_Processing/'))
@@ -363,14 +363,16 @@ class nyasIdentification():
                                 break
 
                 pred_nyas_segments = np.array(pred_nyas_segments)
-                guessboundaries = np.append(pred_nyas_segments[:,0],pred_nyas_segments[:,1])
+                #guessboundaries = np.append(pred_nyas_segments[:,0],pred_nyas_segments[:,1])   #will be a problem when its null
+                guessboundaries = np.reshape(pred_nyas_segments,pred_nyas_segments.size)
                 guessboundaries = list(set(guessboundaries.tolist()))
                 guessboundaries = np.sort(guessboundaries).tolist()
 
 
                 gt_nyas_segments = val['trueSeg'][i]
                 gt_nyas_segments = np.array(gt_nyas_segments)
-                trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                #trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                trueboundaries = np.reshape(gt_nyas_segments,gt_nyas_segments.size)
                 trueboundaries = list(set(trueboundaries.tolist()))
                 trueboundaries = np.sort(trueboundaries).tolist()
 
@@ -378,7 +380,7 @@ class nyasIdentification():
 
                 overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
 
-                self.stats.append([ boundP, boundR, boundF, overlapP, overlapR, overlapF, accuracy])
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
                 fold_cnt+=1
 
         return self.stats
@@ -450,14 +452,16 @@ class nyasIdentification():
                                 break
 
                 pred_nyas_segments = np.array(pred_nyas_segments)
-                guessboundaries = np.append(pred_nyas_segments[:,0],pred_nyas_segments[:,1])
+                #guessboundaries = np.append(pred_nyas_segments[:,0],pred_nyas_segments[:,1])   #will be a problem when its null
+                guessboundaries = np.reshape(pred_nyas_segments,pred_nyas_segments.size)
                 guessboundaries = list(set(guessboundaries.tolist()))
                 guessboundaries = np.sort(guessboundaries).tolist()
 
 
                 gt_nyas_segments = val['trueSeg'][i]
                 gt_nyas_segments = np.array(gt_nyas_segments)
-                trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                #trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                trueboundaries = np.reshape(gt_nyas_segments,gt_nyas_segments.size)
                 trueboundaries = list(set(trueboundaries.tolist()))
                 trueboundaries = np.sort(trueboundaries).tolist()
 
@@ -465,7 +469,7 @@ class nyasIdentification():
 
                 overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
 
-                self.stats.append([ boundP, boundR, boundF, overlapP, overlapR, overlapF, accuracy])
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
                 fold_cnt+=1
 
         return self.stats
@@ -475,6 +479,8 @@ class nyasIdentification():
 
         THRESHOLD_FINE=0.1
 
+        if len(resBoundaries)==0:
+            return 0,0,0,0,0
 
         # Evaluate boundaries (Precision)
         fineMatches=0
@@ -518,10 +524,17 @@ class nyasIdentification():
 
         RESOLUTION = 0.1
 
+        if len(guessNyas)==0:
+            return 0,0,0
+
         min_time = np.min([np.min(guessNyas),np.min(guessNyas)])
         max_time = np.max([np.max(trueNyas),np.max(trueNyas)])
 
         vals = np.arange(min_time, max_time,RESOLUTION)
+
+        if vals.size==0:
+            return 0,0,0
+
         vals = np.append(vals, RESOLUTION+ vals[-1])
 
         guessNyas_flag = np.zeros(len(vals))
@@ -676,12 +689,10 @@ class classificationExperiment():
         l6 = l5 + ['varPeakDist']
         l7 = l6 + ['meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid']
 
-        local_featureSets = [l1,l2,l3,l4,l5,l6,l7]
-
         c1 = ['rel_len_longest']
         c2 = ['prev_variance']
         c3 = ['post_sil_dur']
-        c4 = [c1 + c2 + c3]
+        c4 = c1 + c2 + c3
         c5 = c4 + ['prev_length']
         c6 = c5 + ['prev_isflat']
         c7 = c6 + ['pre_sil_dur']
@@ -690,12 +701,66 @@ class classificationExperiment():
         lc1 = l4 + c4
         lc2 = l7 + c8
 
-        featureSets = [l1,l2,l3,l4,l5,l6,l7,c1,c2,c3,c4,c5,c6,c7,c8,lc1,lc2]
+        featureSets = [l1,l2,l3,l4,l7,c1,c2,c3,c4,c8,lc1,lc2]
+        #featureSets = [l1,l2,l3,l4,l5,l6,l7,c1,c2,c3,c4,c5,c6,c7,c8,lc1,lc2]
 
-        classifierSet = [('svm',{'class_weight':auto}), ('tree',{}), ('kNN','default'),('NB','default'),('logReg','default'),('Rand','default')]
+        classifierSets = [('svm',{'class_weight':'auto'}), ('tree',{'min_samples_split':10}), ('kNN','default'),('nbMulti',{'fit_prior':False}),('logReg',{'class_weight':'auto'}),('randC','default')]
 
-        fid= open('ClassificationExperimentLogs.txt','w')
+        featureFiles = ['OwnSegmentAllFeaturesFullDataset', 'KeoghSegment75AllFeaturesFullDataset', 'KeoghSegment50AllFeaturesFullDataset','KeoghSegment25AllFeaturesFullDataset','KeoghSegment10AllFeaturesFullDataset']
 
-        for feature in featureSets:
-            for classifier in classifierSet:
-                
+
+        out_dir = 'experimentResults'
+
+        if os.path.exists(out_dir):
+            shutil.rmtree(out_dir)
+        os.makedirs(out_dir)
+
+
+
+        logfile= open(out_dir+'/ClassificationExperimentLogs.txt','ab')
+
+
+        logfile.write("This is the mapping of feature sets , classifier sets and feature files:\n")
+        for i, features in enumerate(featureSets):
+            logfile.write(("feat"+str(i)+":"+ "\t%s"*len(features)+"\n")%tuple(features))
+        for i, classifier in enumerate(classifierSets):
+            logfile.write(("class"+str(i)+":"+ "\t%s\n")%classifier[0])
+        for i, featfile in enumerate(featureFiles):
+            logfile.write(("file"+str(i)+":"+ "\t%s\n")%featfile)
+
+        logfile.write("\n")
+        logfile.write("\n")
+        logfile.write("\n")
+        logfile.write("total number of experiments are %d\n"%(len(featureSets)*len(classifierSets)*len(featureFiles)))
+        logfile.write("\n")
+        logfile.write("\n")
+        logfile.write("\n")
+
+        nyasExp = nyasIdentification('/media/Data/Dropbox/Kaustuv_Annotations/DatasetNyas/')
+        exp_index=0
+        logfile.close()
+        for file_cnt, featureFile in enumerate(featureFiles):
+            logfile= open(out_dir+'/ClassificationExperimentLogs.txt','ab')
+            logfile.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+            logfile.write("\n")
+            logfile.write("\n")
+            logfile.write("\n")
+            logfile.close()
+            for feature_cnt, feature in enumerate(featureSets):
+                for class_cnt, classifier in enumerate(classifierSets):
+                    print featureFile, feature, classifier
+                    print file_cnt, feature_cnt, class_cnt
+                    logfile= open(out_dir+'/ClassificationExperimentLogs.txt','ab')
+                    logfile.write("file"+str(file_cnt)+"\tfeat"+str(feature_cnt)+"\tclass"+str(class_cnt)+"\tExpIndex"+str(exp_index)+"\n")
+
+                    nyasExp.performTrainTest(featureFile+'.arff', featureFile+'.json', feature, classifierInfo=classifier)
+
+                    fid = open(out_dir+'/ExpData'+str(exp_index)+'.json','w')
+                    json.dump(nyasExp.stats,fid, indent=4)
+                    fid.close()
+
+                    out = np.mean(np.array(nyasExp.stats),axis=0)
+                    logfile.write(("%f\t"*len(out)+"\n")%tuple(out))
+
+                    exp_index+=1
+                    logfile.close()
