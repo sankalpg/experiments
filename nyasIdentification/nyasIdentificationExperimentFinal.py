@@ -293,7 +293,7 @@ class nyasIdentification():
         json.dump(foldInfo,fid, indent=4)
         fid.close()
 
-    def performTrainTest(self, featureFIle, foldINfoFIle, finalFeatureSet, classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1):
+    def performTrainTest(self, featureFIle, foldINfoFIle, finalFeatureSet, THRESHOLD_FINE, classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1, DoArtistRagFiltering=1):
 
         """localFeatures = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
         contextFeatures= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
@@ -331,10 +331,15 @@ class nyasIdentification():
 
         for key, val in foldInfo.items():
             indicesFile = []
+            #calculating indices of the same file
             for singleFileInfo in val['guessSeg']:
                 indicesFile.extend(singleFileInfo[1])
+            #calculating indices of the same artist and rag
+            ind_artist_rag=[]
+            if DoArtistRagFiltering:
+                ind_artist_rag = self.computeSameArtistRagIndices(foldInfo, key)
 
-            train_indices = list(set(total_indices) - set(indicesFile))
+            train_indices = list(set(total_indices) - (set(indicesFile) | set(ind_artist_rag)))
 
             for i,singleFileInfo in enumerate(val['guessSeg']):
                 test_ind = singleFileInfo[1]
@@ -376,7 +381,7 @@ class nyasIdentification():
                 trueboundaries = list(set(trueboundaries.tolist()))
                 trueboundaries = np.sort(trueboundaries).tolist()
 
-                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries)
+                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
                 overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
 
@@ -385,8 +390,24 @@ class nyasIdentification():
 
         return self.stats
 
+    def computeSameArtistRagIndices(self, foldInfo, curr_key):
 
-    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, mergeGuessNyasSegments = 1):
+        #open info file
+        artistRagInfo = json.load(open('artist_rag_mapping.json'))
+
+        curr_rag = artistRagInfo[curr_key][0]
+        curr_artist = artistRagInfo[curr_key][1]
+
+        ind_same_artist_rags=[]
+        for key in foldInfo.keys():
+            if artistRagInfo[curr_key][0]==artistRagInfo[key][0] or artistRagInfo[curr_key][1]==artistRagInfo[key][1]:
+                for folds in foldInfo[key]['guessSeg']:
+                    ind_same_artist_rags.extend(folds[1])
+
+        return ind_same_artist_rags
+
+
+    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, THRESHOLD_FINE, mergeGuessNyasSegments = 1):
 
 
         foldInfo = json.load(open(foldINfoFile))
@@ -465,7 +486,7 @@ class nyasIdentification():
                 trueboundaries = list(set(trueboundaries.tolist()))
                 trueboundaries = np.sort(trueboundaries).tolist()
 
-                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries)
+                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
                 overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
 
@@ -474,10 +495,107 @@ class nyasIdentification():
 
         return self.stats
 
+    def randomBaselineExperiments(self, root_dir, THRESHOLD_FINE, baselineMethod=1):
 
-    def calculateBoundaryPRF(self, resBoundaries, gtBoundaries):
 
-        THRESHOLD_FINE=0.1
+        self.accuracy=[]
+        self.stats=[]
+        UNIFORM_BOUNDARY_GAP = 0.1 #seconds
+
+        #obtaining all the names of the files in the root directory for processing. Based on a seeffile extension
+        filenames = BP.GetFileNamesInDir(root_dir,filter=self.seedFileExt)
+
+        #computing fraction of dutation of songs which has nyas as a tag
+        total_dur=0
+        nyas_dur =0
+        inter_boundary_interval=[]
+        for filename in filenames:
+            fname, ext = os.path.splitext(filename)
+
+            phObj =  MS.PitchProcessing(pitchfile = fname+ self.pitchFileExt, tonicfile=fname + self.tonicFileExt)
+            hopsize = phObj.phop
+            time_last = phObj.timepitch.shape[0]*hopsize
+            total_dur+=time_last
+
+            nfile = fname + self.nyasAnnotationFileSuffix
+            nyasSeg = np.genfromtxt(nfile)  #this file contains only the information about valid nyas segments.
+            nyasSeg = nyasSeg[:,:2]
+            nyasSeg = nyasSeg.astype(np.float)
+
+            for seg in nyasSeg:
+                nyas_dur+=seg[1]-seg[0]
+
+
+            trueboundaries = np.reshape(nyasSeg,nyasSeg.size)
+            trueboundaries = list(set(trueboundaries.tolist()))
+            trueboundaries = np.sort(trueboundaries).tolist()
+
+            for i,val in enumerate(trueboundaries[:-1]):
+                inter_boundary_interval.append(trueboundaries[i+1]-trueboundaries[i])
+
+        np.random.shuffle(inter_boundary_interval) # this store the inter boundary intervals. We can randomly draw samples from this to obtain inter boundary differences
+        nyas_prob = (float(nyas_dur)/float(total_dur))
+        print "fraction of duration which is nyas is :%f\n"%nyas_prob
+
+
+        for filename in filenames:
+
+            fname, ext = os.path.splitext(filename)
+
+            phObj =  MS.PitchProcessing(pitchfile = fname+ self.pitchFileExt, tonicfile=fname + self.tonicFileExt)
+            hopsize = phObj.phop
+
+            time_last = phObj.timepitch.shape[0]*hopsize
+
+            nfile = fname + self.nyasAnnotationFileSuffix
+            nyasSeg = np.genfromtxt(nfile)  #this file contains only the information about valid nyas segments.
+            nyasSeg = nyasSeg[:,:2]
+            nyasSeg = nyasSeg.astype(np.float)
+
+            #because in the annotations there were two tired for annotation, all the nyas segments in thsi files might not be in order
+            #sorting nyas annotations
+            sort_arg = np.argsort(nyasSeg[:,0])
+            nyasSeg = nyasSeg[sort_arg,:]
+
+            trueboundaries = np.reshape(nyasSeg,nyasSeg.size)
+            trueboundaries = list(set(trueboundaries.tolist()))
+            trueboundaries = np.sort(trueboundaries).tolist()
+
+            if baselineMethod==2:
+                boundaries_random = np.arange(0,time_last,UNIFORM_BOUNDARY_GAP)
+            elif baselineMethod==1:
+                boundaries_random=[]
+                last_boundary_time =0
+                while last_boundary_time <=time_last:
+                    boundaries_random.append(last_boundary_time)
+                    last_boundary_time += inter_boundary_interval[np.random.randint(len(inter_boundary_interval))]
+            elif baselineMethod==3:
+                boundaries_random = trueboundaries
+
+            boundaries_random = np.array(boundaries_random)
+            guessboundaries = np.reshape(boundaries_random,boundaries_random.size)
+            guessboundaries = list(set(guessboundaries.tolist()))
+            guessboundaries = np.sort(guessboundaries).tolist()
+
+            boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
+
+            ###classifying boundaries with the probababity of nyas segments computed earlier
+            guess_nyas_segments = []
+            for i,boundary in enumerate(boundaries_random[:-1]):
+                rand_num = np.random.rand()
+                if rand_num<=nyas_prob:
+                    guess_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
+
+            overlapP, overlapR, overlapF = self.calculateOverlapPRF(guess_nyas_segments, nyasSeg)
+
+            self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF])
+
+        return self.stats
+
+
+    def calculateBoundaryPRF(self, resBoundaries, gtBoundaries, THRESHOLD_FINE):
+
+        #THRESHOLD_FINE=0.1
 
         if len(resBoundaries)==0:
             return 0,0,0,0,0
@@ -679,7 +797,7 @@ class classificationExperiment():
 
     def __init__(self):
         pass
-    def featureSelectionManual(self):
+    def featureSelectionManual(self, THRESHOLD_FINE):
 
         l1 = ['length']
         l2 = ['isflat']
@@ -704,12 +822,12 @@ class classificationExperiment():
         featureSets = [l1,l2,l3,l4,l7,c1,c2,c3,c4,c8,lc1,lc2]
         #featureSets = [l1,l2,l3,l4,l5,l6,l7,c1,c2,c3,c4,c5,c6,c7,c8,lc1,lc2]
 
-        classifierSets = [('svm',{'class_weight':'auto'}), ('tree',{'min_samples_split':10}), ('kNN','default'),('nbMulti',{'fit_prior':False}),('logReg',{'class_weight':'auto'}),('randC','default')]
+        classifierSets = [('tree',{'min_samples_split':10}), ('kNN','default'),('nbMulti',{'fit_prior':False}),('logReg',{'class_weight':'auto'}),('svm',{'class_weight':'auto'}),('randC','default')]
 
         featureFiles = ['OwnSegmentAllFeaturesFullDataset', 'KeoghSegment75AllFeaturesFullDataset', 'KeoghSegment50AllFeaturesFullDataset','KeoghSegment25AllFeaturesFullDataset','KeoghSegment10AllFeaturesFullDataset']
 
 
-        out_dir = 'experimentResults'
+        out_dir = 'experimentResults_WITH_ARTIST_RAG_FILTERING_'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
 
         if os.path.exists(out_dir):
             shutil.rmtree(out_dir)
@@ -753,7 +871,7 @@ class classificationExperiment():
                     logfile= open(out_dir+'/ClassificationExperimentLogs.txt','ab')
                     logfile.write("file"+str(file_cnt)+"\tfeat"+str(feature_cnt)+"\tclass"+str(class_cnt)+"\tExpIndex"+str(exp_index)+"\n")
 
-                    nyasExp.performTrainTest(featureFile+'.arff', featureFile+'.json', feature, classifierInfo=classifier)
+                    nyasExp.performTrainTest(featureFile+'.arff', featureFile+'.json', feature, THRESHOLD_FINE, classifierInfo=classifier, DoArtistRagFiltering=1)
 
                     fid = open(out_dir+'/ExpData'+str(exp_index)+'.json','w')
                     json.dump(nyasExp.stats,fid, indent=4)
@@ -764,3 +882,20 @@ class classificationExperiment():
 
                     exp_index+=1
                     logfile.close()
+
+
+    def computeNyasStatistics(self, FoldInfoFile):
+
+        Info = json.load(open(FoldInfoFile))
+
+        nyas_seg = []
+        for key in Info:
+            for fold in Info[key]['trueSeg']:
+                nyas_seg.extend(fold)
+
+        dur_Arr = []
+        for nyas in nyas_seg:
+            dur_Arr.append(nyas[1]-nyas[0])
+
+
+        return np.sort(dur_Arr), (np.min(dur_Arr), np.max(dur_Arr), np.mean(dur_Arr), np.median(dur_Arr), np.var(dur_Arr))
