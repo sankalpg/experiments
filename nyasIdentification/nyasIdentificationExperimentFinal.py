@@ -295,7 +295,7 @@ class nyasIdentification():
         json.dump(foldInfo,fid, indent=4)
         fid.close()
 
-    def performTrainTest(self, featureFIle, foldINfoFIle, finalFeatureSet, THRESHOLD_FINE, classifierInfo = ('svm','default'), mergeGuessNyasSegments = 1, DoArtistRagFiltering=1):
+    def performTrainTest(self, featureFIle, foldINfoFIle, finalFeatureSet, THRESHOLD_FINE, classifierInfo = ('svm','default'), mergeSegments = 1, DoArtistRagFiltering=1):
 
         """localFeatures = ['mean','varPeakDist', 'variance', 'meanPeakDist', 'meanPeakAmp', 'varPeakAmp','tCentroid', 'length', 'isflat']
         contextFeatures= ['post_sil_dur', 'rel_len_longest', 'rel_len_pre_segment', 'rel_len_post_segment', 'rel_len_BP', 'pre_sil_dur', 'prev_variance', 'prev_mean', 'prev_tCentroid', 'prev_meanPeakDist', 'prev_varPeakDist', 'prev_meanPeakAmp', 'prev_varPeakAmp', 'prev_length', 'prev_isflat']
@@ -336,6 +336,25 @@ class nyasIdentification():
             #calculating indices of the same file
             for singleFileInfo in val['guessSeg']:
                 indicesFile.extend(singleFileInfo[1])
+
+            #3# computing silence segments in order to remove these from evaluation
+            fname, ext = os.path.splitext(key)
+            fname = fname.replace('/media/Data/Dropbox/','') # because the fold file was generated when dataset was at other location, just a quick fix
+            phObj = MS.PitchProcessing(pitchfile = str(fname+self.pitchFileExt), tonicfile = fname + self.tonicFileExt)
+            pitch = phObj.timepitch[:,1]
+            hop = phObj.timepitch[1,0]-phObj.timepitch[0,0]
+            sil_ind = np.where(pitch==0)[0]
+            sil_array = np.zeros(pitch.shape[0])
+            sil_array[sil_ind]=1
+            changePoints = np.where(abs(sil_array[1:]-sil_array[:-1])!=0)[0] + 1
+            changePoints = np.append(np.append(0,changePoints),sil_array.shape[0])
+            sil_segments = []
+            for point_ind , points in enumerate(changePoints[:-1]):
+                if sil_array[changePoints[point_ind]:changePoints[point_ind+1]].all()==1:
+                    sil_segments.append([changePoints[point_ind]*hop,changePoints[point_ind+1]*hop ])
+
+
+
             #calculating indices of the same artist and rag
             ind_artist_rag=[]
             if DoArtistRagFiltering:
@@ -357,15 +376,31 @@ class nyasIdentification():
                 predicted_nyas_ind = np.where(predictedClasses=='nyas')[0]
                 pred_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_nyas_ind].tolist()
 
-                if mergeGuessNyasSegments:
+                #1#for non nyas segments
+                predicted_non_nyas_ind = np.where(predictedClasses=='non_nyas')[0]
+                pred_non_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_non_nyas_ind].tolist()
+
+
+                if mergeSegments:
                     #merge nyas segments if they are close
                     mergeFlag=1
                     while mergeFlag ==1:
                         mergeFlag=0
                         for k in range(len(pred_nyas_segments)-1):
-                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<.02:
+                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<0.02:
                                 pred_nyas_segments[k][1] = pred_nyas_segments[k+1][1]
                                 pred_nyas_segments.pop(k+1)
+                                mergeFlag =1
+                                break
+
+                    #2#merge nyas segments if they are close
+                    mergeFlag=1
+                    while mergeFlag ==1:
+                        mergeFlag=0
+                        for k in range(len(pred_non_nyas_segments)-1):
+                            if abs(pred_non_nyas_segments[k][1]-pred_non_nyas_segments[k+1][0])<0.02:
+                                pred_non_nyas_segments[k][1] = pred_non_nyas_segments[k+1][1]
+                                pred_non_nyas_segments.pop(k+1)
                                 mergeFlag =1
                                 break
 
@@ -385,9 +420,9 @@ class nyasIdentification():
 
                 boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
-                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
+                overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall= self.calculateOverlapPRF(pred_non_nyas_segments,pred_nyas_segments, sil_segments, gt_nyas_segments, THRESHOLD_FINE)
 
-                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall])
                 fold_cnt+=1
 
         return self.stats
@@ -409,7 +444,7 @@ class nyasIdentification():
         return ind_same_artist_rags
 
 
-    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, THRESHOLD_FINE, mergeGuessNyasSegments = 1, DoArtistRagFiltering=1):
+    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, THRESHOLD_FINE, mergeSegments = 1, DoArtistRagFiltering=1):
 
 
         foldInfo = json.load(open(foldINfoFile))
@@ -467,13 +502,13 @@ class nyasIdentification():
                 predicted_nyas_ind = np.where(predictedClasses=='nyas')[0]
                 pred_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_nyas_ind].tolist()
 
-                if mergeGuessNyasSegments:
+                if mergeSegments:
                     #merge nyas segments if they are close
                     mergeFlag=1
                     while mergeFlag ==1:
                         mergeFlag=0
                         for k in range(len(pred_nyas_segments)-1):
-                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<.02:
+                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<THRESHOLD_FINE:
                                 pred_nyas_segments[k][1] = pred_nyas_segments[k+1][1]
                                 pred_nyas_segments.pop(k+1)
                                 mergeFlag =1
@@ -669,12 +704,10 @@ class nyasIdentification():
 
         return fP,fR,fF, np.median(gtt), np.median(ttg)
 
-    def calculateOverlapPRF(self, guessNyas, trueNyas, RESOLUTION):
-
-        #RESOLUTION = 0.1
+    def calculateOverlapPRF(self, guessNonNyas, guessNyas, trueSil, trueNyas, RESOLUTION):
 
         if len(guessNyas)==0:
-            return 0,0,0
+            return 0,0,0, 0,0,0, 0,0,0
 
         min_time = np.min([np.min(guessNyas),np.min(guessNyas)])
         max_time = np.max([np.max(trueNyas),np.max(trueNyas)])
@@ -682,35 +715,97 @@ class nyasIdentification():
         vals = np.arange(min_time, max_time,RESOLUTION)
 
         if vals.size==0:
-            return 0,0,0
+            return 0,0,0, 0,0,0, 0,0,0
 
         vals = np.append(vals, RESOLUTION+ vals[-1])
 
-        guessNyas_flag = np.zeros(len(vals))
-        trueNyas_flag = np.zeros(len(vals))
+        guess_array = np.zeros(len(vals))
+        true_array = np.ones(len(vals))*-1
 
         for seg in guessNyas:
             ind_str = np.argmin(abs(vals-seg[0]))
             ind_end = np.argmin(abs(vals-seg[1]))
-            guessNyas_flag[ind_str:ind_end+1] = 1
+            guess_array[ind_str:ind_end+1] = 1
+
+        for seg in guessNonNyas:
+            ind_str = np.argmin(abs(vals-seg[0]))
+            ind_end = np.argmin(abs(vals-seg[1]))
+            guess_array[ind_str:ind_end+1] = -1
+
+        for seg in trueSil:
+            ind_str = np.argmin(abs(vals-seg[0]))
+            ind_end = np.argmin(abs(vals-seg[1]))
+            true_array[ind_str:ind_end+1] = 0
 
         for seg in trueNyas:
             ind_str = np.argmin(abs(vals-seg[0]))
             ind_end = np.argmin(abs(vals-seg[1]))
-            trueNyas_flag[ind_str:ind_end+1] = 1
+            true_array[ind_str:ind_end+1] = 1
 
-        N_ind_guess = np.where(guessNyas_flag==1)[0]
-        N_ind_true = np.where(trueNyas_flag==1)[0]
 
-        N_match_ind = list(set(N_ind_guess.tolist()) & set(N_ind_true.tolist()))
+        #computing pairs of same class
 
-        Precision = len(N_match_ind)/float(N_ind_guess.shape[0])
-        Recall = len(N_match_ind)/float(N_ind_true.shape[0])
+        ##first in ground truth
+        nyas_pair_true = []
+        non_nyas_pair_true = []
+        for i in xrange(0,true_array[:-1].size):
+            for j in xrange(i+1,true_array[:-1].size):
 
-        if Precision>0 or Recall>0: Fmeas=2.0*Precision*Recall/(Precision+Recall)
-        else: Fmeas=0.0
+                if true_array[i]==true_array[j]:
+                    if true_array[i] == 1:
+                        nyas_pair_true.append(str(i)+'_'+str(j))
+                    elif true_array[i] == -1:
+                        non_nyas_pair_true.append(str(i)+'_'+str(j))
 
-        return Precision, Recall, Fmeas
+        ##first in guessed ones
+        nyas_pair_guess = []
+        non_nyas_pair_guess = []
+        for i in xrange(0,guess_array[:-1].size):
+            for j in xrange(i+1,guess_array[:-1].size):
+
+                if guess_array[i]==guess_array[j]:
+                    if guess_array[i] == 1:
+                        nyas_pair_guess.append(str(i)+'_'+str(j))
+                    elif guess_array[i] == -1:
+                        non_nyas_pair_guess.append(str(i)+'_'+str(j))
+
+
+        #computing per class accuracies
+        #first for nyas
+        intersection_nyas = list(set(nyas_pair_guess)&set(nyas_pair_true))
+        intersection_non_nyas = list(set(non_nyas_pair_guess)&set(non_nyas_pair_true))
+
+
+        if len(intersection_nyas) + len(intersection_nyas) ==0:
+            return 0,0,0, 0,0,0, 0,0,0
+
+        P_nyas = float(len(intersection_nyas))/(len(nyas_pair_guess)+sys.float_info.epsilon)
+        R_nyas = float(len(intersection_nyas))/(len(nyas_pair_true)+sys.float_info.epsilon)
+
+        if (P_nyas+R_nyas)!=0:
+            F_nyas = 2.0*P_nyas*R_nyas/(P_nyas+R_nyas)
+        else:
+            F_nyas =0
+
+        P_non_nyas = float(len(intersection_non_nyas))/(len(non_nyas_pair_guess)+sys.float_info.epsilon)
+        R_non_nyas = float(len(intersection_non_nyas))/(len(non_nyas_pair_true)+sys.float_info.epsilon)
+        if (P_non_nyas+R_non_nyas)!=0:
+            F_non_nyas = 2.0*P_non_nyas*R_non_nyas/(P_non_nyas+R_non_nyas)
+        else:
+            F_non_nyas =0
+
+
+        P_overall = float((len(intersection_nyas) + len(intersection_non_nyas)))/((len(nyas_pair_guess) + len(non_nyas_pair_guess))+sys.float_info.epsilon)
+        R_overall = float((len(intersection_nyas) + len(intersection_non_nyas)))/((len(nyas_pair_true) + len(non_nyas_pair_true))+sys.float_info.epsilon)
+        if (P_overall+R_overall)!=0:
+            F_overall = 2.0*P_overall*R_overall/(P_overall+R_overall)
+        else:
+            F_overall =0
+
+
+        return P_nyas, R_nyas, F_nyas, P_non_nyas, R_non_nyas, F_non_nyas, P_overall, R_overall, F_overall
+
+
 
     def extractMatchMTX(self, root_dir, segmentFileExt, matchMTXFile, foldInformationFileName, featureType):
         """
@@ -858,7 +953,7 @@ class classificationExperiment():
         featureFiles = ['OwnSegmentAllFeaturesFullDataset', 'KeoghSegment75AllFeaturesFullDataset', 'KeoghSegment50AllFeaturesFullDataset','KeoghSegment25AllFeaturesFullDataset','KeoghSegment10AllFeaturesFullDataset']
 
 
-        out_dir = 'experimentResults_WITH_ARTIST_RAG_FILTERING_'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
+        out_dir = 'experimentResults_WITH_ARTIST_RAG_FILTERING_PAIRWISE_EVAL'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
 
         if os.path.exists(out_dir):
             shutil.rmtree(out_dir)
@@ -934,7 +1029,7 @@ class classificationExperiment():
             logfile= open(out_dir+'/ClassificationExperimentDTWKNNLogs.txt','ab')
             logfile.write("FILE: "+ featureFile + "\tExpIndex"+str(exp_index)+"\n")
 
-            nyasExp.DTWkNNClassification(featureFiles[file_cnt]+'.json', InfoFiles[file_cnt]+'.json', THRESHOLD_FINE, mergeGuessNyasSegments = 1, DoArtistRagFiltering=1)
+            nyasExp.DTWkNNClassification(featureFiles[file_cnt]+'.json', InfoFiles[file_cnt]+'.json', THRESHOLD_FINE, mergeSegments = 1, DoArtistRagFiltering=1)
 
             fid = open(out_dir+'/ExpDataDTWKNN'+str(exp_index)+'.json','w')
             json.dump(nyasExp.stats,fid, indent=4)
