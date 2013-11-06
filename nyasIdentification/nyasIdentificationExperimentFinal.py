@@ -1,6 +1,8 @@
 
 import numpy as np
 import sys,os, json, pickle, shutil
+from scipy.stats import mannwhitneyu
+import copy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/MelodySegmentation/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../Library_Python/Batch_Processing/'))
@@ -383,7 +385,7 @@ class nyasIdentification():
 
                 boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
-                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
+                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
 
                 self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
                 fold_cnt+=1
@@ -407,7 +409,7 @@ class nyasIdentification():
         return ind_same_artist_rags
 
 
-    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, THRESHOLD_FINE, mergeGuessNyasSegments = 1):
+    def DTWkNNClassification(self, matchMTXFile, foldINfoFile, THRESHOLD_FINE, mergeGuessNyasSegments = 1, DoArtistRagFiltering=1):
 
 
         foldInfo = json.load(open(foldINfoFile))
@@ -440,7 +442,12 @@ class nyasIdentification():
             for singleFileInfo in val['guessSeg']:
                 indicesFile.extend(singleFileInfo[1])
 
-            train_indices = list(set(total_indices) - set(indicesFile))
+            #calculating indices of the same artist and rag
+            ind_artist_rag=[]
+            if DoArtistRagFiltering:
+                ind_artist_rag = self.computeSameArtistRagIndices(foldInfo, key)
+
+            train_indices = list(set(total_indices) - (set(indicesFile) | set(ind_artist_rag)))
 
             for i,singleFileInfo in enumerate(val['guessSeg']):
                 test_ind = singleFileInfo[1]
@@ -488,14 +495,14 @@ class nyasIdentification():
 
                 boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
-                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments)
+                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
 
                 self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
                 fold_cnt+=1
 
         return self.stats
 
-    def randomBaselineExperiments(self, root_dir, THRESHOLD_FINE, baselineMethod=1):
+    def randomBaselineExperiments(self, root_dir, THRESHOLD_FINE, InfoFIle, baselineMethod=2):
 
 
         self.accuracy=[]
@@ -537,6 +544,7 @@ class nyasIdentification():
         nyas_prob = (float(nyas_dur)/float(total_dur))
         print "fraction of duration which is nyas is :%f\n"%nyas_prob
 
+        Info = json.load(open(InfoFIle))
 
         for filename in filenames:
 
@@ -572,23 +580,46 @@ class nyasIdentification():
             elif baselineMethod==3:
                 boundaries_random = trueboundaries
 
-            boundaries_random = np.array(boundaries_random)
-            guessboundaries = np.reshape(boundaries_random,boundaries_random.size)
-            guessboundaries = list(set(guessboundaries.tolist()))
-            guessboundaries = np.sort(guessboundaries).tolist()
 
-            boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
+            boundaries_random1 = copy.deepcopy(boundaries_random)
+            last_GT_time = 0
+            for fold_ind,fold in enumerate(Info[filename]['trueSeg']):
 
-            ###classifying boundaries with the probababity of nyas segments computed earlier
-            guess_nyas_segments = []
-            for i,boundary in enumerate(boundaries_random[:-1]):
-                rand_num = np.random.rand()
-                if rand_num<=nyas_prob:
-                    guess_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
+                max_time = np.max(fold)
 
-            overlapP, overlapR, overlapF = self.calculateOverlapPRF(guess_nyas_segments, nyasSeg)
+                ind_more = np.where(boundaries_random1>=last_GT_time)[0]
+                ind_less = np.where(boundaries_random1<max_time)[0]
 
-            self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF])
+                ind_selected = list(set(list(ind_more))&set(list(ind_less)))
+
+                boundaries_random = boundaries_random1[ind_selected]
+                boundaries_random = np.array(boundaries_random)
+                guessboundaries = np.reshape(boundaries_random,boundaries_random.size)
+                guessboundaries = list(set(guessboundaries.tolist()))
+                guessboundaries = np.sort(guessboundaries).tolist()
+
+
+                gt_nyas_segments = fold
+                gt_nyas_segments = np.array(gt_nyas_segments)
+                #trueboundaries = np.append(gt_nyas_segments[:,0],gt_nyas_segments[:,1])
+                trueboundaries = np.reshape(gt_nyas_segments,gt_nyas_segments.size)
+                trueboundaries = list(set(trueboundaries.tolist()))
+                trueboundaries = np.sort(trueboundaries).tolist()
+
+                boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
+
+                ###classifying boundaries with the probababity of nyas segments computed earlier
+                guess_nyas_segments = []
+                for i,boundary in enumerate(boundaries_random[:-1]):
+                    rand_num = np.random.rand()
+                    if rand_num<=nyas_prob:
+                        guess_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
+
+                overlapP, overlapR, overlapF = self.calculateOverlapPRF(guess_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
+
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF])
+
+                last_GT_time = max_time
 
         return self.stats
 
@@ -638,9 +669,9 @@ class nyasIdentification():
 
         return fP,fR,fF, np.median(gtt), np.median(ttg)
 
-    def calculateOverlapPRF(self, guessNyas, trueNyas):
+    def calculateOverlapPRF(self, guessNyas, trueNyas, RESOLUTION):
 
-        RESOLUTION = 0.1
+        #RESOLUTION = 0.1
 
         if len(guessNyas)==0:
             return 0,0,0
@@ -883,19 +914,107 @@ class classificationExperiment():
                     exp_index+=1
                     logfile.close()
 
+    def runDTWkNNClassificationExp(self, THRESHOLD_FINE):
+
+
+        featureFiles = ['OwnsegmentsDTWLocalMTX', 'OwnsegmentsDTWContextMTX', 'OwnsegmentsDTWLocalContextMTX', 'KeoghSegments75DTWLocalMTX', 'KeoghSegments75DTWContextMTX', 'KeoghSegments75DTWLocalContextMTX']
+        InfoFiles = ['OwnSegmentsDTWLocalFoldInfo', 'OwnSegmentsDTWContextFoldInfo', 'OwnSegmentsDTWLocalContextFoldInfo', 'KeoghSegments75DTWLocalFoldInfo', 'KeoghSegments75DTWContextFoldInfo', 'KeoghSegments75DTWLocalContextFoldInfo']
+
+        out_dir = 'experimentResults_DTWKNN_WITH_ARTIST_RAG_FILTERING_'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
+
+        if os.path.exists(out_dir):
+            shutil.rmtree(out_dir)
+        os.makedirs(out_dir)
+
+        nyasExp = nyasIdentification('Kaustuv_Annotations/DatasetNyas/')
+
+        exp_index=0
+
+        for file_cnt, featureFile in enumerate(featureFiles):
+            logfile= open(out_dir+'/ClassificationExperimentDTWKNNLogs.txt','ab')
+            logfile.write("FILE: "+ featureFile + "\tExpIndex"+str(exp_index)+"\n")
+
+            nyasExp.DTWkNNClassification(featureFiles[file_cnt]+'.json', InfoFiles[file_cnt]+'.json', THRESHOLD_FINE, mergeGuessNyasSegments = 1, DoArtistRagFiltering=1)
+
+            fid = open(out_dir+'/ExpDataDTWKNN'+str(exp_index)+'.json','w')
+            json.dump(nyasExp.stats,fid, indent=4)
+            fid.close()
+
+            out = np.mean(np.array(nyasExp.stats),axis=0)
+            logfile.write(("%f\t"*len(out)+"\n")%tuple(out))
+            exp_index+=1
+            logfile.close()
+
 
     def computeNyasStatistics(self, FoldInfoFile):
 
         Info = json.load(open(FoldInfoFile))
 
         nyas_seg = []
+        dur_Arr=[]
         for key in Info:
             for fold in Info[key]['trueSeg']:
                 nyas_seg.extend(fold)
-
-        dur_Arr = []
-        for nyas in nyas_seg:
-            dur_Arr.append(nyas[1]-nyas[0])
-
-
+                for nyas in fold:
+                    d = nyas[1]-nyas[0]
+                    dur_Arr.append(d)
         return np.sort(dur_Arr), (np.min(dur_Arr), np.max(dur_Arr), np.mean(dur_Arr), np.median(dur_Arr), np.var(dur_Arr))
+
+
+    def ComputeStatisticalSignificane(self, outputfile, quantity = 'boundary', statistical_val = 0.05):
+
+        if quantity == 'boundary':
+            column_ind = 2
+        elif quantity == 'region':
+            column_ind = 7
+
+        exp_cases = ['PLS_L_TREE', 'PLS_L_KNN','PLS_L_NB','PLS_L_LOGREG','PLS_C_SVM', 'PLS_C_TREE', 'PLS_C_KNN','PLS_C_NB','PLS_C_LOGREG','PLS_C_SVM', 'PLS_LC_TREE', 'PLS_LC_KNN','PLS_LC_NB','PLS_LC_LOGREG','PLS_LC_SVM', 'OWN_L_TREE', 'OWN_L_KNN','OWN_L_NB','OWN_L_LOGREG','OWN_C_SVM', 'OWN_C_TREE', 'OWN_C_KNN','OWN_C_NB','OWN_C_LOGREG','OWN_C_SVM', 'OWN_LC_TREE', 'OWN_LC_KNN','OWN_LC_NB','OWN_LC_LOGREG','OWN_LC_SVM', 'OWN_L_DTW', 'OWN_C_DTW', 'OWN_LC_DTW', 'PLS_L_DTW', 'PLS_C_DTW', 'PLS_LC_DTW', 'BESTRANDOM']
+        exp_files = ['90', '91', '92', '93', '94', '126', '127', '128', '129', '130', '138', '139', '140', '141', '142', '18', '19', '20', '21', '22', '54', '55', '56', '57', '58', '60', '61', '62', '63', '64', '1000', '1001','1002','1003','1004','1005', '2000']
+
+        N_cases = len(exp_cases)
+        file_prefix = 'experimentResults_WITH_ARTIST_RAG_FILTERING_100_statistical_significance_testing/ExpData'
+
+        array_combinations = []
+        array_combinations_files = []
+        for i in range(len(exp_cases)):
+            for j in range(i+1, len(exp_cases)):
+                array_combinations.append((i,j))
+                array_combinations_files.append((file_prefix+exp_files[i]+'.json',file_prefix+exp_files[j]+'.json'))
+
+        P_val_Array = []
+        for i, comb in enumerate(array_combinations_files):
+            P_val_Array.append(self.ComputePValueMannWhitney(comb[0],comb[1], column_ind))
+
+        #holm bonferroni
+        sort_ind = np.argsort(P_val_Array)
+        P_val_Array_sort = np.sort(P_val_Array)
+        N = len(P_val_Array)
+        condition = True
+        index = 0
+        while condition:
+            if P_val_Array_sort[index]< (statistical_val)/(N-index):
+                condition = True
+                index+=1
+            else:
+                condition = False
+
+        print "statistical results are till index %d "%index
+
+        #lets print some results now
+        output_MTX = np.zeros([N_cases, N_cases]).astype(np.int16)
+
+        for ind in sort_ind[:index]:
+            output_MTX[array_combinations[ind][1], array_combinations[ind][0]]=1
+
+        np.savetxt(outputfile, output_MTX, delimiter='\t', fmt='%d')
+        return True
+
+    def ComputePValueMannWhitney(self, file1, file2, colm_ind):
+
+        data1 = np.array(json.load(open(file1)))[:,colm_ind]
+        data2 = np.array(json.load(open(file2)))[:,colm_ind]
+
+
+        U, p_val = mannwhitneyu(data1,data2)
+
+        return p_val
