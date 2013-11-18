@@ -477,6 +477,22 @@ class nyasIdentification():
             for singleFileInfo in val['guessSeg']:
                 indicesFile.extend(singleFileInfo[1])
 
+            #3# computing silence segments in order to remove these from evaluation
+            fname, ext = os.path.splitext(key)
+            fname = fname.replace('/media/Data/Dropbox/','') # because the fold file was generated when dataset was at other location, just a quick fix
+            phObj = MS.PitchProcessing(pitchfile = str(fname+self.pitchFileExt), tonicfile = fname + self.tonicFileExt)
+            pitch = phObj.timepitch[:,1]
+            hop = phObj.timepitch[1,0]-phObj.timepitch[0,0]
+            sil_ind = np.where(pitch==0)[0]
+            sil_array = np.zeros(pitch.shape[0])
+            sil_array[sil_ind]=1
+            changePoints = np.where(abs(sil_array[1:]-sil_array[:-1])!=0)[0] + 1
+            changePoints = np.append(np.append(0,changePoints),sil_array.shape[0])
+            sil_segments = []
+            for point_ind , points in enumerate(changePoints[:-1]):
+                if sil_array[changePoints[point_ind]:changePoints[point_ind+1]].all()==1:
+                    sil_segments.append([changePoints[point_ind]*hop,changePoints[point_ind+1]*hop ])
+
             #calculating indices of the same artist and rag
             ind_artist_rag=[]
             if DoArtistRagFiltering:
@@ -502,15 +518,30 @@ class nyasIdentification():
                 predicted_nyas_ind = np.where(predictedClasses=='nyas')[0]
                 pred_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_nyas_ind].tolist()
 
+                #1#for non nyas segments
+                predicted_non_nyas_ind = np.where(predictedClasses=='non_nyas')[0]
+                pred_non_nyas_segments = np.array(val['guessSeg'][i][0])[predicted_non_nyas_ind].tolist()
+
                 if mergeSegments:
                     #merge nyas segments if they are close
                     mergeFlag=1
                     while mergeFlag ==1:
                         mergeFlag=0
                         for k in range(len(pred_nyas_segments)-1):
-                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<THRESHOLD_FINE:
+                            if abs(pred_nyas_segments[k][1]-pred_nyas_segments[k+1][0])<0.02:
                                 pred_nyas_segments[k][1] = pred_nyas_segments[k+1][1]
                                 pred_nyas_segments.pop(k+1)
+                                mergeFlag =1
+                                break
+
+                    #2#merge nyas segments if they are close
+                    mergeFlag=1
+                    while mergeFlag ==1:
+                        mergeFlag=0
+                        for k in range(len(pred_non_nyas_segments)-1):
+                            if abs(pred_non_nyas_segments[k][1]-pred_non_nyas_segments[k+1][0])<0.02:
+                                pred_non_nyas_segments[k][1] = pred_non_nyas_segments[k+1][1]
+                                pred_non_nyas_segments.pop(k+1)
                                 mergeFlag =1
                                 break
 
@@ -530,9 +561,9 @@ class nyasIdentification():
 
                 boundP, boundR, boundF, meangtt, meanttg = self.calculateBoundaryPRF(guessboundaries, trueboundaries, THRESHOLD_FINE)
 
-                overlapP, overlapR, overlapF = self.calculateOverlapPRF(pred_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
+                overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall= self.calculateOverlapPRF(pred_non_nyas_segments,pred_nyas_segments, sil_segments, gt_nyas_segments, THRESHOLD_FINE)
 
-                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF, accuracy])
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall])
                 fold_cnt+=1
 
         return self.stats
@@ -550,12 +581,15 @@ class nyasIdentification():
         #computing fraction of dutation of songs which has nyas as a tag
         total_dur=0
         nyas_dur =0
+        sil_dur = 0
         inter_boundary_interval=[]
         for filename in filenames:
             fname, ext = os.path.splitext(filename)
 
             phObj =  MS.PitchProcessing(pitchfile = fname+ self.pitchFileExt, tonicfile=fname + self.tonicFileExt)
             hopsize = phObj.phop
+            ind_silence = np.where(phObj.timepitch[:,1]==0)[0]
+            sil_dur += len(ind_silence)*hopsize
             time_last = phObj.timepitch.shape[0]*hopsize
             total_dur+=time_last
 
@@ -576,7 +610,7 @@ class nyasIdentification():
                 inter_boundary_interval.append(trueboundaries[i+1]-trueboundaries[i])
 
         np.random.shuffle(inter_boundary_interval) # this store the inter boundary intervals. We can randomly draw samples from this to obtain inter boundary differences
-        nyas_prob = (float(nyas_dur)/float(total_dur))
+        nyas_prob = (float(nyas_dur)/float(total_dur-sil_dur))
         print "fraction of duration which is nyas is :%f\n"%nyas_prob
 
         Info = json.load(open(InfoFIle))
@@ -603,6 +637,21 @@ class nyasIdentification():
             trueboundaries = np.reshape(nyasSeg,nyasSeg.size)
             trueboundaries = list(set(trueboundaries.tolist()))
             trueboundaries = np.sort(trueboundaries).tolist()
+
+
+            pitch = phObj.timepitch[:,1]
+            hop = hopsize
+            sil_ind = np.where(pitch==0)[0]
+            sil_array = np.zeros(pitch.shape[0])
+            sil_array[sil_ind]=1
+            changePoints = np.where(abs(sil_array[1:]-sil_array[:-1])!=0)[0] + 1
+            changePoints = np.append(np.append(0,changePoints),sil_array.shape[0])
+            sil_segments = []
+            for point_ind , points in enumerate(changePoints[:-1]):
+                if sil_array[changePoints[point_ind]:changePoints[point_ind+1]].all()==1:
+                    sil_segments.append([changePoints[point_ind]*hop,changePoints[point_ind+1]*hop ])
+
+
 
             if baselineMethod==2:
                 boundaries_random = np.arange(0,time_last,UNIFORM_BOUNDARY_GAP)
@@ -645,14 +694,25 @@ class nyasIdentification():
 
                 ###classifying boundaries with the probababity of nyas segments computed earlier
                 guess_nyas_segments = []
+                guess_non_nyas_segments = []
                 for i,boundary in enumerate(boundaries_random[:-1]):
                     rand_num = np.random.rand()
-                    if rand_num<=nyas_prob:
-                        guess_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
 
-                overlapP, overlapR, overlapF = self.calculateOverlapPRF(guess_nyas_segments, gt_nyas_segments, THRESHOLD_FINE)
+                    #annotate a segment only if its not silence
+                    start = int(boundaries_random[i]/hop)
+                    end = int(boundaries_random[i+1]/hop)
+                    zeros_ind = np.where(pitch[start:end]==0)[0]
 
-                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlapP, overlapR, overlapF])
+                    if (len(zeros_ind)/(end-start)) < 0.2:
+
+                        if rand_num<=nyas_prob:
+                            guess_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
+                        else:
+                            guess_non_nyas_segments.append([boundaries_random[i],boundaries_random[i+1]])
+
+                overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall = self.calculateOverlapPRF(guess_non_nyas_segments, guess_nyas_segments, sil_segments, gt_nyas_segments, THRESHOLD_FINE)
+
+                self.stats.append([ boundP, boundR, boundF, meangtt, meanttg, overlap_P_nyas, overlap_R_nyas, overlap_F_nyas, overlap_P_non_nyas, overlap_R_non_nyas, overlap_F_non_nyas, overlap_P_overall, overlap_R_overall, overlap_F_overall])
 
                 last_GT_time = max_time
 
@@ -1015,7 +1075,7 @@ class classificationExperiment():
         featureFiles = ['OwnsegmentsDTWLocalMTX', 'OwnsegmentsDTWContextMTX', 'OwnsegmentsDTWLocalContextMTX', 'KeoghSegments75DTWLocalMTX', 'KeoghSegments75DTWContextMTX', 'KeoghSegments75DTWLocalContextMTX']
         InfoFiles = ['OwnSegmentsDTWLocalFoldInfo', 'OwnSegmentsDTWContextFoldInfo', 'OwnSegmentsDTWLocalContextFoldInfo', 'KeoghSegments75DTWLocalFoldInfo', 'KeoghSegments75DTWContextFoldInfo', 'KeoghSegments75DTWLocalContextFoldInfo']
 
-        out_dir = 'experimentResults_DTWKNN_WITH_ARTIST_RAG_FILTERING_'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
+        out_dir = 'experimentResults_DTWKNN_WITH_ARTIST_RAG_FILTERING_PAIRWISE_EVAL'+ str(np.floor(THRESHOLD_FINE*1000).astype(np.int16))
 
         if os.path.exists(out_dir):
             shutil.rmtree(out_dir)
@@ -1056,18 +1116,18 @@ class classificationExperiment():
         return np.sort(dur_Arr), (np.min(dur_Arr), np.max(dur_Arr), np.mean(dur_Arr), np.median(dur_Arr), np.var(dur_Arr))
 
 
-    def ComputeStatisticalSignificane(self, outputfile, quantity = 'boundary', statistical_val = 0.05):
+    def ComputeStatisticalSignificane(self, outputfile, quantity = 'overall', statistical_val = 0.05):
 
         if quantity == 'boundary':
             column_ind = 2
-        elif quantity == 'region':
-            column_ind = 7
+        elif quantity == 'overall':
+            column_ind = 13
 
         exp_cases = ['PLS_L_TREE', 'PLS_L_KNN','PLS_L_NB','PLS_L_LOGREG','PLS_C_SVM', 'PLS_C_TREE', 'PLS_C_KNN','PLS_C_NB','PLS_C_LOGREG','PLS_C_SVM', 'PLS_LC_TREE', 'PLS_LC_KNN','PLS_LC_NB','PLS_LC_LOGREG','PLS_LC_SVM', 'OWN_L_TREE', 'OWN_L_KNN','OWN_L_NB','OWN_L_LOGREG','OWN_C_SVM', 'OWN_C_TREE', 'OWN_C_KNN','OWN_C_NB','OWN_C_LOGREG','OWN_C_SVM', 'OWN_LC_TREE', 'OWN_LC_KNN','OWN_LC_NB','OWN_LC_LOGREG','OWN_LC_SVM', 'OWN_L_DTW', 'OWN_C_DTW', 'OWN_LC_DTW', 'PLS_L_DTW', 'PLS_C_DTW', 'PLS_LC_DTW', 'BESTRANDOM']
-        exp_files = ['90', '91', '92', '93', '94', '126', '127', '128', '129', '130', '138', '139', '140', '141', '142', '18', '19', '20', '21', '22', '54', '55', '56', '57', '58', '60', '61', '62', '63', '64', '1000', '1001','1002','1003','1004','1005', '2000']
+        exp_files = ['90', '91', '92', '93', '94', '126', '127', '128', '129', '130', '138', '139', '140', '141', '142', '18', '19', '20', '21', '22', '54', '55', '56', '57', '58', '66', '67', '68', '69', '70', '1000', '1001','1002','1003','1004','1005', '2000']
 
         N_cases = len(exp_cases)
-        file_prefix = 'experimentResults_WITH_ARTIST_RAG_FILTERING_100_statistical_significance_testing/ExpData'
+        file_prefix = 'experimentResults_WITH_ARTIST_RAG_FILTERING_PAIRWISE_EVAL100_STATISTICALTESTING/ExpData'
 
         array_combinations = []
         array_combinations_files = []
