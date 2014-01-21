@@ -67,6 +67,19 @@ flat region as motif
 
 
 Thodi CompMusic +  original sampling rate + silence removed : THODI_DOWNSAMPLE1_SILENCEREM (HOP=4.44ms)
+Too big dataset
+
+Thodi CompMusic +  downsample by 5 + silence removed : THODI_DOWNSAMPLE5_SILENCEREM (HOP=4.44ms)
+Mostly flat regions
+
+## After removing flat regions from the pitch data
+Thodi CompMusic +  downsample by 5 + silence removed : THODI_DOWNSAMPLE5_SILENCEREM (HOP=4.44ms)
+Decent patterns , though the system was slow
+
+## Converted floating point to fix point and input data restricted from 0-600 and using 50-100 reference points instead of 10. Give a saving in memory and performance boost a bit
+Decent patterns.
+
+
 
 
 
