@@ -80,13 +80,26 @@ Decent patterns , though the system was slow
 Decent patterns.
 
 
-
+FINALLY: we get decent matches and first motif in just 25 seconds in the same dataset (THODI_DOWNSAMPLE5_SILENCEREM)
 
 
 
 ###############################################################################
 Learnings/Conclusions/Remarks
 ###############################################################################
+
+1) In 16 hours I could only extract top 35 motifs after which for each motif algorithm starts taking couple of hours and this time increases very fast wrt to the bsf previous.
+2) 35 patterns extracted were all good repetitions. 34 of them were from the same file!!! and 15 of them were part of characteristic phrase
+
+Conclusion:
+This algorithm takes too much of time and this is the case for 16 hours of  data imagine handling 500 hours. As a result we resort to intra song pattern first, build a library and then search for those patterns. Later after learning from these patterns and reducing search space we might look for across song pattern. 
+
+Final versions of the code used were:
+9643035f43b3405d2dfcc7f01eb094a9291adfaf  of library_PythonNew
+05ed9d5669c7b28f2be6a5807482dd9a58b1a0c9 of experiments
+
+
+
 
 
 
