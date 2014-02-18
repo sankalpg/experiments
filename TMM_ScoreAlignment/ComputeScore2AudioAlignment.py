@@ -52,10 +52,11 @@ def ComputeScore2AudioAlignment(queryFile, targetFile):
     #interpolating query to match target length. Making them equal length has lots of benefits. But we have to be very careful at this step
     #calculating factor by which query has to be upsampled (this if less than 1 means downsampling)
     factor = (targetData.shape[0]-1)/(  float(queryData.shape[0])-1)
-    factorArray = np.arange(targetData.shape[0])/factor    
+    #factorArray = np.arange(targetData.shape[0])/factor    
+    factorArray = np.linspace(0, queryData.shape[0]-1,targetData.shape[0])    
     pitch = np.transpose(np.array([queryData[(np.round(factorArray)).astype(np.int),1]]))
-    b = queryData[:,0][0] + (queryData[:,0]-queryData[:,0][0])*factor
-    intFunc = interp1d(np.arange(queryData.shape[0]), b, kind='linear')
+    #b = queryData[:,0][0] + (queryData[:,0]-queryData[:,0][0])*factor
+    intFunc = interp1d(np.arange(queryData.shape[0]), queryData[:,0], kind='linear')
     time = np.transpose(np.array([intFunc(factorArray)]))
     queryData = np.concatenate((time, pitch),axis=1)
     
@@ -72,13 +73,30 @@ def ComputeScore2AudioAlignment(queryFile, targetFile):
     dist, pathLen, path, cost = dtw.dtw1dSubLocalBand(queryDataDel[:,1], targetDataDel[:,1], {'Output':4, 'Ldistance':{'type':2}, 'Constraint':{'CVal':int(queryDataDel.shape[0]*0.2)}})
     
     
-    drawAlignment(queryDataDel[:,1], targetDataDel[:,1], path)
+    #drawAlignment(queryDataDel, targetDataDel, path)
     
     timeStampsQuery = queryDataDel[:,0][path[0]]
     timeStampsTarget = targetDataDel[:,0][path[1]]
     
     return timeStampsQuery, timeStampsTarget
     
+def batchProcessAudioScoreAlignment(root_dir):
+    
+    audioFileNames = BP.GetFileNamesInDir(root_dir, '.query')
+    
+    for audiofile in audioFileNames:
+        print "processing %s\n"%audiofile
+        fname, ext = os.path.splitext(audiofile)
+        t1, t2 = ComputeScore2AudioAlignment(fname+'.query', fname+'.target')
+        t1 = np.transpose(np.array([t1]))
+        t2 = np.transpose(np.array([t2]))
+        np.savetxt(fname+'.align', np.concatenate((t1, t2),axis=1))
+
+
+
+    
     
 
+
+    
     
