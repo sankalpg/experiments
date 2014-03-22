@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>For the selected seed motif (Id = {{seedIndex}})listing all versions</h1>
+        <ul>
+        <form name="input" action="{{url_for('versionPage', seedIndex=seedIndex)}}" method="post">
+        <input type="radio" name="rating" value=0>low<br>
+        <input type="radio" name="rating" value=1>high<br>
+        <input type="submit" value="Submit">
+        </form> 
+        <td>Seed STATUS<span class="tab"></span>{{seedDone}}</br></br></br></br></br></td>
+        <td>Version <span class="tab"></span>Status</br></td>
+        {% for name in versionNames %}
+            <tr>
+            <td><a>{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            </tr>
+        {% endfor %}
+        </ul>
+
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('seedPage', load=1)}}">seed Patterns</a></li>
+{% endblock %}        

@@ -1,4 +1,4 @@
-import sys,os
+import sys,os, copy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -6,6 +6,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../library_pythonnew
 
 import dtw
 from scipy.interpolate import interp1d
+
+
 
 
 def sortDistancesGenerateMapping(motifFile, mappFile, motifPairIndex, motifIndex_1_2):
@@ -33,12 +35,36 @@ def sortDistancesGenerateMapping(motifFile, mappFile, motifPairIndex, motifIndex
     
     return sortInd, dataMotif, mappArray, fileArray
     
+def exportSearchDataMapping(motifFile, mappFile, motifPairIndex, motifIndex_1_2):
+    
+    data = np.loadtxt(motifFile)
+    mappData = open(mappFile,'r').readlines()
+    
+    dataMotif = data[:, (motifPairIndex-1)*12 + (motifIndex_1_2-1)*6: (motifPairIndex-1)*12 + motifIndex_1_2*6]
+    fileArray = []
+    mappArray = np.zeros(dataMotif.shape[0])
+    for ii, line in enumerate(mappData):
+        index, filename = line.split('\t')
+        filename = filename.strip()
+        fileArray.append(filename)
+    
+    mappArray = copy.deepcopy(dataMotif[:,5]).astype(np.int)
+    
+    sortInd = np.arange(dataMotif.shape[0])
+    return sortInd, dataMotif, mappArray, fileArray
 
 
-def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, downSample, numSamples, DTWBand):
+
+def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD):
     
     #sorting distances and generating mapping to files
-    sortInd, dataMotif, mappArray, fileArray = sortDistancesGenerateMapping(motifFile, mappFile, motifPairIndex, 1)
+    if (formatNEWOLD == 'formatNew'):
+        sortInd, dataMotif, mappArray, fileArray = exportSearchDataMapping(motifFile, mappFile, motifPairIndex, 1)
+    elif(formatNEWOLD == 'formatOld'):
+        sortInd, dataMotif, mappArray, fileArray = sortDistancesGenerateMapping(motifFile, mappFile, motifPairIndex, 1)
+    else:
+        print "Please specify valid format"
+        return -1
     
     
     audioExt = '.mp3'
@@ -198,10 +224,8 @@ if __name__=="__main__":
     motifFile = sys.argv[1]
     mappFile = sys.argv[2]
     motifPairIndex = sys.argv[3]
-    downSample = sys.argv[4]
-    numSamples = sys.argv[5]
-    DTWBand = sys.argv[6]
+    formatNEWOLD = sys.argv[4]
     
-    PlotPlayMotifsAcrossFiles(motifFile, mappFile, int(motifPairIndex), int(downSample), int(numSamples), float(DTWBand))
+    PlotPlayMotifsAcrossFiles(motifFile, mappFile, int(motifPairIndex),formatNEWOLD)
     
     

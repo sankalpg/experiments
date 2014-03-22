@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>FileList</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css" />
+        <script type="text/javascript" src="/static/jquery-1.7.1.min.js"></script>
+    </head>
+    <body>
+        <div id="content">
+            {% block body %}{% endblock %}
+        </div>
+        <div id="nav">
+            Navigation:<br />
+            <ul>
+                {% block nav %}{% endblock %}
+            </ul>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>SeedMotifs!</h1>
+        <table style="width:500px">
+        <ul>
+        <td>Pattern Id.<span class="tab"></span>Status</br></td>
+
+        {% for name in patternNames %}
+            <tr>
+            <td><a href="{{url_for('versionPage', seedIndex=loop.index-1)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            </tr>
+
+        {% endfor %}
+
+        </ul>
+        
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('index')}}">MBIDs</a></li>
+{% endblock %}        

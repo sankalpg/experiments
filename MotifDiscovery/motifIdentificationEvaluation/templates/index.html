@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Welcome!</h1>
+        <ul>
+            <td><a href="{{url_for('seedPage', load=1)}}">LOAD<br></a></td>
+        </ul>
+        
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('index')}}">back</a></li>
+{% endblock %}        
