@@ -39,9 +39,9 @@ def performCompoundTrainTesting(arffDir):
     class1 = 'perc'
     class2 = 'nonperc'
     
-    featuresAll = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm11', 'm12', 'm13', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'mCent','vCent','mFlat', 'vFlat']
+    featuresAll = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm11', 'm12', 'm13', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'mCent','vCent','mFlat', 'vFlat', 'mPConf', 'vPConf']
     featureSet1 = featuresAll
-    featureSet2 = ['m1', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm13', 'v1', 'v2', 'v4', 'v12', 'v13', 'vCent', 'vFlat']
+    featureSet2 = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm11', 'm12', 'm13', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'mCent','vCent','mFlat', 'vFlat']
     featureSets = [featureSet1, featureSet2]
     classifierSets = [('nbMulti', {'fit_prior':False}), ('kNN',{"n_neighbors":5}), ('tree',{'min_samples_split':10}), ('logReg',{'class_weight':'auto'}), ('svm',{'class_weight':'auto'}), ('randC','default')]
     expSettings1 = { 'nExp':10, 'typeEval': ("kFoldCrossVal",10)}

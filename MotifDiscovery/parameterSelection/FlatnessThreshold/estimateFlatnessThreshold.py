@@ -126,7 +126,7 @@ def estimateFlatnessThreshold(root_dir, annotationExt, var_len):
     plt.plot(FalsePost,binRef, color='r')
     plt.show()
     """
-    return (FalsePost, TruePost)
+    return (FalsePost, TruePost, binRef)
 
 def plotDifferentROCs(root_dir, annotationExt, var_lens):
     
@@ -134,7 +134,7 @@ def plotDifferentROCs(root_dir, annotationExt, var_lens):
     plt.hold(True)
     pLeg = []
     for var_len in var_lens:
-        FP, TP = estimateFlatnessThreshold(root_dir, annotationExt, var_len)
+        FP, TP, = estimateFlatnessThreshold(root_dir, annotationExt, var_len)
         p, = plt.plot(FP, TP)
         pLeg.append(p)
 

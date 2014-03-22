@@ -88,9 +88,30 @@ def produce2D_ACR_Hist(acrFile, nBins=100):
         hist = np.histogram(data[:,jj], bins = bins)
         hist2D[:,jj]= hist[0]
         
-    print hist2D
+    """print hist2D
     plt.imshow(np.log(hist2D+1), cmap=plt.cm.hot, aspect='auto')
-    plt.show()
+    plt.show()"""
+    
+    return hist2D
+    
+def produceAggregate2D_ACR_Hist(root_dir, fileExt):
+    
+    filenames = BP.GetFileNamesInDir(root_dir, fileExt)
+    
+    for ii,filename in enumerate(filenames):
+        if ii==0:
+            hist2D = produce2D_ACR_Hist(filename)
+        else:
+            try:
+                hist2DTEMP = produce2D_ACR_Hist(filename)
+                hist2D = hist2D+hist2DTEMP
+            except:
+                print "something wend wrong in file " + filename
+                
+    np.save('aggHist', hist2D)
+    plt.imshow(np.log(hist2D+1), cmap=plt.cm.hot, aspect='auto')
+    plt.show()    
+    
     
 def batchRunACRExtraction(root_dir, exePath):
     
