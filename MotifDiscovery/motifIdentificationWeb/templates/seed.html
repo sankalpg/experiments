@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>SeedMotifs!</h1>
+        <p>Music:</p>
+        <audio id = "audioHandle" controls></audio>
+        <table style="width:500px">
+        <ul>
+         {% for seed in seedData %}
+            <tr>
+            <!--<td><a>{{seed}}<br></a></td> -->
+            <td><a href="javascript:genURLTrack('{{filename}}',{{seed[1]}},{{seed[2]}});">{{seed[0]}}</a></td>
+            <td><a href="/searchPage?patternID={{seed[0]}}&mbid={{mbid}}">search<br></a></td>
+            <td><a href="javascript:genURLTrack('{{filename}}','{{seed[4]}}','{{seed[5]}}');">{{seed[3]}}</a></td>
+            <td><a href="/searchPage?patternID={{seed[3]}}&mbid={{mbid}}">search<br></a></td>
+            </tr>
+        {% endfor %}
+        </ul>
+        
+        <script type="text/javascript">
+        
+var audioH = document.getElementById('audioHandle');
+var segmentEnd;
+    
+    /*function genURLTrack(filename, str, end){
+        //audioH.src = 'http://dunya.compmusic.upf.edu/document/by-id/'+ mbid + '.mp3' + '#t='+str+','+end
+        audioH.src ="{{url_for('site.static', filename=filename)}}"+ '#t='+str+','+end
+        console.log(audioH.src)
+        audioH.play();
+    }   */
+
+
+    audio.addEventListener('timeupdate', function (){
+        /*if (audio.currentTime >= segmentEnd) {
+            audioH.pause();
+        }   */
+        console.log("Hello");
+    }, false);
+
+    function genURLTrack(filename, startTime, endTime){
+        audioH.src ="{{url_for('site.static', filename=filename)}}"
+        audioH.load()
+        console.log(audioH.src)
+        console.log(startTime)
+        console.log(endTime)
+        segmentEnd = parseFloat(endTime)
+        //audioH.currentTime = 10.0
+        console.log("Hola")
+        audioH.play();
+    }
+        </script>
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('index')}}">MBIDs</a></li>
+{% endblock %}        

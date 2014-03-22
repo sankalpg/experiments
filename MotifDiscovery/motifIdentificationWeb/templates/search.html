@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Searched Motifs!</h1>
+        <p>Music:</p>
+        <audio id = "audioHandle" controls="controls" ></audio>
+        <table style="width:500px">
+        <ul>
+         {% for patternInfo in searchData %}
+            <tr>
+            <td><a>{{patternInfo}}<br></a></td>
+            
+            </tr>
+        {% endfor %}
+        </ul>
+        
+        <script type="text/javascript">
+        var audioH = document.getElementById('audioHandle');
+        
+            function genURLTrack(mbid, str, end){
+                audioH.src = 'http://dunya.compmusic.upf.edu/document/by-id/'+ mbid + '.mp3' + '#t='+str+','+end
+                audioH.play();
+            }   
+        </script>
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('seedPage', mbid=mbid)}}">seed Patterns</a></li>
+{% endblock %}        

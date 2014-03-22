@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Welcome!</h1>
+        <ul>
+        {% for mbid in mbids %}
+            <!--<li><a href="javascript:changeTrack('{{song}}');">{{song}}</a></li>-->
+            <tr>
+            <!--<td><a href="/seedPage?mbid={{mbid}}">{{mbid}}<br></a></td>-->
+            <td><a href="{{url_for('seedPage', mbid=mbid)}}">{{mbid}}<br></a></td>
+            
+            </tr>
+        {% endfor %}
+        </ul>
+        
+{% endblock %}
+{% block nav %}
+<li><a href="{{url_for('index')}}">back</a></li>
+{% endblock %}        
