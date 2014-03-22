@@ -2,7 +2,7 @@
 {% block body %}
     <h1>SeedMotifs!</h1>
         <p>Music:</p>
-        <audio id = "audioHandle" controls></audio>
+        <audio onloadeddata="myOnLoadedData()" id = "audioHandle" controls="" preload="auto"></audio>
         <table style="width:500px">
         <ul>
          {% for seed in seedData %}
@@ -20,6 +20,8 @@
         
 var audioH = document.getElementById('audioHandle');
 var segmentEnd;
+var segmentStart;
+var isPlaying=0;
     
     /*function genURLTrack(filename, str, end){
         //audioH.src = 'http://dunya.compmusic.upf.edu/document/by-id/'+ mbid + '.mp3' + '#t='+str+','+end
@@ -27,27 +29,38 @@ var segmentEnd;
         console.log(audioH.src)
         audioH.play();
     }   */
+function myOnLoadedData() {
+console.log('Loaded data');
+console.log("seek start")
+audioH.currentTime = segmentStart;
+console.log("seek end")
+audioH.play();
+isPlaying=1;
+};
 
 
-    audio.addEventListener('timeupdate', function (){
-        /*if (audio.currentTime >= segmentEnd) {
+    audioH.addEventListener('timeupdate', function (){
+        if (audioH.currentTime >= segmentEnd) {
             audioH.pause();
-        }   */
-        console.log("Hello");
+            isPlaying=0;
+        } 
+        
     }, false);
 
     function genURLTrack(filename, startTime, endTime){
-        audioH.src ="{{url_for('site.static', filename=filename)}}"
-        audioH.load()
-        console.log(audioH.src)
-        console.log(startTime)
-        console.log(endTime)
-        segmentEnd = parseFloat(endTime)
-        //audioH.currentTime = 10.0
-        console.log("Hola")
-        audioH.play();
-    }
+        audioH.src ="{{url_for('site.static', filename=filename)}}";
+        console.log(audioH.src);
+        console.log(startTime);
+        console.log(endTime);
+        segmentEnd = parseFloat(endTime);
+        segmentStart = parseFloat(startTime);
+        
+        if(isPlaying)
+        {myOnLoadedData();}
+        
+    };
         </script>
+
 {% endblock %}
 {% block nav %}
 <li><a href="{{url_for('index')}}">MBIDs</a></li>
