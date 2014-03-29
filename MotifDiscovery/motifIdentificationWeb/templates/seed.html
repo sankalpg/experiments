@@ -19,10 +19,10 @@
         <script type="text/javascript">
         
 var audioH = document.getElementById('audioHandle');
-var segmentEnd;
-var segmentStart;
-var isPlaying=0;
-    
+var segmentEnd=-1;
+var segmentStart=-1;
+//var isPlaying=0;
+//337c8c6c-7ea6-4f43-9ec8-2fd2e535dc69    
     /*function genURLTrack(filename, str, end){
         //audioH.src = 'http://dunya.compmusic.upf.edu/document/by-id/'+ mbid + '.mp3' + '#t='+str+','+end
         audioH.src ="{{url_for('site.static', filename=filename)}}"+ '#t='+str+','+end
@@ -30,33 +30,33 @@ var isPlaying=0;
         audioH.play();
     }   */
 function myOnLoadedData() {
-console.log('Loaded data');
-console.log("seek start")
+
+console.log("seeked by")
+console.log(segmentStart)
 audioH.currentTime = segmentStart;
-console.log("seek end")
 audioH.play();
-isPlaying=1;
+//isPlaying=1;
 };
 
 
     audioH.addEventListener('timeupdate', function (){
         if (audioH.currentTime >= segmentEnd) {
             audioH.pause();
-            isPlaying=0;
         } 
         
     }, false);
 
     function genURLTrack(filename, startTime, endTime){
+        audioH.pause();
         audioH.src ="{{url_for('site.static', filename=filename)}}";
-        console.log(audioH.src);
-        console.log(startTime);
-        console.log(endTime);
         segmentEnd = parseFloat(endTime);
         segmentStart = parseFloat(startTime);
+        console.log(segmentEnd);
+        console.log(segmentStart);
+        audioH.load();
         
-        if(isPlaying)
-        {myOnLoadedData();}
+        /*if(isPlaying)
+        {myOnLoadedData();}*/
         
     };
         </script>
