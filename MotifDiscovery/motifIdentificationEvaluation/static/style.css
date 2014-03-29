@@ -17,3 +17,7 @@ body{
 span.tab{
     padding: 0 80px; /* Or desired space*/
 }
+
+span.smalltab{
+    padding: 0 25px; /* Or desired space*/
+}

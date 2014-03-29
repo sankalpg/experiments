@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% block body %}
-    <h1>SeedMotifs!</h1>
-        <table style="width:500px">
+    <h1>For the selected seed motif (Id = {{seedIndex}}) and version (Id = {{version}}) listing all versions</h1>
         <ul>
-        <td>Pattern Id.<span class="tab"></span>Status</br></td>
-
-        {% for name in patternNames %}
+        {% for pattern in searchPatterns %}
             <tr>
-            <td><a href="{{url_for('versionPage', seedIndex=loop.index-1)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            <form name="input" action="{{url_for('searchPage', seedIndex=seedIndex, version=version, searchIndex=pattern)}}" method="post">
+            <td><a >{{pattern}}<span class="tab"></span>{{progress[loop.index-1]}}
+                <span class="tab"></span><input type="radio" name="rating" value=0>Bad
+                <span class="smalltab"></span><input type="radio" name="rating" value=1>OK
+                <span class="smalltab"></span><input type="radio" name="rating" value=0>Good
+                <span class="smalltab"></span><input type="submit" value="Submit"></br></td>
+
+            </form> 
             </tr>
-
         {% endfor %}
-
         </ul>
         
 {% endblock %}
 {% block nav %}
-<li><a href="{{url_for('index')}}">MBIDs</a></li>
+<li><a href="{{url_for('versionPage', seedIndex=seedIndex)}}">verisons</a></li>
 {% endblock %}        

@@ -6,7 +6,8 @@
 
         {% for name in patternNames %}
             <tr>
-            <td><a href="{{url_for('versionPage', seedIndex=loop.index-1)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            <td><a href="{{url_for('versionPage', seedIndex=name)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            
             </tr>
 
         {% endfor %}

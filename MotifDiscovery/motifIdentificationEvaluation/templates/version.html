@@ -11,7 +11,7 @@
         <td>Version <span class="tab"></span>Status</br></td>
         {% for name in versionNames %}
             <tr>
-            <td><a>{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
+            <td><a href="{{url_for('searchPage', seedIndex=seedIndex, version=name)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
             </tr>
         {% endfor %}
         </ul>

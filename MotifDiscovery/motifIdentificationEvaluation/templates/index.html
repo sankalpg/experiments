@@ -3,6 +3,11 @@
     <h1>Welcome!</h1>
         <ul>
             <td><a href="{{url_for('seedPage', load=1)}}">LOAD<br></a></td>
+            <br><br>
+            <td>Summary</td>
+            <br><br>
+            <td>Total Seed patterns evaluated are {{seedPatternsDone}} out of {{totalSeedPatterns}}<br></a></td>
+            <td>Total Seed patterns evaluated are {{searchPatternsDone}} out of {{totalSearchPatterns}}<br></a></td>
         </ul>
         
 {% endblock %}
