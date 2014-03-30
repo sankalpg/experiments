@@ -118,7 +118,7 @@ def seedPage():
                 doneArray[jj,ii]=1
             
     overallDone = np.min(doneArray,axis=0)  
-    return flask.render_template('seed.html', patternNames = (np.arange(patternInfo.shape[1])+1).tolist(), progress = overallDone)
+    return flask.render_template('seed.html', seedIndexes = (np.arange(patternInfo.shape[1])+1).tolist(), progress = overallDone)
    
 	
 app.add_url_rule('/', 

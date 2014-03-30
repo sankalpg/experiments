@@ -1,6 +1,7 @@
 body{
     font-family: 'Georgia', serif;
     color:#3E4349;
+    background-color: #F5FFFF;
 }
 
 #nav {
@@ -8,10 +9,13 @@ body{
     top: 20px;
     left: 5px;
     width: 10em;
+    background-color: #F5FFFF;
+    
 }
 
 #content {
-    margin-left: 10em;
+    margin-left: 12em;
+    background-color: #F5FFFF;
 }
 
 span.tab{
@@ -20,4 +24,37 @@ span.tab{
 
 span.smalltab{
     padding: 0 25px; /* Or desired space*/
+}
+table,td
+{
+border: 1px solid black;
+border-collapse:collapse;
+}
+td 
+{
+	text-align: center;
+    border: 1px solid black;
+    overflow: hidden;
+    table-layout: auto;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+th
+{
+	text-align: center;
+    border: 1px solid black;
+    overflow: hidden;
+    table-layout: auto;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: #E6FFFF;
+}
+
+h3
+{
+	padding-bottom: 0px;
 }

@@ -1,22 +1,51 @@
-{% extends "base.html" %}
-{% block body %}
-    <h1>For the selected seed motif (Id = {{seedIndex}})listing all versions</h1>
-        <ul>
-        <form name="input" action="{{url_for('versionPage', seedIndex=seedIndex)}}" method="post">
-        <input type="radio" name="rating" value=0>low<br>
-        <input type="radio" name="rating" value=1>high<br>
-        <input type="submit" value="Submit">
-        </form> 
-        <td>Seed STATUS<span class="tab"></span>{{seedDone}}</br></br></br></br></br></td>
-        <td>Version <span class="tab"></span>Status</br></td>
-        {% for name in versionNames %}
-            <tr>
-            <td><a href="{{url_for('searchPage', seedIndex=seedIndex, version=name)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
-            </tr>
-        {% endfor %}
-        </ul>
+    {% extends "base.html" %}
+    {% block body %}
+        <h2> Listing all version for seed motif ID = {{seedIndex}}</h2>
+        <br><br>
+            <ul>
+            <h3>Rate Seed Pattern</h3>
+            
+                <table>
+                    <tr>
+                        <th>Seed Index</th>
+                        <th>Seed pair</th>
+                        <th>Status</th>
+                        <th>Bad</th>
+                        <th>OK</th>
+                        <th>Good</th>
+                        <th>Submit</th>
+                    </tr>
+                    <tr>
+                            <form name="input" action="{{url_for('versionPage', seedIndex=seedIndex)}}" method="post">
+                            
+                            <td ><a>{{seedIndex}}</td>
+                            <td ><a>{{seedIndex}}</td>
+                            <td>{{seedDone}}</td>
+                            <td><input type="radio" name="rating" value=0></td>
+                            <td><input type="radio" name="rating" value=1></td>
+                            <td><input type="radio" name="rating" value=2></td>
+                            <td><input type="submit" value="Submit"></td>
+                            </form> 
+                    </tr>
+                </table>
+            <br><br><br>
+            <h3>Choose a version to rate searched patterns</h3>
+            
+            <table>
+                <tr>
+                    <th>Version</th>
+                    <th>Status</th>
+                </tr>
+            {% for name in versionNames %}
+                <tr>
+                    <td><a href="{{url_for('searchPage', seedIndex=seedIndex, version=name)}}">{{name}}</td>
+                    <td>{{progress[loop.index-1]}}</td>
+                </tr>
+            {% endfor %}
+            <table>
+            </ul>
 
-{% endblock %}
-{% block nav %}
-<li><a href="{{url_for('seedPage', load=1)}}">seed Patterns</a></li>
-{% endblock %}        
+    {% endblock %}
+    {% block nav %}
+    <li><a href="{{url_for('seedPage', load=1)}}">seeds</a></li>
+    {% endblock %}        

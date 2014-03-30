@@ -1,16 +1,22 @@
 {% extends "base.html" %}
 {% block body %}
-    <h1>List of all seed patterns</h1>
+    <h2>Listing all seed patterns</h2>
         <ul>
-        <td>Pattern Id.<span class="tab"></span>Status</br></td>
+        
+	        <table>
+	        	<tr>
+	        		<th>Seed Index</th>
+	        		<th>Status</th>
+	        	</tr>
+	        {% for seedIndex in seedIndexes %}
+	            <tr>
+	            	<td><a href="{{url_for('versionPage', seedIndex=seedIndex)}}">{{seedIndex}}</td>
+	            	<td>{{progress[loop.index-1]}}</td>
 
-        {% for name in patternNames %}
-            <tr>
-            <td><a href="{{url_for('versionPage', seedIndex=name)}}">{{name}}<span class="tab"></span>{{progress[loop.index-1]}}</br></td>
-            
-            </tr>
+	            </tr>
 
-        {% endfor %}
+	        {% endfor %}
+	    	</table>
         </ul>
         
 {% endblock %}

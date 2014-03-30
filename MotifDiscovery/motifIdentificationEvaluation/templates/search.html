@@ -1,25 +1,35 @@
 {% extends "base.html" %}
 {% block body %}
-    <h1>For the selected seed motif (Id = {{seedIndex}}) and version (Id = {{version}}) listing all versions</h1>
+    <h2>You are rating motif Id = {{seedIndex}}, Version = {{version}}</h2>
         <ul>
-        
+            <br>
+            <h3>Listen to the Seed Motif id = <a href="">{{seedIndex}}</a>
+            </h3>
+            <br>
+        <table>
+        <tr>
+            <th>Search pattern</th>
+            <th>Status</th>
+            <th>Bad</th>
+            <th>OK</th>
+            <th>Good</th>
+            <th>Submit</th>
+        </tr>
         {% for pattern in searchPatterns %}
             <tr>
-            <hr>
-            <form name="input" action="{{url_for('searchPage', seedIndex=seedIndex, version=version, searchIndex=pattern)}}" method="post">
-            <td><a >{{pattern}}<span class="tab"></span>{{progress[loop.index-1]}}
-                <span class="tab"></span><input type="radio" name="rating" value=0>Bad
-                <span class="smalltab"></span><input type="radio" name="rating" value=1>OK
-                <span class="smalltab"></span><input type="radio" name="rating" value=2>Good
-                <span class="smalltab"></span><input type="submit" value="Submit"></td>
-            </form> 
-            <br>
-            <br>
+                <form name="input" action="{{url_for('searchPage', seedIndex=seedIndex, version=version, searchIndex=pattern)}}" method="post">
                 
+                <td ><a>{{pattern}}</td>
+                <td>{{progress[loop.index-1]}}</td>
+                <td><input type="radio" name="rating" value=0></td>
+                <td><input type="radio" name="rating" value=1></td>
+                <td><input type="radio" name="rating" value=2></td>
+                <td><input type="submit" value="Submit"></td>
+                </form> 
             </tr>
         {% endfor %}
-        <hr>
-        </ul>
+        </table>
+    </ul>
         
 {% endblock %}
 {% block nav %}
