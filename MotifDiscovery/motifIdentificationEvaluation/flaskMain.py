@@ -11,17 +11,21 @@ app.secret_key = "sankalp"
 nVersions =4
 nPatternPerSeed = 10
 
+annotationFile = 'EvaluationData/annotations.txt'
+patternInfoFile = 'EvaluationData/patternInfo.txt'
+
+
 class  Main(flask.views.MethodView):
     def get(self):
         #read the evaluation data
-        EvalInfo = np.loadtxt('evaluation.txt')
-        indIncomplete = np.where(EvalInfo[1:,:]==-1)[0]
+        EvalInfo = np.loadtxt(annotationFile)
+        indIncomplete = np.where(EvalInfo[2:,:]==-1)[0]
         
-        totalSearchPatterns = EvalInfo[1:,:].size
+        totalSearchPatterns = EvalInfo[2:,:].size
         searchPatternsDone = totalSearchPatterns - indIncomplete.size
 
-        indIncomplete = np.where(EvalInfo[0,:]==-1)[0]
-        totalSeedPatterns = EvalInfo[0,:].size
+        indIncomplete = np.where(EvalInfo[1,:]==-1)[0]
+        totalSeedPatterns = EvalInfo[1,:].size
         seedPatternsDone = totalSeedPatterns - indIncomplete.size
         
 
@@ -51,23 +55,27 @@ def searchPage():
     if request.method=='POST':
         searchInd = int(request.args.get('searchIndex'))-1
         rating = int(request.form['rating'])
-        EvalInfo = np.loadtxt('evaluation.txt')
-        EvalInfo[1+(nPatternPerSeed*versionInd) + searchInd,seedInd]=rating
+        EvalInfo = np.loadtxt(annotationFile)
+        EvalInfo[2+(nPatternPerSeed*versionInd) + searchInd,seedInd]=rating
         np.savetxt('evaluation.txt',EvalInfo)
         
     #read the evaluation data
-    patternInfo = np.loadtxt('pattern.txt')
-    EvalInfo = np.loadtxt('evaluation.txt')
+    patternInfo = np.loadtxt(patternInfoFile).astype(np.int)
+    EvalInfo = np.loadtxt(annotationFile)
     
     doneArray = np.ones(nPatternPerSeed).astype(np.int)
 
-    EvalInfo = EvalInfo[1+(versionInd*nPatternPerSeed):1+((versionInd+1)*nPatternPerSeed),seedInd]
+    EvalInfo = EvalInfo[2+(versionInd*nPatternPerSeed):2+((versionInd+1)*nPatternPerSeed),seedInd]
 
     indIncomplete = np.where(EvalInfo==-1)[0]
 
     doneArray[indIncomplete] = 0
     
-    return flask.render_template('search.html', searchPatterns = (np.arange(nPatternPerSeed)+1).tolist(), progress = doneArray, seedIndex=seedInd+1, version = versionInd+1)
+    searchPatternsIds = patternInfo[2+(versionInd*nPatternPerSeed):2+((versionInd+1)*nPatternPerSeed),seedInd]
+    
+    seedPatternId = patternInfo[1,seedInd]
+    
+    return flask.render_template('search.html', searchPatterns = (np.arange(nPatternPerSeed)+1).tolist(), progress = doneArray, seedIndex=seedInd+1, version = versionInd+1, searchPatternsIds =searchPatternsIds, seedPatternId=seedPatternId )
     
 
 @app.route('/versionPage', methods=['GET', 'POST'])
@@ -77,42 +85,45 @@ def versionPage():
     
     if request.method=='POST':
         rating = int(request.form['rating'])
-        EvalInfo = np.loadtxt('evaluation.txt')
-        EvalInfo[0,seedInd]=rating
-        np.savetxt('evaluation.txt',EvalInfo)
+        EvalInfo = np.loadtxt(annotationFile)
+        EvalInfo[1,seedInd]=rating
+        np.savetxt(annotationFile,EvalInfo)
         
     #read the evaluation data
-    patternInfo = np.loadtxt('pattern.txt')
-    EvalInfo = np.loadtxt('evaluation.txt')
+    patternInfo = np.loadtxt(patternInfoFile).astype(np.int)
+    EvalInfo = np.loadtxt(annotationFile)
     
     doneArray = np.zeros(nVersions).astype(np.int)
     for ii in range(nVersions):
-        if np.min(EvalInfo[1+(ii*nPatternPerSeed):1+((ii+1)*nPatternPerSeed),seedInd])==-1:
+        if np.min(EvalInfo[2+(ii*nPatternPerSeed):2+((ii+1)*nPatternPerSeed),seedInd])==-1:
             doneArray[ii]=0
         else:
             doneArray[ii]=1
             
-    if EvalInfo[0,seedInd]==-1:
+    if EvalInfo[1,seedInd]==-1:
         seedDone=0
     else:
         seedDone=1
+        
+    seedPattern = patternInfo[1,seedInd]
+    seedPair = patternInfo[0,seedInd]
     
-    return flask.render_template('version.html', versionNames = (np.arange(nVersions)+1).tolist(), progress = doneArray, seedIndex=seedInd+1, seedDone = seedDone)
+    return flask.render_template('version.html', versionNames = (np.arange(nVersions)+1).tolist(), progress = doneArray, seedIndex=seedInd+1, seedDone = seedDone, seedPattern = seedPattern, seedPair=seedPair)
 
 
 @app.route('/seedPage', methods=['GET'])
 def seedPage():
     
     #read the evaluation data
-    patternInfo = np.loadtxt('pattern.txt')
-    EvalInfo = np.loadtxt('evaluation.txt')
+    patternInfo = np.loadtxt(patternInfoFile).astype(np.int)
+    EvalInfo = np.loadtxt(annotationFile)
     
     
     #compute for which seed patterns evaluation is completely done
     doneArray = np.zeros((nVersions,patternInfo.shape[1])).astype(np.int)
     for ii in range(patternInfo.shape[1]):
         for jj in range(nVersions):
-            if np.min(EvalInfo[1+(jj*nPatternPerSeed):1+((jj+1)*nPatternPerSeed),ii])==-1:
+            if np.min(EvalInfo[2+(jj*nPatternPerSeed):2+((jj+1)*nPatternPerSeed),ii])==-1:
                 doneArray[jj,ii]=0
             else:
                 doneArray[jj,ii]=1

@@ -2,6 +2,7 @@
     {% block body %}
         <h2> Listing all version for seed motif ID = {{seedIndex}}</h2>
         <br><br>
+        <audio onloadeddata="myOnLoadedData()" id = "audioHandle"   preload="auto"></audio>
             <ul>
             <h3>Rate Seed Pattern</h3>
             
@@ -18,8 +19,8 @@
                     <tr>
                             <form name="input" action="{{url_for('versionPage', seedIndex=seedIndex)}}" method="post">
                             
-                            <td ><a>{{seedIndex}}</td>
-                            <td ><a>{{seedIndex}}</td>
+                            <td ><a href= "javascript:playClip('{{seedPattern}}')">{{seedPattern}}</td>
+                            <td ><a href= "javascript:playClip('{{seedPair}}')">{{seedPair}}</td>
                             <td>{{seedDone}}</td>
                             <td><input type="radio" name="rating" value=0></td>
                             <td><input type="radio" name="rating" value=1></td>
@@ -44,6 +45,14 @@
             {% endfor %}
             <table>
             </ul>
+        <script type="text/javascript">
+            
+            var audioH = document.getElementById('audioHandle');
+            function playClip(filename){
+                audioH.src ='static/clips/'+filename+'.mp3'
+                audioH.play();                
+            };
+        </script>            
 
     {% endblock %}
     {% block nav %}
