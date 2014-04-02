@@ -55,9 +55,10 @@ def searchPage():
     if request.method=='POST':
         searchInd = int(request.args.get('searchIndex'))-1
         rating = int(request.form['rating'])
+        print seedInd, versionInd, searchInd, rating
         EvalInfo = np.loadtxt(annotationFile)
         EvalInfo[2+(nPatternPerSeed*versionInd) + searchInd,seedInd]=rating
-        np.savetxt('evaluation.txt',EvalInfo)
+        np.savetxt(annotationFile,EvalInfo)
         
     #read the evaluation data
     patternInfo = np.loadtxt(patternInfoFile).astype(np.int)
