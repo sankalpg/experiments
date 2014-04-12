@@ -337,12 +337,15 @@ def generateHeatMapPlotForSeedVsSearchEvalSubSetISMIR(patternInfoFile, versionSe
 def dumpDistanceRelations(patternInfoFile, distanceFile):
     
     
-    cmd1 = 'select distance from match where source_id =%d and target_id=%d'
+    cmd1 = 'select distance from match where source_id =%d and target_id=%d and version=%d'
     
     #reading pattern info file 
     patternInfo = np.loadtxt(patternInfoFile)
-    
+    searchedInfo = patternInfo[2:,:]
     distanceMtx = np.zeros(patternInfo.shape)
+    nPerVersion=10
+    nVersions = 4
+    
     
     
     try:
@@ -350,15 +353,16 @@ def dumpDistanceRelations(patternInfoFile, distanceFile):
         cur = con.cursor()
         
         for ii, seed in enumerate(patternInfo[1,:]):
-            cur.execute(cmd1%(patternInfo[0,ii],patternInfo[1,ii]))
+            cur.execute(cmd1%(patternInfo[0,ii],patternInfo[1,ii], -2))
             dist = cur.fetchone()[0]
             distanceMtx[0,ii]=dist
             distanceMtx[1,ii]=dist
             
-            for jj, search in enumerate(patternInfo[2:,ii]):
-                cur.execute(cmd1%(patternInfo[1,ii],search))
-                dist2 = cur.fetchone()[0]
-                distanceMtx[jj+2,ii]=dist2
+            for jj in range(nVersions):
+                for kk in range(nPerVersion):
+                    cur.execute(cmd1%(patternInfo[1,ii],searchedInfo[(jj*nPerVersion)+kk,ii],jj))
+                    dist2 = cur.fetchone()[0]
+                    distanceMtx[2 + (jj*nPerVersion)+kk,ii]=dist2
             
     except psy.DatabaseError, e:
         print 'Error %s' % e
