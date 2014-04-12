@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block body %}
     <h2>You are rating motif Id = {{seedIndex}}, Version = {{version}}</h2>
+        <audio onloadeddata="myOnLoadedData()" id = "audioHandle"   preload="auto"></audio>
         <ul>
             <br>
-            <h3>Listen to the Seed Motif id = <a href="">{{seedIndex}}</a>
+            <h3>Listen to the Seed Motif id = <a href= "javascript:playClip('{{seedPatternId}}')">{{seedIndex}}</a>
             </h3>
             <br>
         <table>
@@ -19,7 +20,7 @@
             <tr>
                 <form name="input" action="{{url_for('searchPage', seedIndex=seedIndex, version=version, searchIndex=pattern)}}" method="post">
                 
-                <td ><a>{{pattern}}</td>
+                <td ><a href= "javascript:playClip('{{searchPatternsIds[loop.index-1]}}')">{{pattern}}</td>
                 <td>{{progress[loop.index-1]}}</td>
                 <td><input type="radio" name="rating" value=0></td>
                 <td><input type="radio" name="rating" value=1></td>
@@ -30,6 +31,14 @@
         {% endfor %}
         </table>
     </ul>
+        <script type="text/javascript">
+            
+            var audioH = document.getElementById('audioHandle');
+            function playClip(filename){
+                audioH.src ='static/clips/'+filename+'.mp3'
+                audioH.play();                
+            };
+        </script>  
         
 {% endblock %}
 {% block nav %}
