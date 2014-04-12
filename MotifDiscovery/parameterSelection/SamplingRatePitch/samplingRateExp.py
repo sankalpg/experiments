@@ -124,4 +124,26 @@ def batchRunACRExtraction(root_dir, exePath):
         os.system(cmd)
         
 
-            
+def plotAgg2dACRHistogramWithContours(histFile):
+    """
+    This function plots 2 d histogram of ACR values along with contours which represent the % of total popoulation below that ACR value. A contour of 80% will represent a line where 80% of the patterns ACR value is below this line.
+
+    """
+    cumulativeValues = [25 50 75]
+
+    data = np.load(histFile)
+    contours = np.zeros((len(cumulativeValues),data.shape[1]))
+    #lets get ACR VALUE at every lag where the cumulative distribution becomes more than cumulativeValues % of the total number of excerpts
+    for ii in range(data.shape[1]):
+        cumulateDist = [np.sum(data[0:k,ii] for k in range(data.shape[0])]
+        cumValCrossInd = []
+        for val in cumulativeValues:
+            contours[jj,ii] = min(np.where(cumulateDist>=val)[0])
+
+
+    plt.imshow(np.log(hist2D+1), cmap=plt.cm.hot, aspect='auto')
+    
+    plt,show()
+
+
+
