@@ -36,6 +36,19 @@ For reporing in the paper we will consider both OK and GOOD as the same class an
 
 We call this expert feedback and made a web interface to assist the tedius task. All the files are checked-in in the same repository.
 
+
+INTERESTING OBSERVATIONS / CASES (during annotations)
+
+Cool Demo stuff, seed pattern id = 56, 58, 61, 64, 98, 106, 116, 159, 199, 175
+
+FUNNY, seed pattern id = 181, 157
+
+Seed motifs Ids for which a seed pattern was not in top 10 searched patterns: 6, 8, 23, 32, 47, 113 
+
+Crappy audio Seed pattern id = 53, not noted but there were many, should have noted down.!
+
+
+
 EVALUTION PURPOSE:
 1) To see how seed motif distance relates to the perceptual melodic similarity.
 2) IS there any clear threshold to separate perceptually similar pattern pairs from the others or there is a big overlap in  the distance distribution of two classes. The less overlap the better the distance measure.

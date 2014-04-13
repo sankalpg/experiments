@@ -379,9 +379,338 @@ def dumpDistanceRelations(patternInfoFile, distanceFile):
     
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        PLOTTING FUNCTINOS FOR ISMIR %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#def plotSeedDistance
+def seedDistanceClasswiseDistribution(distanceInfoFile, annotationFile, plotIt=1, nBins=100, output='dist'):
+    """
+    Output can be 'distances' or 'distributions' or 'ROC' (true postivies, false positives)
+    """
+
+    distanceInfo = np.loadtxt(distanceInfoFile)
+    annotations = np.loadtxt(annotationFile)
+
+    seedAnnots = annotations[1,:]
+    indBadMatch = np.where(seedAnnots==0)[0]
+    indGoodMatch = np.where(seedAnnots>0)[0]
+
+    distGood = distanceInfo[1, indGoodMatch]
+    distBad = distanceInfo[1, indBadMatch]
+
+    if output == 'distances':
+        return distGood, distBad
+
+    elif output == 'distributions':
+
+        distGoodLog = np.log10(distGood)
+        distBadLog = np.log10(distBad)
+
+        min_val = np.min([np.min(distGoodLog), np.min(distBadLog)])
+        max_val = np.min([np.max(distGoodLog), np.max(distBadLog)])
+
+        bins = np.linspace(min_val, max_val, num=nBins)
+
+        hist1 = np.histogram(distGoodLog, bins = bins)
+        hist2 = np.histogram(distBadLog, bins = bins)
+
+        if plotIt:
+            plt.hold(True)
+            plt.plot(hist1[1][:-1], hist1[0])
+            plt.plot(hist2[1][:-1], hist2[0])
+            plt.show()
+
+        return hist1[0], hist2[0], hist1[1]
+
+    elif output == 'ROC':
+
+        Tp, Fp = computeROC(np.log10(distGood), np.log10(distBad))
+        if plotIt:
+            plt.plot(Fp, Tp)
+            plt.show()
+        return Tp, Fp
+
+def searchDistanceClasswiseDistribution(distanceInfoFile, annotationFile, version, plotIt=1, nBins=100, output='dist', nPerVersion=10):
+    """
+    Output can be 'distances' or 'distributions' or 'ROC' (true postivies, false positives)
+    """
+
+    distanceInfo = np.loadtxt(distanceInfoFile)
+    annotations = np.loadtxt(annotationFile)
+
+    annotations = annotations[2:,:]
+    distanceInfo = distanceInfo[2:,:]
+
+    searchAnnots = annotations[version*nPerVersion:(version+1)*nPerVersion,:]
+
+    indBadMatch = np.where(searchAnnots==0)
+    indGoodMatch = np.where(searchAnnots>0)
+
+    distGood = distanceInfo[indGoodMatch]
+    distBad = distanceInfo[indBadMatch]
+
+    distGood = np.ndarray.flatten(distGood)
+    distBad = np.ndarray.flatten(distBad)
+
+    if output == 'distances':
+        return distGood, distBad
+
+    elif output == 'distributions':
+
+        distGoodLog = np.log(distGood)
+        distBadLog = np.log(distBad)
+
+        min_val = np.min([np.min(distGoodLog), np.min(distBadLog)])
+        max_val = np.min([np.max(distGoodLog), np.max(distBadLog)])
+
+        bins = np.linspace(min_val, max_val, num=nBins)
+
+        hist1 = np.histogram(distGoodLog, bins = bins)
+        hist2 = np.histogram(distBadLog, bins = bins)
+
+        if plotIt:
+            plt.hold(True)
+            plt.plot(hist1[1][:-1], hist1[0])
+            plt.plot(hist2[1][:-1], hist2[0])
+            plt.show()
+
+        return hist1[0], hist2[0], hist1[1]
+
+    elif output == 'ROC':
+
+        Tp, Fp = computeROC(np.log(distGood), np.log(distBad))
+        if plotIt:
+            plt.plot(Fp, Tp)
+            plt.show()
+        return Tp, Fp
+
+
+def computeROC(class1Data, class2Data, nSteps = 1000):
+    """
+    returns true positve , false positive for each step at equal distance from min (data) to max (data)
+    """
+
+    minData = np.min([np.min(class1Data), np.min(class2Data)])
+    maxData = np.max([np.max(class1Data), np.max(class2Data)])
+
+    thresholds = np.linspace(minData, maxData, num= nSteps)
+
+    truePos = []
+    falsePos = []
+
+    for thresh in thresholds:
+        indPos = np.where(class1Data<=thresh)[0]
+        truePos.append(float(len(indPos))/float(len(class1Data)))
+
+        indNeg = np.where(class2Data<=thresh)[0]
+        falsePos.append(float(len(indNeg))/float(len(class2Data)))
+
+    return truePos, falsePos
+
+
+
+def meanAvgPrecision(annotationFile, version, N, nPerVersion=10, seedCategory = [0, 1, 2]):
+
+    annotations = np.loadtxt(annotationFile)
+    annotations = annotations[2:,:]
+
+    nCols = annotations.shape[1]
+
+    indexes = []
+    for cat in  seedCategory:
+        indexes.extend(range(cat, nCols, 3))
+
+    #print len(indexes)
+    versionAnnots = annotations[version*nPerVersion : (version*nPerVersion)+N, indexes]
+
+    indCorrect = np.where(versionAnnots>0)[0]
+
+    return indCorrect.size/float(versionAnnots.size)
+
+
+def numbersTopNCombined(patternInfoFile, annotationFile, nPerVersion=10):
+    
+    #reading the pattern ids from info filename
+    patternData = np.loadtxt(patternInfoFile)
+    patternData = patternData[2:,:]
+
+    annotations = np.loadtxt(annotationFile)
+    annotations = annotations[2:,:]
+
+    indGood = np.where(annotations >0)
+    patternsGood = patternData[indGood]
+
+    indBad = np.where(annotations ==0)
+    patternsBad = patternData[indBad]
+
+    patternData = np.ndarray.flatten(patternData)
+    patternsGood = np.ndarray.flatten(patternsGood)
+    patternsBad = np.ndarray.flatten(patternsBad)
+
+    print "Number of Unique patterns in the searched results of all methods are : %d " %(len(np.unique(patternData)))
+    print "Number of Unique Good patterns in the searched results of all methods are : %d " %(len(np.unique(patternsGood)))
+    print "Number of Unique Bad patterns in the searched results of all methods are : %d " %(len(np.unique(patternsBad)))
+    print "Number of intersection in Good and  Bad patterns in the searched results of all methods are : %d " %(len(np.intersect1d(patternsGood, patternsBad)))
+    return 
+
+def meanReciprocalRank(annotationFile, version, nPerVersion=10, seedCategory = [0,1,2]):
+
+
+    annotations = np.loadtxt(annotationFile)
+    annotations = annotations[2:,:]
+
+    nCols = annotations.shape[1]
+
+    indexes = []
+    for cat in  seedCategory:
+        indexes.extend(range(cat, nCols, 3))
+
+    versionAnnots = annotations[version*nPerVersion: (version+1)*nPerVersion, indexes]
+    RR = []
+    for ii in range(versionAnnots.shape[1]):
+        indGood = np.where(versionAnnots[:,ii]>0)[0]
+        if len(indGood)>0:
+            indGood = np.min(indGood)
+            RR.append(1/(1+float(indGood)))
+        else:
+            RR.append(0.0)
+
+    return np.mean(RR)
+
+
+def plotMeanAvgPrecision(annotationFile, plotName = -1):
+
+
+    seedCategoryArray = [[0], [1], [2], [0,1,2]]
+    CategoryNames = ['Cat.1', 'Cat.2', 'Cat.3', 'all']
+    versionArray = [0,1,2,3]
+    #totalCnt = np.array([670, 670, 660, 2000]).astype(np.float)
+    plotData = np.zeros((len(seedCategoryArray), len(versionArray)))
+
+    for ii in range(len(seedCategoryArray)):
+        for jj in range(len(versionArray)):
+            plotData[ii,jj] = meanAvgPrecision(annotationFile, jj, 10, nPerVersion=10, seedCategory = seedCategoryArray[ii])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.hold(True)
+    colorArr = ['c', 'g', 'm', 'k']
+    markerArr = ['^', 's' , 'D', 'o']
+    pLeg = []
+    for ii in range(len(seedCategoryArray)):
+        phand = plt.scatter([1,2,3,4], 100.0*plotData[ii,:], color = colorArr[ii], marker = markerArr[ii], s = 50)
+        pLeg.append(phand)
+
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    plt.xticks([1,2,3,4])
+    plt.xlim([0,5])
+    plt.ylim([0,70])
+    plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
+    plt.ylabel("Mean average precision (%)", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 4, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    ax.set_aspect(5/(70.0*2))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #ax.tick_params(axis='y', pad=30)
+
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
+
+def plotMeanReciprocalRank(annotationFile, plotName = -1):
+
+
+    seedCategoryArray = [[0], [1], [2], [0,1,2]]
+    CategoryNames = ['Cat.1', 'Cat.2', 'Cat.3', 'all']
+    versionArray = [0,1,2,3]
+    plotData = np.zeros((len(seedCategoryArray), len(versionArray)))
+
+    for ii in range(len(seedCategoryArray)):
+        for jj in range(len(versionArray)):
+            plotData[ii,jj] = meanReciprocalRank(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.hold(True)
+    colorArr = ['c', 'g', 'm', 'k']
+    markerArr = ['^', 's' , 'D', 'o']
+    pLeg = []
+    for ii in range(len(seedCategoryArray)):
+        phand = plt.scatter([1,2,3,4], plotData[ii,:], color = colorArr[ii], marker = markerArr[ii], s = 50)
+        pLeg.append(phand)
+
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
+    plt.ylabel("Mean Reciprocal Rank", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 4, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    
+    
+    plt.xlim([0,5])
+    plt.ylim([.25,1.05])
+    ax.set_aspect(5/(.8*2))
+    plt.xticks([1,2,3,4])
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #ax.tick_params(axis='y', pad=30)
+
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+    
+def plotSeedDistVsSearchDist(distanceInfoFile, version, nPerVersion=10, plotName=-1):
+
+    distanceInfo = np.loadtxt(distanceInfoFile)
+
+    scatterData = []
+
+    for ii,seed in enumerate(distanceInfo[1,:]):
+        for jj in range(nPerVersion):
+            scatterData.append((seed, distanceInfo[2+(version*nPerVersion) + jj, ii]))
+
+    x_scat = np.log10(np.array([x[0] for x in scatterData])+1)
+    y_scat = np.log10(np.array([x[1] for x in scatterData])+1)
     
 
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     
+    plt.scatter(x_scat, y_scat, s=50, alpha=0.75, marker = '1', color = 'k')
     
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel("Seed pair distance (log)", fontsize = fsize, fontname=font)
+    plt.ylabel("Distance (log)", fontsize = fsize, fontname=font, labelpad=fsize2)
+    
+    xmin = np.min(x_scat)
+    xmax = np.max(x_scat)
+    xrang = xmax-xmin
+
+    ymin = np.min(y_scat)
+    ymax = np.max(y_scat)
+    yrang = ymax-ymin
+    
+    xLim = [xmin-(0.05*xmin), xmax+(0.05*xmax)]
+    yLim = [ymin-(0.05*ymin), ymax+(0.05*ymax)]
+
+    plt.xlim(xLim)
+    plt.ylim(yLim)
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #ax.tick_params(axis='y', pad=30)
+
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
 
