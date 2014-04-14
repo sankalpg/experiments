@@ -17,6 +17,8 @@ try:
 except:
     pass
 
+EPS = np.finfo(float).eps
+
 myUser = 'sankalp'
 myDatabase = 'motifDB_CONF1'
 
@@ -379,57 +381,7 @@ def dumpDistanceRelations(patternInfoFile, distanceFile):
     
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        PLOTTING FUNCTINOS FOR ISMIR %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-def seedDistanceClasswiseDistribution(distanceInfoFile, annotationFile, plotIt=1, nBins=100, output='dist'):
-    """
-    Output can be 'distances' or 'distributions' or 'ROC' (true postivies, false positives)
-    """
-
-    distanceInfo = np.loadtxt(distanceInfoFile)
-    annotations = np.loadtxt(annotationFile)
-
-    seedAnnots = annotations[1,:]
-    indBadMatch = np.where(seedAnnots==0)[0]
-    indGoodMatch = np.where(seedAnnots>0)[0]
-
-    distGood = distanceInfo[1, indGoodMatch]
-    distBad = distanceInfo[1, indBadMatch]
-
-    if output == 'distances':
-        return distGood, distBad
-
-    elif output == 'distributions':
-
-        distGoodLog = np.log10(distGood)
-        distBadLog = np.log10(distBad)
-
-        min_val = np.min([np.min(distGoodLog), np.min(distBadLog)])
-        max_val = np.min([np.max(distGoodLog), np.max(distBadLog)])
-
-        bins = np.linspace(min_val, max_val, num=nBins)
-
-        hist1 = np.histogram(distGoodLog, bins = bins)
-        hist2 = np.histogram(distBadLog, bins = bins)
-
-        if plotIt:
-            plt.hold(True)
-            plt.plot(hist1[1][:-1], hist1[0])
-            plt.plot(hist2[1][:-1], hist2[0])
-            plt.show()
-
-        return hist1[0], hist2[0], hist1[1]
-
-    elif output == 'ROC':
-
-        Tp, Fp = computeROC(np.log10(distGood), np.log10(distBad))
-        if plotIt:
-            plt.plot(Fp, Tp)
-            plt.show()
-        return Tp, Fp
-
-def searchDistanceClasswiseDistribution(distanceInfoFile, annotationFile, version, plotIt=1, nBins=100, output='dist', nPerVersion=10):
-    """
-    Output can be 'distances' or 'distributions' or 'ROC' (true postivies, false positives)
-    """
+def fetchSearchDistanceClasswise(distanceInfoFile, annotationFile, version,nPerVersion=10):
 
     distanceInfo = np.loadtxt(distanceInfoFile)
     annotations = np.loadtxt(annotationFile)
@@ -438,6 +390,8 @@ def searchDistanceClasswiseDistribution(distanceInfoFile, annotationFile, versio
     distanceInfo = distanceInfo[2:,:]
 
     searchAnnots = annotations[version*nPerVersion:(version+1)*nPerVersion,:]
+    distanceInfo = distanceInfo[version*nPerVersion:(version+1)*nPerVersion,:]
+
 
     indBadMatch = np.where(searchAnnots==0)
     indGoodMatch = np.where(searchAnnots>0)
@@ -448,37 +402,43 @@ def searchDistanceClasswiseDistribution(distanceInfoFile, annotationFile, versio
     distGood = np.ndarray.flatten(distGood)
     distBad = np.ndarray.flatten(distBad)
 
-    if output == 'distances':
-        return distGood, distBad
+    return distGood, distBad
 
-    elif output == 'distributions':
+def fetchSeedDistanceClasswise(distanceInfoFile, annotationFile):
 
-        distGoodLog = np.log(distGood)
-        distBadLog = np.log(distBad)
+    distanceInfo = np.loadtxt(distanceInfoFile)
+    annotations = np.loadtxt(annotationFile)
 
-        min_val = np.min([np.min(distGoodLog), np.min(distBadLog)])
-        max_val = np.min([np.max(distGoodLog), np.max(distBadLog)])
+    annotations = annotations[1,:]
+    distanceInfo = distanceInfo[1,:]
 
-        bins = np.linspace(min_val, max_val, num=nBins)
+    indBadMatch = np.where(annotations==0)
+    indGoodMatch = np.where(annotations>0)
 
-        hist1 = np.histogram(distGoodLog, bins = bins)
-        hist2 = np.histogram(distBadLog, bins = bins)
+    distGood = distanceInfo[indGoodMatch]
+    distBad = distanceInfo[indBadMatch]
 
-        if plotIt:
-            plt.hold(True)
-            plt.plot(hist1[1][:-1], hist1[0])
-            plt.plot(hist2[1][:-1], hist2[0])
-            plt.show()
+    return distGood, distBad
 
-        return hist1[0], hist2[0], hist1[1]
+def computeDistanceDistribution(distGood, distBad, takeLog =1, nBins=100):
+    if takeLog:
+        distGoodLog  = np.log10(distGood+1)
+        distBadLog = np.log10(distBad+1)
+    else:
+        distGoodLog  = distGood
+        distBadLog = distBad
 
-    elif output == 'ROC':
 
-        Tp, Fp = computeROC(np.log(distGood), np.log(distBad))
-        if plotIt:
-            plt.plot(Fp, Tp)
-            plt.show()
-        return Tp, Fp
+    min_val = np.min([np.min(distGoodLog), np.min(distBadLog)])
+    max_val = np.min([np.max(distGoodLog), np.max(distBadLog)])
+
+    bins = np.linspace(min_val, max_val, num=nBins)
+
+    hist1 = np.histogram(distGoodLog, bins = bins)
+    hist2 = np.histogram(distBadLog, bins = bins)
+
+    return hist1[0], hist2[0], hist1[1]
+
 
 
 def computeROC(class1Data, class2Data, nSteps = 1000):
@@ -679,7 +639,7 @@ def plotSeedDistVsSearchDist(distanceInfoFile, version, nPerVersion=10, plotName
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    
+
     plt.scatter(x_scat, y_scat, s=50, alpha=0.75, marker = '1', color = 'k')
     
     fsize = 20
@@ -713,4 +673,159 @@ def plotSeedDistVsSearchDist(distanceInfoFile, version, nPerVersion=10, plotName
 
     return 1
 
+
+def plotSearchDistDistributions(distanceInfoFile, annotationFile, version,nPerVersion=10, takeLog =1, nBins=100, plotName=-1):
+
+    d1,d2 = fetchSearchDistanceClasswise(distanceInfoFile, annotationFile, version, nPerVersion)
+
+    h1,h2,bins = computeDistanceDistribution(d1,d2, takeLog, nBins)
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    pLeg=[]
+    CategoryNames = ['similar', 'not-similar']
+
+    plt.hold(True)
+    p, = plt.plot(bins[:-1], h1, color = 'b')
+    pLeg.append(p)
+    p, = plt.plot(bins[:-1], h2, color = 'r')
+    pLeg.append(p)
+
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel("Distance (log)", fontsize = fsize, fontname=font)
+    plt.ylabel("Frequency", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='upper left', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
+def plotSeedDistDistributions(distanceInfoFile, annotationFile, takeLog =1, nBins=100, plotName=-1):
+
+    d1,d2 = fetchSeedDistanceClasswise(distanceInfoFile, annotationFile)
+
+    h1,h2,bins = computeDistanceDistribution(d1,d2, takeLog, nBins)
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    CategoryNames = ['similar', 'not-similar']
+    pLeg = []
+
+    plt.hold(True)
+    
+    p, = plt.plot(bins[:-1], h1, color = 'b')
+    pLeg.append(p)
+    p, = plt.plot(bins[:-1], h2, color = 'r')
+    pLeg.append(p)
+    
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel("Distance (log)", fontsize = fsize, fontname=font)
+    plt.ylabel("Frequency", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='upper left', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
+
+def plotSearchDistROC(distanceInfoFile, annotationFile, version,nPerVersion=10, takeLog =1, steps=1000, plotName=-1):
+
+    d1,d2 = fetchSearchDistanceClasswise(distanceInfoFile, annotationFile, version, nPerVersion)
+
+    if takeLog:
+        d1 = np.log10(d1+1)
+        d2 = np.log10(d2+1)
+
+    tp, fp = computeROC(d1,d2, nSteps = steps)
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    
+    plt.plot(fp, tp, color = 'b')
+    
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel(" False Positives", fontsize = fsize, fontname=font)
+    plt.ylabel("True Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
+
+def plotSeedDistROC(distanceInfoFile, annotationFile,takeLog =1, steps=1000, plotName=-1):
+
+    d1,d2 = fetchSeedDistanceClasswise(distanceInfoFile, annotationFile)
+
+    if takeLog:
+        d1 = np.log10(d1+1)
+        d2 = np.log10(d2+1)
+
+    tp, fp = computeROC(d1,d2, nSteps = steps)
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    
+    plt.plot(fp, tp, color = 'b')
+    
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    
+    plt.xlabel(" False Positives", fontsize = fsize, fontname=font)
+    plt.ylabel("True Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
 
