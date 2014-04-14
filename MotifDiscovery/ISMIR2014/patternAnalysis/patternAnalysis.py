@@ -464,8 +464,27 @@ def computeROC(class1Data, class2Data, nSteps = 1000):
     return truePos, falsePos
 
 
+def averagePrecision(relevanceArray):
+    """
+    relevanceArray is 1d array of 0 and 1 indicating if a searched result is relevant (1) or not (0). 
+    The output is the average precision of the retrieved relevant documents.
+    Ref: 
+    http://en.wikipedia.org/wiki/Information_retrieval#Average_precision
+    """
 
-def meanAvgPrecision(annotationFile, version, N, nPerVersion=10, seedCategory = [0, 1, 2]):
+    relPrecision = []
+    for ii, val in enumerate(relevanceArray):
+        p = val*np.sum(relevanceArray[0:ii+1])/float(ii+1)
+        relPrecision.append(p)
+    
+    nRel = np.sum(relevanceArray)
+    if nRel ==0:
+        return 0
+    else:
+        return np.sum(relPrecision)/float(nRel)
+
+
+def meanAvgPrecision(annotationFile, version, nPerVersion=10, seedCategory = [0, 1, 2]):
 
     annotations = np.loadtxt(annotationFile)
     annotations = annotations[2:,:]
@@ -477,11 +496,18 @@ def meanAvgPrecision(annotationFile, version, N, nPerVersion=10, seedCategory = 
         indexes.extend(range(cat, nCols, 3))
 
     #print len(indexes)
-    versionAnnots = annotations[version*nPerVersion : (version*nPerVersion)+N, indexes]
+    versionAnnots = annotations[version*nPerVersion : (version+1)*nPerVersion, indexes]
 
-    indCorrect = np.where(versionAnnots>0)[0]
+    relevanceMTX = np.zeros(versionAnnots.shape)
+    indRel = np.where(versionAnnots>0)
+    relevanceMTX[indRel] =1
 
-    return indCorrect.size/float(versionAnnots.size)
+    avgPrecision = []
+    for ii in range(relevanceMTX.shape[1]):
+        avgPrecision.append(averagePrecision(relevanceMTX[:,ii]))
+
+    return np.mean(avgPrecision), np.array(avgPrecision)
+
 
 
 def numbersTopNCombined(patternInfoFile, annotationFile, nPerVersion=10):
@@ -509,7 +535,7 @@ def numbersTopNCombined(patternInfoFile, annotationFile, nPerVersion=10):
     print "Number of intersection in Good and  Bad patterns in the searched results of all methods are : %d " %(len(np.intersect1d(patternsGood, patternsBad)))
     return 
 
-def meanReciprocalRank(annotationFile, version, nPerVersion=10, seedCategory = [0,1,2]):
+def meanReciprocalRankFist(annotationFile, version, nPerVersion=10, seedCategory = [0,1,2]):
 
 
     annotations = np.loadtxt(annotationFile)
@@ -545,7 +571,7 @@ def plotMeanAvgPrecision(annotationFile, plotName = -1):
 
     for ii in range(len(seedCategoryArray)):
         for jj in range(len(versionArray)):
-            plotData[ii,jj] = meanAvgPrecision(annotationFile, jj, 10, nPerVersion=10, seedCategory = seedCategoryArray[ii])
+            plotData[ii,jj] = meanAvgPrecision(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])[0]
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -554,7 +580,7 @@ def plotMeanAvgPrecision(annotationFile, plotName = -1):
     markerArr = ['^', 's' , 'D', 'o']
     pLeg = []
     for ii in range(len(seedCategoryArray)):
-        phand = plt.scatter([1,2,3,4], 100.0*plotData[ii,:], color = colorArr[ii], marker = markerArr[ii], s = 50)
+        phand = plt.scatter([1,2,3,4], plotData[ii,:], color = colorArr[ii], marker = markerArr[ii], s = 50)
         pLeg.append(phand)
 
     fsize = 20
@@ -562,11 +588,11 @@ def plotMeanAvgPrecision(annotationFile, plotName = -1):
     font="Times New Roman"
     plt.xticks([1,2,3,4])
     plt.xlim([0,5])
-    plt.ylim([0,70])
+    plt.ylim([0,1])
     plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
-    plt.ylabel("Mean average precision (%)", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.ylabel("Mean average precision", fontsize = fsize, fontname=font, labelpad=fsize2)
     plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 4, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
-    ax.set_aspect(5/(70.0*2))
+    ax.set_aspect(5/(1*2))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     #ax.tick_params(axis='y', pad=30)
 
@@ -578,7 +604,7 @@ def plotMeanAvgPrecision(annotationFile, plotName = -1):
     return 1
 
 
-def plotMeanReciprocalRank(annotationFile, plotName = -1):
+def plotmeanReciprocalRankFist(annotationFile, plotName = -1):
 
 
     seedCategoryArray = [[0], [1], [2], [0,1,2]]
@@ -588,7 +614,7 @@ def plotMeanReciprocalRank(annotationFile, plotName = -1):
 
     for ii in range(len(seedCategoryArray)):
         for jj in range(len(versionArray)):
-            plotData[ii,jj] = meanReciprocalRank(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])
+            plotData[ii,jj] = meanReciprocalRankFist(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -616,6 +642,46 @@ def plotMeanReciprocalRank(annotationFile, plotName = -1):
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     #ax.tick_params(axis='y', pad=30)
 
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
+
+
+def plotBoxPlotAveragePrecision(annotationFile, plotName = -1):
+
+    seedCategoryArray = [[0], [1], [2]]
+    versionArray = [0,1,2,3]
+    
+    plotData = []
+    for ii in range(len(seedCategoryArray)):
+        for jj in range(len(versionArray)):
+            data = meanAvgPrecision(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])[1]
+            plotData.append(data)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    plt.boxplot(plotData)
+
+    fsize = 20
+    fsize2 = 14
+    font="Times New Roman"
+    plt.xticks(np.arange(12), ['V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4'])
+    #plt.xlim([0,5])
+    plt.ylim([-.1,1.1])
+    #plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
+    plt.ylabel("Average precision", fontsize = fsize, fontname=font, labelpad=fsize2)
+    #plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 4, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    #plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #ax.tick_params(axis='y', pad=30)
+    
     if isinstance(plotName, int):
         plt.show()
     elif isinstance(plotName, str):
