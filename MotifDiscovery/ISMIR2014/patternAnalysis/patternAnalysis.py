@@ -669,7 +669,7 @@ def plotBoxPlotAveragePrecision(annotationFile, plotName = -1):
     fsize = 20
     fsize2 = 14
     font="Times New Roman"
-    plt.xticks(np.arange(12), ['V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4'])
+    plt.xticks(np.arange(12)+1, ['V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4'])
     #plt.xlim([0,5])
     plt.ylim([-.1,1.1])
     #plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
