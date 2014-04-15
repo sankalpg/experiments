@@ -136,7 +136,7 @@ def getSeedPatternDistancesDB():
     if con:
         con.close()
     
-    return distArray    
+    return distArray
     
 def computeSeedPatternDistHistogramDB(nBins=100, plotOrSave=0):
     
@@ -895,3 +895,36 @@ def plotSeedDistROC(distanceInfoFile, annotationFile,takeLog =1, steps=1000, plo
 
     return 1
 
+def obtainInconsistentAnnotations(annotationFile, patternInfoFile):
+    
+    annotations = np.loadtxt(annotationFile)
+    patternInfo = np.loadtxt(patternInfoFile)
+    fid = open('inconsistent.txt', 'w')
+    fid.close()
+    
+    for ii in range(patternInfo.shape[1]):
+        patternUnique = np.unique(patternInfo[2:,ii])
+        
+        for patt in patternUnique:
+            
+            indPat = np.where(patternInfo[2:,ii]==patt)[0]
+            
+            ratingRat = annotations[2+indPat,ii]
+            ratingUniq = np.unique(ratingRat)
+            if len(ratingUniq)>1:
+                fid = open('inconsistent.txt', 'ab')
+                fid.write("Seed Index =%d | "%(ii+1))
+                for jj in range(len(ratingRat)):
+                    v,r = index2VersionInd(indPat[jj], 10)
+                    fid.write(" | version = %d, searchIndex = %d, ratingGiven = %d | "%(v+1,r+1,ratingRat[jj]))
+                fid.write("\n")
+                fid.close()
+                    
+                
+                
+def index2VersionInd(ind, nPerVersion):
+    
+    quot = np.mod(ind,nPerVersion)
+    return (ind-quot)/nPerVersion , quot
+    
+    
