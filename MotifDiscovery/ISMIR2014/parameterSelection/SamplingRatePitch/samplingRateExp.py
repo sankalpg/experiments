@@ -129,8 +129,10 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     This function plots 2 d histogram of ACR values along with contours which represent the % of total popoulation below that ACR value. A contour of 80% will represent a line where 80% of the patterns ACR value is below this line.
 
     """
-    cumulativeValues = [75, 50, 25]
-    CategoryNames = ['3Q', '2Q', '1Q']
+    cumulativeValues = [25, 50, 75]
+    CategoryNames = ['1Q', '2Q', '3Q']
+    colors = ['b--', 'r--', 'k--']
+    markers = ['^', 'o', 's']
 
     data = np.load(histFile)
     nTotal = np.sum(data[:,0])
@@ -150,10 +152,10 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     fig = plt.figure() 
     ax = fig.add_subplot(111)
     
-    plt.imshow(np.power(data, 1/8.0), cmap=plt.cm.hot, aspect='auto')
+    plt.imshow(np.power(data, 1/4.0), cmap=plt.cm.RdGy, aspect='auto')
     pLeg = []
     for ii in range(contours.shape[0]):
-        p, = plt.plot(range(30), contours[ii,:], linewidth=3)
+        p, = plt.plot(range(30), contours[ii,:], colors[ii], linewidth=1, marker = markers[ii], markersize=5)
         pLeg.append(p)
 
     fsize = 20
@@ -165,7 +167,7 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
 
     plt.yticks(np.append(np.arange(0, 100, 10),99), ["%1.1f"%(p/100.0) for p in range(0,110,10)])
 
-    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='upper right', ncol = 3, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower left', ncol = 3, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
     
     ax.set_xlim([0,29])
     ax.set_ylim([0,99])

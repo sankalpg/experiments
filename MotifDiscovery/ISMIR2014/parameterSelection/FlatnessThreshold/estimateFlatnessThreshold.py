@@ -2,7 +2,7 @@ import numpy as np
 import sys, os
 import matplotlib.pyplot as plt
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/batchProcessing/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../../library_pythonnew/batchProcessing/'))
 
 import batchProcessing as BP
 
@@ -126,24 +126,44 @@ def estimateFlatnessThreshold(root_dir, annotationExt, var_len):
     plt.plot(FalsePost,binRef, color='r')
     plt.show()
     """
-    return (FalsePost, TruePost, binRef)
+    return FalsePost, TruePost, binRef
 
-def plotDifferentROCs(root_dir, annotationExt, var_lens):
+def plotDifferentROCs(root_dir, annotationExt, plotName=-1):
     
     fig = plt.figure()
-    plt.hold(True)
+    ax = fig.add_subplot(111)
     pLeg = []
-    for var_len in var_lens:
-        FP, TP, = estimateFlatnessThreshold(root_dir, annotationExt, var_len)
-        p, = plt.plot(FP, TP)
+    colors= ['r', 'k', 'b']
+    markers = ['o', 's', '^']
+    var_lens = [50, 100, 200]
+    variants = ['100 ms', '200 ms', '400 ms']
+    
+    for ii,var_len in enumerate(var_lens):
+        FP, TP, bins = estimateFlatnessThreshold(root_dir, annotationExt, var_len)
+        p, = plt.plot(FP, TP, colors[ii], linewidth=1.5, marker = markers[ii], markersize=5)
         pLeg.append(p)
 
-    fsize = 18
-    plt.legend(pLeg, [str(x) for x in var_lens],fontsize=fsize, loc =4)
-    plt.ylabel("True Positives", fontsize=fsize)
-    plt.xlabel("False Positives", fontsize=fsize)
+    fsize = 22
+    fsize2 = 16
+    font="Times New Roman"
+    
     plt.xlim([0, 1])
-    #plt.show()
-    fig.savefig('Rocs.pdf')
+    plt.xlabel("True Positives", fontsize = fsize, fontname=font)
+    plt.ylabel("False Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+    
+    plt.legend(pLeg, [variants[x] for x in range(len(var_lens))], loc ='lower right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
     
     

@@ -6,6 +6,7 @@ import sys, os
 from mutagen import easyid3
 import numpy as np
 import pickle
+from scipy.stats import wilcoxon
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/batchProcessing'))
 
@@ -116,7 +117,7 @@ def computeSeedPatternDistHistogramTXT(root_dir, seedExt = '.2s25Motif_CONF1', n
 
 def getSeedPatternDistancesDB():
     
-    cmd1 = "select distance from match where version <0"
+    cmd1 = "select distance from match where version =-1"
     
     distArray = []
     
@@ -138,7 +139,7 @@ def getSeedPatternDistancesDB():
     
     return distArray
     
-def computeSeedPatternDistHistogramDB(nBins=100, plotOrSave=0):
+def computeSeedPatternDistHistogramDB(nBins=100):
     
     dist = getSeedPatternDistancesDB()
     
@@ -151,21 +152,7 @@ def computeSeedPatternDistHistogramDB(nBins=100, plotOrSave=0):
     bins = np.linspace(min_val, max_val, num=nBins+1)
     
     hist = np.histogram(dist,bins=bins)
-    
-    fig = plt.figure()
-    fsize=14
-    plt.plot(hist[1][:-1], hist[0])
-    plt.ylabel("Frequency", fontsize=fsize)
-    plt.xlabel("Log distance", fontsize=fsize)
-        
-    if plotOrSave==1:
-        fig.savefig('seedDistanceDistribution.pdf')
-    elif plotOrSave==2:
-        plt.show()
-    
-    return hist[0], hist[1]
-
-
+    return hist[0], hist[1], dist
 
 
 def createISMIR2014EvaluationSubset(nBins=10, totalPatterns=200, nSearchItems=10, nVersions=4, splitLogic = 1):
@@ -559,7 +546,79 @@ def meanReciprocalRankFist(annotationFile, version, nPerVersion=10, seedCategory
 
     return np.mean(RR)
 
+def performStatisticalAnalysis(annotationFile):
+    
+    seedCategoryArray = [[0], [1], [2]]
+    versionArray = [0,1,2,3]
+    pThsld = 0.05
+    
+    #[(version1, category1), (version2, category2)] pairs
+    combinations = [[(1,0),(0,0)],\
+                    [(1,0),(2,0)],\
+                    [(1,0),(3,0)],\
+                    [(1,1),(3,1)],\
+                    [(2,1),(3,1)],\
+                    [(0,1),(3,1)],\
+                    [(1,1),(0,1)],\
+                    [(2,1),(0,1)],\
+                    [(2,1),(1,1)],\
+                    [(1,0),(1,1)],\
+                    [(1,2),(3,2)],\
+                    [(1,0),(1,2)]]
+    pVals = []
+    for elem in combinations:
+        APVector1 = meanAvgPrecision(annotationFile, elem[0][0], nPerVersion=10, seedCategory = seedCategoryArray[elem[0][1]])[1]
+        APVector2 = meanAvgPrecision(annotationFile, elem[1][0], nPerVersion=10, seedCategory = seedCategoryArray[elem[1][1]])[1]
+        minLen = np.min(np.array([len(APVector1), len(APVector2)]))
+        pVals.append(wilcoxon(APVector1[:minLen], APVector2[:minLen])[1])
+    
+    print "These are the conbinations that you choose and obtained p values\n\n"
+    for ii in range(len(pVals)):
+        elem = combinations[ii]
+        print "Version = %d,\tCategory = %d,\twith Version = %d,\tCategory = %d,\tPval = %f\n"%(elem[0][0]+1, elem[0][1]+1, elem[1][0]+1, elem[1][1]+1, pVals[ii])
+    print "\n\n\n"
+    
+    pVals = np.array(pVals)
+    sortInds = np.argsort(pVals)    
+    pValsSorted = pVals[sortInds]
+    
+    N = len(pVals)
+    condition = True
+    index = 0
+    while condition:
+        if pValsSorted[index]< (pThsld)/(N-index):
+            condition = True
+            index+=1
+        else:
+            condition = False
+    
+    print "These are the statistically significant differences\n"
+    for ii in range(index):
+        elem = combinations[sortInds[ii]]
+        print "Version = %d, Category = %d, with Version = %d, Category = %d\n"%(elem[0][0]+1, elem[0][1]+1, elem[1][0]+1, elem[1][1]+1)
+    
+    return 1
 
+def computeMeanAvgPrecision(annotationFile):
+
+
+    seedCategoryArray = [[0], [1], [2], [0,1,2]]
+    versionArray = [0,1,2,3]
+    
+    Data = np.zeros((len(seedCategoryArray), len(versionArray)))
+
+    for ii in range(len(seedCategoryArray)):
+        for jj in range(len(versionArray)):
+            Data[ii,jj] = meanAvgPrecision(annotationFile, jj, nPerVersion=10, seedCategory = seedCategoryArray[ii])[0]
+    
+    
+    for ii in range(len(seedCategoryArray)):
+        for jj in range(len(versionArray)):
+            print("%f\t"%Data[ii,jj])
+        print "\n"
+    return 1
+
+    
 def plotMeanAvgPrecision(annotationFile, plotName = -1):
 
 
@@ -872,15 +931,69 @@ def plotSeedDistROC(distanceInfoFile, annotationFile,takeLog =1, steps=1000, plo
     fig = plt.figure() 
     ax = fig.add_subplot(111)
     
-    plt.plot(fp, tp, color = 'b')
+    plt.plot(fp, tp, color = 'b', linewidth=2)
     
-    fsize = 20
-    fsize2 = 14
+    fsize = 22
+    fsize2 = 16
     font="Times New Roman"
     
     plt.xlabel(" False Positives", fontsize = fsize, fontname=font)
     plt.ylabel("True Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.xlim([0,1])
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
 
+    return 1
+
+
+def plotSeedDistSearchDistCombinedROC(distanceInfoFile, annotationFile, version, takeLog =1, steps=1000, plotName=-1):
+    
+    #obtaining the searched distances for the version
+    nPerVersion = 10
+    d1,d2 = fetchSearchDistanceClasswise(distanceInfoFile, annotationFile, version, nPerVersion)
+    if takeLog:
+        d1 = np.log10(d1+1)
+        d2 = np.log10(d2+1)
+    tpSearch, fpSearch = computeROC(d1,d2, nSteps = steps)
+    
+    #now seed distance
+    d1,d2 = fetchSeedDistanceClasswise(distanceInfoFile, annotationFile)
+
+    if takeLog:
+        d1 = np.log10(d1+1)
+        d2 = np.log10(d2+1)
+
+    tp, fp = computeROC(d1,d2, nSteps = steps)
+    
+    CategoryNames = ['Seed patterns', 'Searched patterns (V2)']
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    pLeg = []
+    p, = plt.plot(fp, tp, color = 'b', linewidth=2)
+    pLeg.append(p)
+    p, = plt.plot(fpSearch, tpSearch, color = 'r', linewidth=2)
+    pLeg.append(p)
+    
+    fsize = 22
+    fsize2 = 16
+    font="Times New Roman"
+    
+    plt.xlabel(" False Positives", fontsize = fsize, fontname=font)
+    plt.ylabel("True Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+    
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    
+    plt.xlim([0,1])
     xLim = ax.get_xlim()
     yLim = ax.get_ylim()
     
@@ -928,3 +1041,48 @@ def index2VersionInd(ind, nPerVersion):
     return (ind-quot)/nPerVersion , quot
     
     
+
+
+
+def plotSeedDistDistributionDB(plotName=-1):
+    
+    #obtain distribution of seed distances (in log distance axis)
+    nBins = 100
+    histy, histx, dist = computeSeedPatternDistHistogramDB(nBins = nBins)
+    histx = histx[:-1]  #making them equal number of samples for plotting
+    binwidth = histx[2]-histx[1]
+    
+    mean = np.mean(dist)
+    std = np.std(dist)
+    bins = [mean - 1.5*std, mean + 1.5*std]
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    plt.bar(histx, histy, width = binwidth, color='r')
+    
+    fsize = 22
+    fsize2 = 16
+    font="Times New Roman"
+    
+    plt.xlabel("Distance (log)", fontsize = fsize, fontname=font)
+    plt.ylabel("Frequency", fontsize = fsize, fontname=font, labelpad=fsize2)
+    
+    plt.xlim([4, 8 ])
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    plt.plot([bins[0], bins[0]], yLim, 'k--', linewidth=2)
+    plt.plot([bins[1], bins[1]], yLim, 'k--', linewidth=2)
+    
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1
