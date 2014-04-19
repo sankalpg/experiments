@@ -618,6 +618,27 @@ def computeMeanAvgPrecision(annotationFile):
         print "\n"
     return 1
 
+def computeSeedSimilarFraction(annotationFile):
+
+
+    seedCategory = [0,1,2]
+    
+    annotations = np.loadtxt(annotationFile)
+    seedAnnotations = annotations[2,:]
+
+    nCols = len(seedAnnotations)
+
+    print nCols
+
+    fractionCorrect = []
+    for cat in  seedCategory:
+        indexes = range(cat, nCols, 3)
+        indCorrect = np.where(seedAnnotations[indexes]>0)[0]
+        fractionCorrect.append(len(indCorrect)/float(len(indexes)))
+
+    return fractionCorrect
+
+
     
 def plotMeanAvgPrecision(annotationFile, plotName = -1):
 
@@ -981,7 +1002,7 @@ def plotSeedDistSearchDistCombinedROC(distanceInfoFile, annotationFile, version,
     pLeg = []
     p, = plt.plot(fp, tp, color = 'b', linewidth=2)
     pLeg.append(p)
-    p, = plt.plot(fpSearch, tpSearch, color = 'r', linewidth=2)
+    p, = plt.plot(fpSearch, tpSearch, 'r--', linewidth=2)
     pLeg.append(p)
     
     fsize = 22

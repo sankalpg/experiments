@@ -163,7 +163,7 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     font="Times New Roman"
     
     plt.xlabel("Lag (samples)", fontsize = fsize, fontname=font)
-    plt.ylabel("ACR Histogram", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.ylabel("Autocorrelation", fontsize = fsize, fontname=font, labelpad=fsize2)
 
     plt.yticks(np.append(np.arange(0, 100, 10),99), ["%1.1f"%(p/100.0) for p in range(0,110,10)])
 
@@ -177,6 +177,7 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     
     ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    plt.colorbar()
     
     if isinstance(plotName, int):
         plt.show()
