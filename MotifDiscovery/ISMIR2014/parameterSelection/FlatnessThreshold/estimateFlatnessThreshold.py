@@ -148,8 +148,8 @@ def plotDifferentROCs(root_dir, annotationExt, plotName=-1):
     font="Times New Roman"
     
     plt.xlim([0, 1])
-    plt.xlabel("True Positives", fontsize = fsize, fontname=font)
-    plt.ylabel("False Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.xlabel("False Positives", fontsize = fsize, fontname=font)
+    plt.ylabel("True Positives", fontsize = fsize, fontname=font, labelpad=fsize2)
     
     plt.legend(pLeg, [variants[x] for x in range(len(var_lens))], loc ='lower right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
     

@@ -747,9 +747,9 @@ def plotBoxPlotAveragePrecision(annotationFile, plotName = -1):
     plt.boxplot(plotData)
 
     fsize = 20
-    fsize2 = 14
+    fsize2 = 12
     font="Times New Roman"
-    plt.xticks(np.arange(12)+1, ['V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4', 'V1','V2', 'V3', 'V4'])
+    plt.xticks(np.arange(12)+1, ['$V_1$','$V_2$', '$V_3$', '$V_4$', '$V_1$','$V_2$', '$V_3$', '$V_4$', '$V_1$','$V_2$', '$V_3$', '$V_4$'], size=16)
     #plt.xlim([0,5])
     plt.ylim([-.1,1.1])
     #plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
@@ -995,7 +995,7 @@ def plotSeedDistSearchDistCombinedROC(distanceInfoFile, annotationFile, version,
 
     tp, fp = computeROC(d1,d2, nSteps = steps)
     
-    CategoryNames = ['Seed patterns', 'Searched patterns (V2)']
+    CategoryNames = ['Seed patterns', 'Searched patterns ($V_2$)']
 
     fig = plt.figure() 
     ax = fig.add_subplot(111)
