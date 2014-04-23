@@ -130,7 +130,7 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
 
     """
     cumulativeValues = [25, 50, 75]
-    CategoryNames = ['1Q', '2Q', '3Q']
+    CategoryNames = ['Q1', 'Q2', 'Q3']
     colors = ['b--', 'r--', 'k--']
     markers = ['^', 'o', 's']
 
@@ -162,8 +162,8 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     fsize2 = 14
     font="Times New Roman"
     
-    plt.xlabel("Lag (samples)", fontsize = fsize, fontname=font)
-    plt.ylabel("Autocorrelation", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.xlabel("$l$", fontsize = fsize, fontname=font)
+    plt.ylabel("ACR", fontsize = fsize, fontname=font, labelpad=fsize2)
 
     plt.yticks(np.append(np.arange(0, 100, 10),99), ["%1.1f"%(p/100.0) for p in range(0,110,10)])
 
