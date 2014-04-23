@@ -448,7 +448,7 @@ def computeROC(class1Data, class2Data, nSteps = 1000):
         indNeg = np.where(class2Data<=thresh)[0]
         falsePos.append(float(len(indNeg))/float(len(class2Data)))
 
-    return truePos, falsePos
+    return truePos, falsePos, thresholds
 
 
 def averagePrecision(relevanceArray):
@@ -910,7 +910,7 @@ def plotSearchDistROC(distanceInfoFile, annotationFile, version,nPerVersion=10, 
         d1 = np.log10(d1+1)
         d2 = np.log10(d2+1)
 
-    tp, fp = computeROC(d1,d2, nSteps = steps)
+    tp, fp, thsld = computeROC(d1,d2, nSteps = steps)
 
     fig = plt.figure() 
     ax = fig.add_subplot(111)
@@ -947,7 +947,7 @@ def plotSeedDistROC(distanceInfoFile, annotationFile,takeLog =1, steps=1000, plo
         d1 = np.log10(d1+1)
         d2 = np.log10(d2+1)
 
-    tp, fp = computeROC(d1,d2, nSteps = steps)
+    tp, fp, thsld = computeROC(d1,d2, nSteps = steps)
 
     fig = plt.figure() 
     ax = fig.add_subplot(111)
@@ -984,7 +984,7 @@ def plotSeedDistSearchDistCombinedROC(distanceInfoFile, annotationFile, version,
     if takeLog:
         d1 = np.log10(d1+1)
         d2 = np.log10(d2+1)
-    tpSearch, fpSearch = computeROC(d1,d2, nSteps = steps)
+    tpSearch, fpSearch, tshld = computeROC(d1,d2, nSteps = steps)
     
     #now seed distance
     d1,d2 = fetchSeedDistanceClasswise(distanceInfoFile, annotationFile)
@@ -993,7 +993,7 @@ def plotSeedDistSearchDistCombinedROC(distanceInfoFile, annotationFile, version,
         d1 = np.log10(d1+1)
         d2 = np.log10(d2+1)
 
-    tp, fp = computeROC(d1,d2, nSteps = steps)
+    tp, fp, thsld  = computeROC(d1,d2, nSteps = steps)
     
     CategoryNames = ['Seed patterns', 'Searched patterns ($V_2$)']
 
@@ -1083,10 +1083,10 @@ def plotSeedDistDistributionDB(plotName=-1):
     plt.bar(histx, histy, width = binwidth, color='r')
     
     fsize = 22
-    fsize2 = 16
+    fsize2 = 14
     font="Times New Roman"
     
-    plt.xlabel("Distance (log)", fontsize = fsize, fontname=font)
+    plt.xlabel("log($\delta$)", fontsize = fsize, fontname=font)
     plt.ylabel("Frequency", fontsize = fsize, fontname=font, labelpad=fsize2)
     
     plt.xlim([4, 8 ])
