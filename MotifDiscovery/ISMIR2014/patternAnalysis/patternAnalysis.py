@@ -1086,7 +1086,7 @@ def plotSeedDistDistributionDB(plotName=-1):
     fsize2 = 14
     font="Times New Roman"
     
-    plt.xlabel("log($\delta$)", fontsize = fsize, fontname=font)
+    plt.xlabel("log($D$)", fontsize = fsize, fontname=font)
     plt.ylabel("Frequency", fontsize = fsize, fontname=font, labelpad=fsize2)
     
     plt.xlim([4, 8 ])

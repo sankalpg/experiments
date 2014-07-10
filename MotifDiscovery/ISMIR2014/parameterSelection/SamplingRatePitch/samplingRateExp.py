@@ -162,7 +162,7 @@ def plotAgg2dACRHistogramWithContours(histFile, plotName=-1):
     fsize2 = 14
     font="Times New Roman"
     
-    plt.xlabel("$l$", fontsize = fsize, fontname=font)
+    plt.xlabel("$l$ (samples)", fontsize = fsize, fontname=font)
     plt.ylabel("ACR", fontsize = fsize, fontname=font, labelpad=fsize2)
 
     plt.yticks(np.append(np.arange(0, 100, 10),99), ["%1.1f"%(p/100.0) for p in range(0,110,10)])
