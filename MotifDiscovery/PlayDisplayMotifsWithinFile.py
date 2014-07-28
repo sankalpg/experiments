@@ -41,13 +41,51 @@ def PlotPlayMotifsWithinFile(motifFile):
             cmd2 = "play '%s' trim %f %f"%(audioFile, str2, end2-str2)
             os.system(cmd2)
             
-            plt.plot(pitchData[start_ind1:end_ind1,1])
+            """plt.plot(pitchData[start_ind1:end_ind1,1])
             plt.hold(True)
             plt.plot(pitchData[start_ind2:end_ind2,1])
             plt.show()
+            """
+            plotMotifPairs(pitchData[start_ind1:end_ind1,1],  pitchData[start_ind2:end_ind2,1])
+            
         else:
             break
-            
+
+def plotMotifPairs(pattern1, pattern2, plotName=-1):
+    
+    
+    colors = ['g', 'r']
+#   linewidths = [3,0.1 ,0.1 , 3]
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    pLeg = []
+    
+    p, = plt.plot((196/44100.0)*np.arange(pattern1.size), pattern1, 'r', linewidth=2, markersize=4.5)
+    pLeg.append(p)Y
+    
+    p, = plt.plot((196/44100.0)*np.arange(pattern2.size), pattern2, 'k', linewidth=2, markersize=4.5)
+    pLeg.append(p)
+
+    fsize = 22
+    fsize2 = 16
+    font="Times New Roman"
+    
+    plt.xlabel("time (s)", fontsize = fsize, fontname=font)
+    plt.ylabel("Frequency (Hz)", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1            
  
 if __name__=="__main__":
     

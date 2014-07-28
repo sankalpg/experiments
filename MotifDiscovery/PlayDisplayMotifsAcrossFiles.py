@@ -71,11 +71,11 @@ def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD)
     pitchExt = '.pitch'
     tonicExt = '.tonic'
     
-    #serverSuffix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/compMusic/audio_3D'
-    #localSuffix = '/media/Data/Datasets/MotifDiscovery_Dataset/CompMusic/audio_3D'
+    serverSuffix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/compMusic/audio_3D'
+    localSuffix = '/media/Data/Datasets/MotifDiscovery_Dataset/CompMusic/audio_3D'
     
-    serverSuffix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/compmusic'
-    localSuffix = '/media/Data/Datasets/MotifDiscovery_Dataset/CompMusic/Hindustani'
+    #serverSuffix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/compmusic'
+    #localSuffix = '/media/Data/Datasets/MotifDiscovery_Dataset/CompMusic/Hindustani'
 
     
     
