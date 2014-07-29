@@ -62,7 +62,7 @@ def plotMotifPairs(pattern1, pattern2, plotName=-1):
     pLeg = []
     
     p, = plt.plot((196/44100.0)*np.arange(pattern1.size), pattern1, 'r', linewidth=2, markersize=4.5)
-    pLeg.append(p)Y
+    pLeg.append(p)
     
     p, = plt.plot((196/44100.0)*np.arange(pattern2.size), pattern2, 'k', linewidth=2, markersize=4.5)
     pLeg.append(p)
