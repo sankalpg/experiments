@@ -38,6 +38,8 @@ def computeIntraDoubletSimilarities(baseName, annotExt, pitchExt):
     timePitch = np.loadtxt(baseName + pitchExt, delimiter = ',')
     
     #reading annotations 
+    
+    
     doublets = readDoubletAnnotations(baseName + annotExt)
     
     for ii, doublet in enumerate(doublets):
@@ -67,10 +69,52 @@ def computeIntraDoubletSimilarities(baseName, annotExt, pitchExt):
                 q = 1200*np.log2(q/55)
                 t = 1200*np.log2(t/55)
                 
-                dist, pathLen, path, cost = dtw.dtw1dSubLocalBand(q,t, {'Output':4, 'Ldistance':{'type':1}, 'Constraint':{'CVal':int((e1-s1)*0.3)}})
+                minLength = min(q.size, t.size)
+                print minLength
+                
+                dist, pathLen, path, cost = dtw.dtw1dSubLocalBand(q,t, {'Output':4, 'Ldistance':{'type':1}, 'Constraint':{'CVal':int(minLength*0.1)}})
                 print (parts[mm],parts[nn]), dist/pathLen
+                plt.figure()
+                plt.imshow(cost)
                 drawAlignment(q,t,path )
                 
+                
+def computeInterSectionSimilarity(baseName1, sec1, dInd1, baseName2, sec2, dInd2, annotExt, pitchExt):
+    
+    #reading pitch file
+    timePitch1 = np.loadtxt(baseName1 + pitchExt, delimiter = ',')
+    
+    #reading pitch file
+    timePitch2 = np.loadtxt(baseName2 + pitchExt, delimiter = ',')
+    
+    #reading annotations 
+    doublets1 = readDoubletAnnotations(baseName1 + annotExt)
+    
+    #reading annotations 
+    doublets2 = readDoubletAnnotations(baseName2 + annotExt)
+    
+    s1 = find_nearest_element_ind(timePitch1[:,0], doublets1[dInd1][sec1][0])
+    e1 = find_nearest_element_ind(timePitch1[:,0], doublets1[dInd1][sec1][1])
+
+    s2 = find_nearest_element_ind(timePitch2[:,0], doublets2[dInd2][sec2][0])
+    e2 = find_nearest_element_ind(timePitch2[:,0], doublets2[dInd2][sec2][1])
+    
+    q = timePitch1[s1:e1,1]
+    t = timePitch2[s2:e2,1]
+
+    q = np.delete(q,np.where(q<=0))
+    t = np.delete(t,np.where(t<=0))
+
+    q = 1200*np.log2(q/55)
+    t = 1200*np.log2(t/55)
+
+    minLength = min(q.size, t.size)
+    
+    dist, pathLen, path, cost = dtw.dtw1dSubLocalBand(q,t, {'Output':4, 'Ldistance':{'type':1}, 'Constraint':{'CVal':int(minLength*0.2)}})
+    print dist/pathLen
+    #plt.figure()
+    #plt.imshow(cost)
+    drawAlignment(q,t,path )
                 
                 
             
