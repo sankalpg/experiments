@@ -5,9 +5,14 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_pythonnew/batchProcessing/'))
 import batchProcessing as BP
 
-def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFileExt):
+def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFileExt, filterOutput, dumpFile):
+    """
+    When filterOutput is set to 1 only the motifs which are indicated in motifmapfile appear in the output
+    """
     
     lines = open(motifMapFile, "r").readlines()
+    
+    dump = open(dumpFile, "w");
     
     for line in lines:
         splitLine = line.split("\t")
@@ -15,6 +20,8 @@ def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFil
         baseNumber = int(splitLine[1].strip())
         motifs = splitLine[2:]
         motifDB={}
+        dump.write("%s\t%d\t"%(root_dir, baseNumber))
+        
         for m in motifs:
             motifDB[m.strip()]=[]
         
@@ -22,11 +29,12 @@ def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFil
         motifNumber = {}
         for filename in filenames:
             
-            if len(motifDB.keys())==0:
+            if filterOutput==1 and len(motifDB.keys())==0:
                 continue
             
             fname, ext = os.path.splitext(filename)
             outfile = open(fname + outAnnotFileExt, "w");
+            
             
             annotLines = open(filename, "r").readlines()
             
@@ -40,13 +48,21 @@ def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFil
                         print "not M: " + filename
                     if not motifNumber.has_key(label):
                         motifNumber[label] = baseNumber
+                        dump.write("(%s\t%d)\t"%(label, motifNumber[label]))
                         baseNumber+=1
-                    if motifDB.has_key(label):    
+                    if filterOutput==1:
+                        if motifDB.has_key(label):    
+                            outfile.write("%f\t%f\t%d\n"%(start, start + dur, motifNumber[label]))
+                    else:
                         outfile.write("%f\t%f\t%d\n"%(start, start + dur, motifNumber[label]))
             except:
                 print "No format: " + filename
                     
             outfile.close()
+        dump.write("\n")
+        
+    dump.close()
+        
 
 def validateMotifSearchDB(root_dir, fileout):
     
@@ -82,7 +98,7 @@ def generateDBStats(fileListFile, anotExt = '.anot'):
     
     lines = open(fileListFile,"r").readlines()
     motifDB={}
-    for ii, line in enumerate(lines):
+    for jj, line in enumerate(lines):
         filename = line.strip() + anotExt
         annotations = np.loadtxt(filename)
         if annotations.size ==0:
@@ -94,14 +110,76 @@ def generateDBStats(fileListFile, anotExt = '.anot'):
             id = int(line[2])
             if not motifDB.has_key(id):
                 motifDB[id]=[]
-            motifDB[id].append((ii,(line[0], line[1])))
+            motifDB[id].append((jj,(line[0], line[1])))
     
-    #for key in motifDB.keys():
-        #print key, len(motifDB[key])
-        
+    temp=[]
+    for key in motifDB.keys():
+        temp.append([len(motifDB[key]), key])
+    
+    temp=np.array(temp)
+    ind =  np.argsort(temp[:,0])
+    temp = temp[ind,:]
+    print temp
+
     return motifDB
+
+
+
+def topMmotifNFilesPRaga(fileListFile, fileListOutput, anotExt = '.anot', M=25,N=10):
+    
+    lines = open(fileListFile,"r").readlines()
+    
+    output = open(fileListOutput, "w")
+    
+    
+    motifDB = generateDBStats(fileListFile)
+    temp=[]
+    for key in motifDB.keys():
+        temp.append([len(motifDB[key]), key])
+    
+    temp=np.array(temp)
+    ind =  np.argsort(temp[:,0], )
+    ind = ind[::-1]
+    ind = ind[:min(len(ind),M)]
+    motifNums = temp[ind,1]
+    print motifNums
+    motifBases = np.round(motifNums/1000)*1000
+    
+    d1 = {}
+    for ii,motifNum in enumerate(motifNums):
+        if not d1.has_key(motifBases[ii]):
+            d1[motifBases[ii]]={}
+        
+        for elem in motifDB[motifNum]:
+            if not d1[motifBases[ii]].has_key(elem[0]):
+                d1[motifBases[ii]][elem[0]]=0
+                
+            d1[motifBases[ii]][elem[0]]+=1
+            
+    outFiles = {}
+    for key in d1.keys():
+        temp = []
+        for e in d1[key].keys():
+            temp.append([d1[key][e], e])
+        temp=np.array(temp)
+        ind =  np.argsort(temp[:,0], )
+        ind = ind[::-1]
+        ind = ind[:min(len(ind),N)]
+        outFiles[key]= temp[ind,1]
+        for ind in outFiles[key]:
+            fname = lines[ind].strip()
+            output.write("%s\n"%fname)
+            
+    output.close()
+    
+    
+        
         
             
-            
+        
+        
+        
+        
+        
         
     

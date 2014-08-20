@@ -72,6 +72,7 @@ def evaluateSupSearch(searchPatternFile, fileListFile, anotExt = '.anot'):
                 for pp in range(searchedPattensInFile.shape[0]):
                     decArray[indSingleFile[indSingleLine[indSingleSearchFile]][pp],0]= dec[pp,0]
                     decArray[indSingleFile[indSingleLine[indSingleSearchFile]][pp],1]= anots[patternID][ind1[dec[pp,1]],1]
+            print averagePrecision(decArray[indSingleLine,0])
                 
     np.savetxt('tempDec.txt', decArray, fmt="%d")
 
@@ -98,7 +99,24 @@ def checkPatternSearchHits(searchedTS, anotTS, criterion=1):
     hitArray = np.array(hitArray)
     return hitArray
             
-                
+def averagePrecision(relevanceArray):
+    """
+    relevanceArray is 1d array of 0 and 1 indicating if a searched result is relevant (1) or not (0). 
+    The output is the average precision of the retrieved relevant documents.
+    Ref: 
+    http://en.wikipedia.org/wiki/Information_retrieval#Average_precision
+    """
+
+    relPrecision = []
+    for ii, val in enumerate(relevanceArray):
+        p = val*np.sum(relevanceArray[0:ii+1])/float(ii+1)
+        relPrecision.append(p)
+    
+    nRel = np.sum(relevanceArray)
+    if nRel ==0:
+        return 0
+    else:
+        return np.sum(relPrecision)/float(nRel)                
                        
         
         
