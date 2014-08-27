@@ -5,14 +5,17 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_pythonnew/batchProcessing/'))
 import batchProcessing as BP
 
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/'
 
-def getAnotsPerCategory(fileListFile, anotExt = '.anot'):
+
+def getAnotsPerCategory(queryFileList, anotExt = '.anot'):
     
-    lines = open(fileListFile,"r").readlines()
+    lines = open(queryFileList,"r").readlines()
     anotPC={}
     for ii, line in enumerate(lines):
         filename = line.strip() + anotExt
-        annotations = np.loadtxt(filename)
+        annotations = np.loadtxt(changePrefix(filename))
         if annotations.size ==0:
             continue
         if len(annotations.shape)==1:
@@ -30,57 +33,112 @@ def getAnotsPerCategory(fileListFile, anotExt = '.anot'):
         
     return anotPC
 
+def changePrefix(audiofile):
+    
+    if audiofile.count(serverPrefix):
+        audiofile = localPrefix + audiofile.split(serverPrefix)[1]
+    return audiofile
 
-
-def evaluateSupSearch(searchPatternFile, fileListFile, anotExt = '.anot'):
+def evaluateSupSearch(searchPatternFile, queryFileList, anotExt = '.anot', fileListExt = '.flist', TopNResult = 10):
     """
     This code assumes that the format of the searchPatternFile is
-    <file number of the query> <line number of the query in the file>  <file number of the match> <time stamps of the match>
+    <file number of the query file> <line number of the query in the query file>  <file number of the match (the number is the line number of the file specified in the fileList of query File)> <time stamps of the match>
+    
+    
+    queryFileList has a list of files for which the query is performed. queryFile has queries, fileList to be searched and annotations.
     """
     
-    fileNames = open(fileListFile).readlines()
+    queryWiseRes=[]
+    pattIdWiseRes={}
     
-    #to start with lets get all the annotations for all the files
-    anots = getAnotsPerCategory(fileListFile, anotExt)
+    #fetching the list of file names for each which the searching operation is performed for all the queries in that file    
+    queryFileNames = open(queryFileList).readlines()
     
     #read the output file containing search results
-    matches = np.loadtxt(searchPatternFile)
+    searchResults = np.loadtxt(searchPatternFile)
     
-    decArray=np.zeros((matches.shape[0],2))
-    #iterate over all the files (containing queries)
-    for ii, fileInd in enumerate(np.unique(matches[:,0])):
-        indSingleFile = np.where(matches[:,0]==fileInd)[0]
+    #initializing an array which will contain the decision values, wheather the hit is correct or not and if its correct second and third colum will contain the file index and annotation line number
+    decArray=np.zeros((searchResults.shape[0],3))
+    
+    #iterate over all the files for which query is performed
+    qFileIndUnique = np.unique(searchResults[:,0])
+    for ii, fileInd in enumerate(qFileIndUnique):
         
-        queryInfo = np.loadtxt(fileNames[int(fileInd)].strip()+anotExt)
+        fileInd = int(fileInd)
+        
+        #Lets fetch all the annotations in the search space of a query file
+        anots = getAnotsPerCategory(changePrefix(queryFileNames[fileInd].strip()+fileListExt), anotExt)
+        
+        #find all the index where the a query is performed from query file with index fileInd
+        qFileInd = np.where(searchResults[:,0]==fileInd)[0]
+        
+        #obtain all the queries of this query File
+        queryList = np.loadtxt(changePrefix(queryFileNames[fileInd].strip())+anotExt)
+        
+        #obntaining all the unique query index
+        qIndUnique = np.unique(searchResults[qFileInd,1])
         
         #for one file iterate over all the lines (queries)
-        for jj, queryInd in enumerate(np.unique(matches[indSingleFile,1])):
-            indSingleLine = np.where(matches[indSingleFile,1]==queryInd)[0]
+        for jj, queryInd in enumerate(qIndUnique):
+            
+            #finding index of results of a particular query
+            indSingleQuery = np.where(searchResults[qFileInd,1]==queryInd)[0]
             
             #finding pattern id/category of this query
-            patternID = queryInfo[int(queryInd), 2]
+            patternID = queryList[int(queryInd), 2]
+            if not pattIdWiseRes.has_key(patternID):
+                pattIdWiseRes[patternID]={}
+            if not pattIdWiseRes[patternID].has_key(fileInd):
+                pattIdWiseRes[patternID][fileInd]={}             
+            if not pattIdWiseRes[patternID][fileInd].has_key(queryInd):
+                pattIdWiseRes[patternID][fileInd][queryInd]=[]
+                
+            #getting indices of the searched files
+            indSearchFilesUnique = np.unique(searchResults[qFileInd[indSingleQuery],2])
             
             #iterate over all the searched files !! (optimzed way!!)
-            for kk, searchInd in enumerate(np.unique(matches[indSingleFile[indSingleLine],2])):
-                indSingleSearchFile = np.where(matches[indSingleFile[indSingleLine],2]==searchInd)[0]
+            for kk, searchFileInd in enumerate(indSearchFilesUnique):
                 
-                searchedPattensInFile = matches[indSingleFile[indSingleLine[indSingleSearchFile]],3:5]
-                ind1 = np.where(anots[patternID][:,0]==searchInd)[0]
+                #obtaining indices of search results corresponding to a particular search file of a particular query of a particular query file
+                indSingleSearchFile = np.where(searchResults[qFileInd[indSingleQuery][:TopNResult],2]==searchFileInd)[0]
+                
+                if len(indSingleSearchFile) ==0:
+                    continue
+                
+                searchedPattensInFile = searchResults[qFileInd[indSingleQuery[indSingleSearchFile]],3:5]
+                
+                ind1 = np.where(anots[patternID][:,0]==searchFileInd)[0]
                 annotationsInFile = anots[patternID][ind1,2:4]
-                #print searchedPattensInFile, annotationsInFile
+                
                 if len(annotationsInFile)>0:
                     dec =  checkPatternSearchHits(searchedPattensInFile, annotationsInFile)
                 else:
-                    dec = checkPatternSearchHits(searchedPattensInFile, searchedPattensInFile)
-                for pp in range(searchedPattensInFile.shape[0]):
-                    decArray[indSingleFile[indSingleLine[indSingleSearchFile]][pp],0]= dec[pp,0]
-                    try: 
-                        decArray[indSingleFile[indSingleLine[indSingleSearchFile]][pp],1]= anots[patternID][ind1[dec[pp,1]],1]
-                    except:
-                        decArray[indSingleFile[indSingleLine[indSingleSearchFile]][pp],1]=-1
-            print averagePrecision(decArray[indSingleLine,0])
+                    dec = np.zeros((searchedPattensInFile.shape[0],2))
                 
+                for pp in range(searchedPattensInFile.shape[0]):
+                    
+                    if dec[pp,0]==1:
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],0]= 1
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],1]= anots[patternID][ind1[dec[pp,1]],0]
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],2]= anots[patternID][ind1[dec[pp,1]],1]
+                    else:
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],0]= 0
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],1]= -1
+                        decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],2]= -1
+                        
+            pattIdWiseRes[patternID][fileInd][queryInd].append(averagePrecision(decArray[qFileInd[indSingleQuery][:TopNResult],0]))
+            print patternID, averagePrecision(decArray[qFileInd[indSingleQuery][:TopNResult],0]), np.sum(decArray[qFileInd[indSingleQuery][:TopNResult],0])
+            
+               
+    for patt in pattIdWiseRes.keys():
+        for qFiles in pattIdWiseRes[patt].keys():
+            for q in pattIdWiseRes[patt][qFiles].keys():
+                #print np.mean(pattIdWiseRes[patt][qFiles][q])
+                pass
+        
     np.savetxt('tempDec.txt', decArray, fmt="%d")
+    
+
 
 def checkPatternSearchHits(searchedTS, anotTS, criterion=1):
     
