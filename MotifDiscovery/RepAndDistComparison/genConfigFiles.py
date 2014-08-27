@@ -4,7 +4,7 @@ def genConfigFiles(baseName, outDir):
 	combinations= {
 					'distType':[0,1],#0 = Euc, 1 = DTW 
 					'DTWType':[0,1],#0 = DTW (no local constraint), 1 = DTW( local constraint)
-					'DTWBand': [0.05, 0.1, 1],
+					'DTWBand': [0.025, 0.05, 0.9],
 					'TSRepType': [0,1], #0= raw ts, 1 = quantized ts
 					'quantSize': [12,24], #0= raw ts, 1 = quantized ts					
 					'normType': [0,1,2,3,4,5], #0=
@@ -55,7 +55,7 @@ def genConfigFiles(baseName, outDir):
 
 		if dist==0:
 			DTWType_temp=[-1]
-			DTWBand_temp=[-1]
+			DTWBand_temp=[0.025]
 		else:
 			DTWType_temp=combinations['DTWType']
 			DTWBand_temp=combinations['DTWBand']

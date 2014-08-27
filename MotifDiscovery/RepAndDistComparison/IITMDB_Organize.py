@@ -125,7 +125,7 @@ def generateDBStats(fileListFile, anotExt = '.anot'):
 
 
 
-def topMmotifNFilesPRaga(fileListFile, fileListOutput, anotExt = '.anot', M=25,N=10):
+def topMmotifNFilesPRaga(fileListFile, fileListOutput, anotExt = '.anot', M=20,N=10):
     
     lines = open(fileListFile,"r").readlines()
     
