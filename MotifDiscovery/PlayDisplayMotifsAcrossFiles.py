@@ -114,9 +114,12 @@ def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD)
                 pitchFileSearch = fnameSearch + pitchExt
                 tonicFileSearch = fnameSearch + tonicExt
                 print("Loading pitch corresponding to the searched motif again as the file changed this time, it might take a while, please be patient!!!")
-                pitchDataSearch = np.loadtxt(pitchFileSearch)
-                tonicDataSearch = np.loadtxt(tonicFileSearch)
-                fileSearched_last = fileSearched;
+                try:
+                  pitchDataSearch = np.loadtxt(pitchFileSearch)
+                  tonicDataSearch = np.loadtxt(tonicFileSearch)
+                  fileSearched_last = fileSearched;
+                except:
+                  continue
             
             str1 = motif[0]
             end1 = motif[1]
@@ -141,8 +144,9 @@ def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD)
             
             #computeLeastDistanceInterp(pitchDataSeed[start_ind1:end_ind11,1], pitchDataSearch[start_ind2:end_ind22,1], downSample, DTWBand, numSamples, DTWBand)
             
+            plotMotifPairs(pitchDataSeed[start_ind1:end_ind1,1],  pitchDataSearch[start_ind2:end_ind2,1])
             
-            if (0):
+            """if (0):
                 plt.plot(120*np.log2((pitchDataSeed[start_ind1:end_ind1,1]+1)/tonicDataSeed))
                 plt.hold(True)
                 plt.plot(120*np.log2((pitchDataSearch[start_ind2:end_ind2,1]+ 1)/tonicDataSearch))
@@ -152,10 +156,48 @@ def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD)
                 plt.hold(True)
                 plt.plot(pitchDataSearch[start_ind2:end_ind2,1])
                 plt.show()
-                
+            """ 
             
         else:
             break
+					
+def plotMotifPairs(pattern1, pattern2, plotName=-1):
+    
+    
+    colors = ['g', 'r']
+#   linewidths = [3,0.1 ,0.1 , 3]
+
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    pLeg = []
+    
+    p, = plt.plot((196/44100.0)*np.arange(pattern1.size), pattern1, 'r', linewidth=2, markersize=4.5)
+    pLeg.append(p)
+    
+    p, = plt.plot((196/44100.0)*np.arange(pattern2.size), pattern2, 'k', linewidth=2, markersize=4.5)
+    pLeg.append(p)
+
+    fsize = 22
+    fsize2 = 16
+    font="Times New Roman"
+    
+    plt.xlabel("time (s)", fontsize = fsize, fontname=font)
+    plt.ylabel("Frequency (Hz)", fontsize = fsize, fontname=font, labelpad=fsize2)
+
+    xLim = ax.get_xlim()
+    #yLim = ax.get_ylim()
+    yLim = [250, 600]
+    plt.ylim(yLim)
+    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName)
+
+    return 1   					
 
 def drawAlignment(x , y , path):
     

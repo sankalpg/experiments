@@ -126,19 +126,42 @@ def evaluateSupSearch(searchPatternFile, queryFileList, anotExt = '.anot', fileL
                         decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],1]= -1
                         decArray[qFileInd[indSingleQuery[indSingleSearchFile[pp]]],2]= -1
                         
-            pattIdWiseRes[patternID][fileInd][queryInd].append(averagePrecision(decArray[qFileInd[indSingleQuery][:TopNResult],0]))
-            print patternID, averagePrecision(decArray[qFileInd[indSingleQuery][:TopNResult],0]), np.sum(decArray[qFileInd[indSingleQuery][:TopNResult],0])
+            pattIdWiseRes[patternID][fileInd][queryInd] = decArray[qFileInd[indSingleQuery][:TopNResult],0]
+            #print patternID, averagePrecision(pattIdWiseRes[patternID][fileInd][queryInd]), np.sum(pattIdWiseRes[patternID][fileInd][queryInd])
             
-               
+    f = []
     for patt in pattIdWiseRes.keys():
+        a = []
         for qFiles in pattIdWiseRes[patt].keys():
             for q in pattIdWiseRes[patt][qFiles].keys():
-                #print np.mean(pattIdWiseRes[patt][qFiles][q])
-                pass
-        
-    np.savetxt('tempDec.txt', decArray, fmt="%d")
+                #print patt, qFiles, q, averagePrecision(pattIdWiseRes[patt][qFiles][q])
+                f.append(averagePrecision(pattIdWiseRes[patt][qFiles][q]))
+                a.append(averagePrecision(pattIdWiseRes[patt][qFiles][q]))
+        #print "Total mean average precision for pattern " + str(patt) + " is "  + str(np.mean(a))
+    #print "Total mean average precision"  + str(np.mean(f))
     
-
+    return np.mean(f)
+    
+    
+        
+                
+        
+    #np.savetxt('tempDec.txt', decArray, fmt="%d")
+    
+def evaluateAllResults(root_dir, outputFile, baseName = 'configFiles_', searchResultExt = '.motifSearch', qFileListExt = '.flist', nFiles = 1260, TopNResult=10):
+    
+    a = []
+    for ii in range(nFiles):
+        print ii
+        filename1 = os.path.join(root_dir, baseName + str(ii+1)+searchResultExt)
+        filename2 = os.path.join(root_dir, baseName + str(ii+1)+qFileListExt)
+        
+        res = evaluateSupSearch(filename1, filename2, '.anot', '.flist', TopNResult)
+        a.append(res)
+        
+    np.savetxt(outputFile, a)
+    
+    
 
 def checkPatternSearchHits(searchedTS, anotTS, criterion=1):
     
