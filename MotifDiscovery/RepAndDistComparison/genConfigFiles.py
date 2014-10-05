@@ -4,7 +4,7 @@ def genConfigFiles(baseName, outDir):
 	combinations= {
 					'distType':[0,1],#0 = Euc, 1 = DTW 
 					'DTWType':[0,1],#0 = DTW (no local constraint), 1 = DTW( local constraint)
-					'DTWBand': [0.025, 0.05, 0.9],
+					'DTWBand': [0.05, 0.1, 0.9],
 					'TSRepType': [0,1], #0= raw ts, 1 = quantized ts
 					'quantSize': [12,24], #0= raw ts, 1 = quantized ts					
 					'normType': [0,1,2,3,4,5], #0=
@@ -32,7 +32,10 @@ def genConfigFiles(baseName, outDir):
 		'durMotif': -1,
 		'blackDurFact': 1,
 		'maxNMotifsPairs': -1,
-		'dumpLogs': 1
+		'dumpLogs': 1,
+		'pitchHop': 0.0029025,
+		'subSeqLen': 2000
+		
 		}
 	
 	
@@ -65,18 +68,23 @@ def genConfigFiles(baseName, outDir):
 			for b in DTWBand_temp:
 				params['DTWBand']=b
 				
-				for rep in combinations['TSRepType']:
-					params['TSRepType'] = rep
-					if rep==0:
-						quant_temp=[-1]
-					else:
-						quant_temp=combinations['quantSize']
+				for n in combinations['normType']:
+					params['normType'] = n
 					
-					for q in quant_temp:
-						params['quantSize'] = q
+					if n == 1:
+						TSRepType_temp = combinations['TSRepType']
+					else:
+						TSRepType_temp = [0]
+					
+					for rep in TSRepType_temp:
+						params['TSRepType'] = rep
+						if rep==0:
+							quant_temp=[-1]
+						else:
+							quant_temp=combinations['quantSize']
 						
-						for n in combinations['normType']:
-							params['normType']=n
+						for q in quant_temp:
+							params['quantSize'] = q
 							
 							for s in combinations['sampleRate']:
 								params['sampleRate']=s

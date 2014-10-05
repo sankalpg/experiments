@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_pythonnew/batchProcessing/'))
 import batchProcessing as BP
 
+eps =  np.finfo('float').eps
+
 def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFileExt, filterOutput, dumpFile):
     """
     When filterOutput is set to 1 only the motifs which are indicated in motifmapfile appear in the output
@@ -40,10 +42,13 @@ def renameOrganizeMotifsPerRagaIITMDB(motifMapFile, inpAnnotFileExt, outAnnotFil
             
             try: 
                 for annotLine in annotLines:
-                    splitAnnot = annotLine.split(' ')
+                    splitAnnot = annotLine.split('\t')
                     start = float(splitAnnot[0].strip())
-                    dur = float(splitAnnot[1].strip())
-                    label = str(splitAnnot[2].strip())
+                    #dur = float(splitAnnot[1].strip())
+                    #label = str(splitAnnot[2].strip())
+                    dur = float(splitAnnot[2].strip())
+                    label = str(splitAnnot[3].strip())
+                    
                     if  not label[0]=="m":
                         print "not M: " + filename
                     if not motifNumber.has_key(label):
@@ -83,9 +88,9 @@ def validateMotifSearchDB(root_dir, fileout):
             
     fid.close()
     
-def generateFileList(root_dir, fileOut):
+def generateFileList(root_dir, fileOut, extFile = '.wav'):
     
-    filenames = BP.GetFileNamesInDir(root_dir, '.wav')
+    filenames = BP.GetFileNamesInDir(root_dir, extFile)
     
     fid = open(fileOut, "w")
     for f in filenames:
@@ -171,13 +176,7 @@ def topMmotifNFilesPRaga(fileListFile, fileListOutput, anotExt = '.anot', M=20,N
             output.write("%s\n"%fname)
             
     output.close()
-    
-    
-        
-        
-            
-        
-        
+
         
         
         
