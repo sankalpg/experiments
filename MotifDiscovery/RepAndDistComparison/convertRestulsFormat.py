@@ -28,9 +28,12 @@ constraint = {	'0.025':'',
 				'0.1':'_G10',
 				'0.9':'_G90'}
 
-def convertResutlsToHumanReadable(csvFile, outFile):
+def convertResutlsToHumanReadable(csvFile,accuracyFile, outFile):
 	data = np.loadtxt(csvFile)
-
+	acc = np.transpose(np.array([np.loadtxt(accuracyFile)]))
+	print data.shape
+	data = np.hstack((data,acc))
+	print data.shape
 	sortInd = np.argsort(data[:,-1])
 	sortInd = sortInd[::-1]
 	data = data[sortInd,:]

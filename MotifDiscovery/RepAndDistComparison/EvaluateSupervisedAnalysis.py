@@ -313,7 +313,7 @@ def evaluateSupSearchNEWFORMAT(searchPatternFile, patternInfoFile, fileListDB, a
     queryByqueryResults[int(indQuery)] = AveragePrecision
     pattIdWiseResults[pattID].append(AveragePrecision)
   
-  return queryByqueryResults, pattIdWiseResults
+  return queryByqueryResults, pattIdWiseResults, decArray
   
   
 def evaluateAllResultsNEWFORMAT(root_dir, fileListDB, SummaryFile, baseName = 'configFiles_', searchResultExt = '.motifSearch.motifSearch', dbPathExt = '.flist', infoFileExt= '.subSeqsInfo', nFiles = 560, TopNResult=1000, outputExtQW= '.MAPQW', outputExtCW= '.MAPCW'):
