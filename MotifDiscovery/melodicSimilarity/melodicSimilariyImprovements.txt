@@ -1,0 +1,58 @@
+Challenges in Melodic similarity
+
+1) In Hindustani - high degree of variations in patterns, in terms of non linear time stretch and added melodic ornamentation. Also many times one can clearly see the ending as the common part in two phrases and the starting is mostly vaguely similar. But for a musician even the vague similarity is musical similarity. In HIndustani high non linear timing variations are in the flat regions of the phrase. Maybe this can be the culture specific knowledge that can be exploited to come up with a distance measure or melody representation that can improve the melodic similarity in Hindustani music.
+
+2) In Carnatic - This also has high degree of variations. High non linear timing variations are mainly because of some periodic part in the phrase is repeated unequal number of times in two phrases. There are few instances where the flat region is enlarged or compressed like in the case of HIndustani music. One of the issues is that a pattern is matched against another pattern that has much higher amount of gamakas. Maybe we need to take amount or extent of kampita kind of movement in to the aaccount for computing melodic similarity.
+
+
+
+Few ideas to imrpove melodic similarity 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Hindustani music %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+1) Flat segment compression (This also involves removing some ornamentations which is also enhancement)
+
+
+2) Include loudness of the melody in the similarity computation
+
+
+
+3) Match end of the phrase rather than starting and then extend to find the starting
+
+
+
+4) A characteristic phrase type has many variations. So rather than aiming to detect all the instances of a phrase by searching one seed motif, find many seed motifs which are essentially different type of variations. Compute their nearest neighbors. Later when the pattern space has only valid patterns (
+patterns which atleast repeat once) then a relationship can be established between the clusters of patterns formed by different variations of a characteristic phrase and then we can relate them. This is essentially the philosophy of the entire methodology that I am following. 
+This can be done in an unsupervised analysis followed by network anlaysis. In supervised analysis we always try to obtain all the repeated instances which is probably not the right way to go here. We should detect nearest neighbors of valid patterns and then later relate them when the pattenr space is sparse.
+THis also means that in unsupervised analysis we might be actually getting more accuracy then what is reported in supervised analysis becauuse we are not trying to find out all the repetitions in one go. 
+THis is the default working mode of the methodology I am taking for unsuperviswed analysis, I have written this just to remember what to write when I will make the story for the thesis.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Carnatic music %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+1) Flat segment compression like done for HIndustani music, lets see how much that helps here
+
+2) Including loudness of the melody in the similarity computation, hopefully this helps more
+
+3) Somehow try to estimate the periodic portion inside a pattern and try to somehow have equal amount of periods in two patterns. this is one of the problems in Carnatic that one gamaka might be extra which causes high non linear variation in non flat part of the phrase.
+
+4) Abstract representation which is robust to surface level changes ! still a dream baby!!
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PItch improvements %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+1) Supression of Tanpura signal
+
+2) Median or some non liear filtering to remove spurious jumps in pitch tracks. Check out SGole filtering.
+
+3) Try computing similarity using fitted curve instead of acual pitch contour
+
+
+
+
+
