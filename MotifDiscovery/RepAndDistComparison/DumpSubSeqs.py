@@ -11,13 +11,15 @@ eps =  np.finfo('float').eps
 """
 This file has functions to mainly dump the subsequences needed for experiments related with supervised anlaysis where we evaluate several similarity methodologies
 """
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 def changePrefix(audiofile):
     
     if audiofile.count(serverPrefix):
-        audiofile = localPrefix + audiofile.split(serverPrefix)[1]
+        #audiofile = localPrefix + audiofile.split(serverPrefix)[1]
+        audiofile = audiofile.replace(serverPrefix, localPrefix)
+        print audiofile
     return audiofile
 
 def getPatternLengthFile(fname, annotExt='.anot'):
@@ -39,6 +41,7 @@ def getPatternLengthsDB(fileList, annotExt='.anot'):
     for line in lines:
         line = line.strip()
         fname = changePrefix(line + annotExt)
+        print fname
         pattLen.extend(getPatternLengthFile(fname))
     return pattLen
   
@@ -198,13 +201,13 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
               if end-start <= filterLengthAnot:
                 infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
                 indStart = nearestInd(pitchTime[:,0], start)
-                pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1])/55.0)
+                pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1] + eps)/55.0)
                 subOutFile.write(pitchCents)
                 subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
             else:
               infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
               indStart = nearestInd(pitchTime[:,0], start)
-              pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1])/55.0)
+              pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1] + eps)/55.0)
               subOutFile.write(pitchCents)
               subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))              
     
