@@ -140,6 +140,41 @@ def dumpAudioMelodyTrueGTAnots(root_dir, outputDir, patternID, annotExt = '.anot
               fig.clear()
               clipAudio(audioFile, outAudioFileName, sTime, eTime)
               
+def dumpAudioMelodyTrueGTAnotsMarkingFlatNotes(root_dir, outputDir, patternID, annotExt = '.anot', pitchExt = '.pitchEssentiaIntp', audioExt = '.wav', tonicExt = '.tonic', segExt = '.segmentsNyas'):
+  
+  afiles = BP.GetFileNamesInDir(root_dir, annotExt)
+  
+  inDir = os.path.join(outputDir,str(patternID))
+  if not os.path.exists(inDir):
+      os.mkdir(inDir)
+  fig = plt.figure()
+  for f in afiles:
+      lines = open(f).readlines()
+      #reading the pitch       
+      fname,ext = os.path.splitext(f)
+      timePitch = np.loadtxt(fname + pitchExt)
+      tonic = np.loadtxt(fname + tonicExt)
+      audioFile = fname + audioExt
+      
+      for ii, line in enumerate(lines):
+          lineSplit = line.split()
+          sTime = float(lineSplit[0])
+          eTime = float(lineSplit[1])
+          pattID = int(lineSplit[2])
+          
+          if pattID == int(patternID):          
+              ind1 = find_nearest_element_ind(timePitch[:,0], sTime)
+              ind2 = find_nearest_element_ind(timePitch[:,0], eTime)
+              
+              plt.plot(1200*np.log2((timePitch[ind1:ind2,1]+eps)/tonic))
+              fig.tight_layout()
+              outFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.png')
+              outAudioFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.mp3')
+              plt.axis([-500,1000, 0, 5000])
+              fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+              fig.clear()
+              clipAudio(audioFile, outAudioFileName, sTime, eTime)              
+              
 def dumpFalseAlarms(searchPatternFile, patternInfoFile, fileListDB, anotExt = '.anot', topN = 200):
   """
   This function dumps all the top false alarms by the system. 
