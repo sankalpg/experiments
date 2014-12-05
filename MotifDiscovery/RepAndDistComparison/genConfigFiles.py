@@ -33,8 +33,8 @@ def genConfigFiles(baseName, outDir):
 		'blackDurFact': 1,
 		'maxNMotifsPairs': -1,
 		'dumpLogs': 1,
-		'pitchHop': 0.0029025,
-		'subSeqLen': 2000
+		'pitchHop': 0.01,
+		'subSeqLen': 800
 		
 		}
 	
