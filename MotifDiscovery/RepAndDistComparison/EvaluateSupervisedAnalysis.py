@@ -13,11 +13,11 @@ import batchProcessing as BP
 #localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
 
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 def getAnotsPerCategory(queryFileList, anotExt = '.anot'):
     

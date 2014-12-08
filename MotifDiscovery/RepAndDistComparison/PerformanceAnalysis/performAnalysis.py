@@ -6,8 +6,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pyt
 import batchProcessing as BP
 eps = np.finfo(np.float64).resolution
 
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+
 
 def changePrefix(audiofile):
     
@@ -155,6 +159,14 @@ def dumpAudioMelodyTrueGTAnotsMarkingFlatNotes(root_dir, outputDir, patternID, a
       timePitch = np.loadtxt(fname + pitchExt)
       tonic = np.loadtxt(fname + tonicExt)
       audioFile = fname + audioExt
+      segments = np.loadtxt(fname + segExt)
+      
+      flatSegs = np.zeros(timePitch.shape[0])
+      for segment in segments:
+        ind1 = find_nearest_element_ind(timePitch[:,0], segment[0])
+        ind2 = find_nearest_element_ind(timePitch[:,0], segment[1])
+        flatSegs[ind1:ind2+1]=1
+        
       
       for ii, line in enumerate(lines):
           lineSplit = line.split()
@@ -166,16 +178,18 @@ def dumpAudioMelodyTrueGTAnotsMarkingFlatNotes(root_dir, outputDir, patternID, a
               ind1 = find_nearest_element_ind(timePitch[:,0], sTime)
               ind2 = find_nearest_element_ind(timePitch[:,0], eTime)
               
-              plt.plot(1200*np.log2((timePitch[ind1:ind2,1]+eps)/tonic))
-              fig.tight_layout()
+              indFlats = np.where(flatSegs[ind1:ind2]==1)[0]
+              pitch  = timePitch[ind1:ind2,1]
+              plt.plot(1200*np.log2((pitch+eps)/tonic), 'b')
+              plt.scatter(np.arange(len(pitch))[indFlats], 1200*np.log2((pitch[indFlats]+eps)/tonic))
               outFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.png')
               outAudioFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.mp3')
-              plt.axis([-500,1000, 0, 5000])
+              plt.axis([0,500, 0, 1200])
               fig.savefig(outFileName, dpi=75, bbox_inches='tight')
               fig.clear()
               clipAudio(audioFile, outAudioFileName, sTime, eTime)              
               
-def dumpFalseAlarms(searchPatternFile, patternInfoFile, fileListDB, anotExt = '.anot', topN = 200):
+def dumpFalseAlarms(outputDir, searchPatternFile, patternInfoFile, fileListDB, anotExt = '.anot', topN = 200, pitchExt = '.pitchIntrp', tonicExt = '.tonic', audioExt = '.mp3'):
   """
   This function dumps all the top false alarms by the system. 
   """
@@ -245,6 +259,30 @@ def dumpFalseAlarms(searchPatternFile, patternInfoFile, fileListDB, anotExt = '.
       dumpInfo[indCat,5]= searchPattType
     
     dumpInfoGlobal = np.vstack((dumpInfoGlobal, dumpInfo))
-   
+  dumpInfoGlobal = np.delete(dumpInfoGlobal,0,0)
+  indUniqFiles = np.unique(dumpInfoGlobal[:,2])
+  fig = plt.figure()
+  for fileId in indUniqFiles:
+    indFiles = np.where(dumpInfoGlobal[:,2]==fileId)[0]
+    fname = changePrefix(filelistFiles[fileId.astype(np.int)]).strip()
+    timePitch = np.loadtxt(fname + pitchExt)
+    tonic = np.loadtxt(fname + tonicExt)
+    for ind in indFiles:
+      dirName = os.path.join(outputDir, str(dumpInfoGlobal[ind,4].astype(int)), str(dumpInfoGlobal[ind,5].astype(np.int)))
+      if not os.path.exists(dirName):
+        os.makedirs(dirName)
+      ind1 = find_nearest_element_ind(timePitch[:,0], dumpInfoGlobal[ind,0])
+      ind2 = find_nearest_element_ind(timePitch[:,0], dumpInfoGlobal[ind,0]+dumpInfoGlobal[ind,1])
+      pitch = timePitch[ind1:ind2,1]
+      plt.plot(1200*np.log2((pitch+eps)/tonic), 'b')
+      outFileName = os.path.join(dirName,  str(ind.astype(np.int))+'.png')
+      outAudioFileName = os.path.join(dirName,  str(ind.astype(np.int))+'.mp3')
+      plt.axis([0,500, 0, 3000])
+      fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+      fig.clear()
+      print dumpInfoGlobal[ind,0], dumpInfoGlobal[ind,0]+dumpInfoGlobal[ind,1]
+      clipAudio(fname+audioExt, outAudioFileName, dumpInfoGlobal[ind,0], dumpInfoGlobal[ind,0]+dumpInfoGlobal[ind,1])
+  
+  np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoGlobal)
   return dumpInfoGlobal
   
