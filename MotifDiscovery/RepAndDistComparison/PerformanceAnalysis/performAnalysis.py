@@ -144,6 +144,48 @@ def dumpAudioMelodyTrueGTAnots(root_dir, outputDir, patternID, annotExt = '.anot
               fig.clear()
               clipAudio(audioFile, outAudioFileName, sTime, eTime)
               
+def dumpAudioMelodyTrueGTAnotsWithLoudness(root_dir, outputDir, patternID, annotExt = '.anot', pitchExt = '.tpe', audioExt = '.wav', tonicExt = '.tonic', loudExt = '.loudness'):
+  
+  afiles = BP.GetFileNamesInDir(root_dir, annotExt)
+  
+  inDir = os.path.join(outputDir,str(patternID))
+  if not os.path.exists(inDir):
+      os.mkdir(inDir)
+  fig = plt.figure()
+  for f in afiles:
+      lines = open(f).readlines()
+      #reading the pitch       
+      fname,ext = os.path.splitext(f)
+      timePitch = np.loadtxt(fname + pitchExt)
+      timeLoudness = np.loadtxt(fname + loudExt)
+      tonic = np.loadtxt(fname + tonicExt)
+      audioFile = fname + audioExt
+      
+      for ii, line in enumerate(lines):
+          lineSplit = line.split()
+          sTime = float(lineSplit[0])
+          eTime = float(lineSplit[1])
+          pattID = int(lineSplit[2])
+          
+          if pattID == int(patternID):          
+              ind1 = find_nearest_element_ind(timePitch[:,0], sTime)
+              ind2 = find_nearest_element_ind(timePitch[:,0], eTime)
+              pitch = timePitch[ind1:ind2,1]
+              pitch = 1200*np.log2((pitch+eps)/tonic)
+              pitch = pitch - np.mean(pitch)
+              plt.plot(pitch,'b')
+              loudness = timeLoudness[ind1:ind2,1]
+              loudness = loudness-np.mean(loudness)
+              loudness = (loudness)*200.0/np.std(loudness)
+              plt.plot(loudness,'r')
+              fig.tight_layout()
+              outFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.png')
+              outAudioFileName = os.path.join(inDir, fname.split('/')[-1]+ '_' + str(ii)+'.mp3')
+              plt.axis([0,800, -900, 900])
+              fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+              fig.clear()
+              clipAudio(audioFile, outAudioFileName, sTime, eTime)
+              
 def dumpAudioMelodyTrueGTAnotsMarkingFlatNotes(root_dir, outputDir, patternID, annotExt = '.anot', pitchExt = '.pitchEssentiaIntp', audioExt = '.wav', tonicExt = '.tonic', segExt = '.segmentsNyas'):
   
   afiles = BP.GetFileNamesInDir(root_dir, annotExt)
@@ -285,4 +327,12 @@ def dumpFalseAlarms(outputDir, searchPatternFile, patternInfoFile, fileListDB, a
   
   np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoGlobal)
   return dumpInfoGlobal
+  
+
+def plotTwoMatchedPatterns(pattDataFile, nSamplesPerPatt, ind1, ind2):
+  data = np.fromfile(pattDataFile)
+  data1 = np.reshape(data,(len(data)/nSamplesPerPatt, nSamplesPerPatt))
+  plt.plot(data1[ind1,:]-np.mean(data1[ind1,:]),'b')
+  plt.plot(data1[ind2,:]-np.mean(data1[ind2,:]),'r')
+  plt.show()
   
