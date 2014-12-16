@@ -63,15 +63,84 @@ def flatNoteSegmentationNyas(pitchFile, tonicExt = '.tonic', segFileExt = '.segm
   #converting Hz to Cents
   hopSize = timePitch[1,0]-timePitch[0,0]
   
-  msObj = seg.nyasSegmentation()
-  allSegments, flatSegments = msObj.segmentPitch(timePitch[:,1], tonic, hopSize)
+  msObj = seg.melodySegmentation()
+  flatSegments = msObj.segmentPitchNyas(timePitch[:,1], tonic, hopSize, vicinityThsld = 30, varWinLen=100, varThsld=100, timeAwayThsld=100, min_nyas_duration=150.0)
   
-  np.savetxt(fname + segFileExt, flatSegments)
+  np.savetxt(fname + segFileExt, flatSegments*hopSize)
   
+def flatNoteSegmentationVariance(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsVar'):
+  """
+  This function performs flat note segmentation using just the pitch variance
+  Input:
+    pitchFile = csv file of the pitch values <first column time stamps> <second pitch values in Hz>
+  Output:
+   this function writes a segmentation file which should contain only the flat segments
+
+  With this function I was trying to figure out optimal variance length and variance threshold. I seems like 100 ms duration and 75 cents variance is a decent choice.
+  """
+  fname, ext = os.path.splitext(pitchFile)
   
+  #reading pitch file
+  timePitch = np.loadtxt(pitchFile)
+  
+  tonic = float(np.loadtxt(fname + tonicExt))
+  
+  #converting Hz to Cents
+  timePitch[:,1] = 1200*np.log2((timePitch[:,1]+eps)/tonic)
+  hopSize = timePitch[1,0]-timePitch[0,0]
+
+  
+  msObj = seg.melodySegmentation()
+  flatSegments = msObj.flatSegmentsPitchVariance(timePitch[:,1], hopSize, varWinLen = 200, varThsld = 75)*hopSize
+  np.savetxt(fname + segFileExt, flatSegments)  
 
 
 #3) Very simple method based on searching for stable regions around mean swar values and then joining very closely spaced points.
+def flatNoteSegmentationCloseVicinity(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsVicinity'):
+  """
+  This function performs flat note segmentation based on the vicinity around the swar locations.
+  Input:
+    pitchFile = csv file of the pitch values <first column time stamps> <second pitch values in Hz>
+  Output:
+   this function writes a segmentation file which should contain only the flat segments
+  """
+
+  fname, ext = os.path.splitext(pitchFile)
+  
+  #reading pitch file
+  timePitch = np.loadtxt(pitchFile)
+  
+  tonic = float(np.loadtxt(fname + tonicExt))
+  
+  #converting Hz to Cents
+  hopSize = timePitch[1,0]-timePitch[0,0]
+
+  
+  msObj = seg.melodySegmentation()
+  flatSegments = msObj.flatSegmentsSwarVicinity(timePitch[:,1], tonic, hopSize, vicinityThsld = 30)*hopSize
+  np.savetxt(fname + segFileExt, flatSegments) 
+
+def probableSegmentationPOints(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsCandidates'):
+  """
+  """
+
+  fname, ext = os.path.splitext(pitchFile)
+  
+  #reading pitch file
+  timePitch = np.loadtxt(pitchFile)
+  
+  tonic = float(np.loadtxt(fname + tonicExt))
+  
+  #converting Hz to Cents
+  hopSize = timePitch[1,0]-timePitch[0,0]
+
+  
+  msObj = seg.melodySegmentation()
+  candSegs = msObj.estimateProbableSegmentationPoints(timePitch[:,1], tonic, hopSize, vicinityThsld = 30, varWinLen=100, varThsld=100)
+  np.savetxt(fname + segFileExt, candSegs*hopSize)   
+  #np.savetxt(fname + '.segVar', segVar*hopSize)    
+  #np.savetxt(fname + '.segVic', segVic*hopSize)    
+  #np.savetxt(fname + '.segSlope', segSlope*hopSize)    
 
 #4) Using sliding window local variance based method which was used for the segment filtering step in motif paper
 
