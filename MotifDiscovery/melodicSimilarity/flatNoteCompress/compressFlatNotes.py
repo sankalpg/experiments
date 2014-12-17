@@ -35,17 +35,9 @@ def flatNoteSegmentationPLS(pitchFile, maxAbsError, segFileExt = '.segmentsPLS')
   fname, ext = os.path.splitext(pitchFile)
   np.savetxt(fname + segFileExt, segments)
   
-def batchProcessflatNoteSegmentationNyas(root_dir, pitchExt = '.tpeIntrp', tonicExt = '.tonic', segExt = '.segmentsNyas'):
-  
-  filenames = BP.GetFileNamesInDir(root_dir, '.anot')
-  for filename in filenames:
-    print "processing file %s "%filename
-    fname, ext = os.path.splitext(filename)
-    flatNoteSegmentationNyas(fname + pitchExt, tonicExt = tonicExt, segFileExt = segExt)
-
 #2) Using the methods used in Nyas identification - different parameters for getting a good segmentation
 
-def flatNoteSegmentationNyas(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsNyas'):
+def flatNoteSegmentationNyas(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsNyas', vicinityThsld=30, varWinLen=100.0, varThsld=100.0, timeAwayThsld=100.0, min_nyas_duration=150.0):
   """
   This function performs flat note segmentation using heuristic based algorithm used in Nyas identification work.
   Input:
@@ -64,10 +56,19 @@ def flatNoteSegmentationNyas(pitchFile, tonicExt = '.tonic', segFileExt = '.segm
   hopSize = timePitch[1,0]-timePitch[0,0]
   
   msObj = seg.melodySegmentation()
-  flatSegments = msObj.segmentPitchNyas(timePitch[:,1], tonic, hopSize, vicinityThsld = 30, varWinLen=100, varThsld=100, timeAwayThsld=100, min_nyas_duration=150.0)
+  # this is a new implementation of segmenting flat regions with Nyas and it has improved code!! check it out!
+  flatSegments = msObj.segmentPitchNyas(timePitch[:,1], tonic, hopSize, vicinityThsld = vicinityThsld, varWinLen=varWinLen, varThsld=varThsld, timeAwayThsld=timeAwayThsld, min_nyas_duration=min_nyas_duration)
   
   np.savetxt(fname + segFileExt, flatSegments*hopSize)
+
+def batchProcessflatNoteSegmentationNyas(root_dir, ext2Proc = '.wav', pitchExt = '.pitch', tonicExt = '.tonic', segExt = '.flatSegNyas', vicinityThsld=30, varWinLen=100.0, varThsld=100.0, timeAwayThsld=100.0, min_nyas_duration=150.0):  
   
+  filenames = BP.GetFileNamesInDir(root_dir, ext2Proc)
+  for ii, filename in enumerate(filenames):
+    print "processing file %d : %s "%(ii+1, filename)
+    fname, ext = os.path.splitext(filename)
+    flatNoteSegmentationNyas(fname + pitchExt, tonicExt = tonicExt, segFileExt = segExt, vicinityThsld=vicinityThsld, varWinLen=varWinLen, varThsld=varThsld, timeAwayThsld=timeAwayThsld, min_nyas_duration=min_nyas_duration)
+
 def flatNoteSegmentationVariance(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsVar'):
   """
   This function performs flat note segmentation using just the pitch variance
