@@ -33,7 +33,7 @@ def flatNoteSegmentationPLS(pitchFile, maxAbsError, segFileExt = '.segmentsPLS')
   segments = msObj.segmentPitchPLS(timePitch[:,1], hopSize, maxAbsError)
   
   fname, ext = os.path.splitext(pitchFile)
-  np.savetxt(fname + segFileExt, segments)
+  np.savetxt(fname + segFileExt, segments, delimiter = "\t", fmt = '%.5f')
   
 #2) Using the methods used in Nyas identification - different parameters for getting a good segmentation
 
@@ -59,7 +59,7 @@ def flatNoteSegmentationNyas(pitchFile, tonicExt = '.tonic', segFileExt = '.segm
   # this is a new implementation of segmenting flat regions with Nyas and it has improved code!! check it out!
   flatSegments = msObj.segmentPitchNyas(timePitch[:,1], tonic, hopSize, vicinityThsld = vicinityThsld, varWinLen=varWinLen, varThsld=varThsld, timeAwayThsld=timeAwayThsld, min_nyas_duration=min_nyas_duration)
   
-  np.savetxt(fname + segFileExt, flatSegments*hopSize)
+  np.savetxt(fname + segFileExt, flatSegments*hopSize, delimiter = "\t", fmt = '%.5f')
 
 def batchProcessflatNoteSegmentationNyas(root_dir, ext2Proc = '.wav', pitchExt = '.pitch', tonicExt = '.tonic', segExt = '.flatSegNyas', vicinityThsld=30, varWinLen=100.0, varThsld=100.0, timeAwayThsld=100.0, min_nyas_duration=150.0):  
   
@@ -93,7 +93,7 @@ def flatNoteSegmentationVariance(pitchFile, tonicExt = '.tonic', segFileExt = '.
   
   msObj = seg.melodySegmentation()
   flatSegments = msObj.flatSegmentsPitchVariance(timePitch[:,1], hopSize, varWinLen = 200, varThsld = 75)*hopSize
-  np.savetxt(fname + segFileExt, flatSegments)  
+  np.savetxt(fname + segFileExt, flatSegments, delimiter = "\t", fmt = '%.5f')
 
 
 #3) Very simple method based on searching for stable regions around mean swar values and then joining very closely spaced points.
@@ -119,7 +119,7 @@ def flatNoteSegmentationCloseVicinity(pitchFile, tonicExt = '.tonic', segFileExt
   
   msObj = seg.melodySegmentation()
   flatSegments = msObj.flatSegmentsSwarVicinity(timePitch[:,1], tonic, hopSize, vicinityThsld = 30)*hopSize
-  np.savetxt(fname + segFileExt, flatSegments) 
+  np.savetxt(fname + segFileExt, flatSegments, delimiter = "\t", fmt = '%.5f')
 
 def probableSegmentationPOints(pitchFile, tonicExt = '.tonic', segFileExt = '.segmentsCandidates'):
   """
@@ -138,7 +138,7 @@ def probableSegmentationPOints(pitchFile, tonicExt = '.tonic', segFileExt = '.se
   
   msObj = seg.melodySegmentation()
   candSegs = msObj.estimateProbableSegmentationPoints(timePitch[:,1], tonic, hopSize, vicinityThsld = 30, varWinLen=100, varThsld=100)
-  np.savetxt(fname + segFileExt, candSegs*hopSize)   
+  np.savetxt(fname + segFileExt, candSegs*hopSize, delimiter = "\t", fmt = '%.5f')
   #np.savetxt(fname + '.segVar', segVar*hopSize)    
   #np.savetxt(fname + '.segVic', segVic*hopSize)    
   #np.savetxt(fname + '.segSlope', segSlope*hopSize)    
