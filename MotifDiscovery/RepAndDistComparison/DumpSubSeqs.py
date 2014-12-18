@@ -25,7 +25,7 @@ def changePrefix(audiofile):
     if audiofile.count(serverPrefix):
         #audiofile = localPrefix + audiofile.split(serverPrefix)[1]
         audiofile = audiofile.replace(serverPrefix, localPrefix)
-        print audiofile
+        #print audiofile
     return audiofile
 
 def getPatternLengthFile(fname, annotExt='.anot'):
@@ -47,7 +47,7 @@ def getPatternLengthsDB(fileList, annotExt='.anot'):
     for line in lines:
         line = line.strip()
         fname = changePrefix(line + annotExt)
-        print fname
+        #print fname
         pattLen.extend(getPatternLengthFile(fname))
     return pattLen
   
