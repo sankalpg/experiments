@@ -297,6 +297,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
             indStart = nearestInd(pitchTime[:,0], start)
             pitchNoOrn = objComp.supressOrnamentation(indStart, nSamplesSub)
             if len(pitchNoOrn)!=nSamplesSub:
+                print pitchFile
                 continue
             infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
             pitchCents = 1200*np.log2((pitchNoOrn + eps)/55.0)
@@ -337,6 +338,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
             indStart = np.floor(ss*hopSamples)
             pitchNoOrn = objComp.supressOrnamentation(indStart, nSamplesSub)
             if len(pitchNoOrn)!=nSamplesSub:
+                print pitchFile
                 continue
             infoOutFile.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLens[np.random.randint(len(pattLens))], jj, -1))#start, duration, 
             pitchCents = 1200*np.log2((pitchNoOrn+eps)/55.0)
@@ -397,6 +399,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
             indStart = nearestInd(pitchTime[:,0], start)
             pitchFlatCom, lenNew = objComp.compress(indStart, np.round((end-start)/hopPitch).astype(np.int), nSamplesSub)
             if len(pitchFlatCom)!=nSamplesSub:
+                print pitchFile
                 continue
             infoOutFileFULL.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
             infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, lenNew*hopPitch, jj, ii))#start, duration, fileID(lineNumber), pattID
@@ -438,9 +441,10 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
             pattLenRandom = pattLens[np.random.randint(len(pattLens))]
             pitchFlatCom, lenNew = objComp.compress(indStart, np.round((pattLenRandom)/hopPitch).astype(np.int), nSamplesSub)
             if len(pitchFlatCom)!=nSamplesSub:
+                print pitchFile
                 continue
             infoOutFileFULL.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLenRandom, jj, -1))#start, duration, 
-            infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, lenNew*hopPitch, jj, ii))#start, duration, fileID(lineNumber), pattID
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, lenNew*hopPitch, jj, -1))#start, duration, fileID(lineNumber), pattID
             pitchCents = 1200*np.log2((pitchFlatCom+eps)/55.0)
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
