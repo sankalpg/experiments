@@ -208,6 +208,8 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
             infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
             indStart = nearestInd(pitchTime[:,0], start)
             pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1] + eps)/55.0)
+            if len(pitchCents) != nSamplesSub:
+                print pitchFile
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
     
@@ -243,6 +245,8 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
             indStart = np.floor(ss*hopSamples)
             infoOutFile.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLens[np.random.randint(len(pattLens))], jj, -1))#start, duration, 
             pitchCents = 1200*np.log2((copy.copy(pitchTime[indStart:indStart+nSamplesSub,1])+eps)/55.0)
+            if len(pitchCents) != nSamplesSub:
+                print pitchFile
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
             
