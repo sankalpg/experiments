@@ -1,9 +1,12 @@
 import numpy as np
 import os, sys
-sys.path.append('../../../../library_pythonnew/melodyProcessing/')
-sys.path.append('../../../../library_pythonnew/batchProcessing/')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/melodyProcessing/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/batchProcessing/'))
+
 import segmentation as seg
+import pitchHistogram as PH
 import batchProcessing as BP
+import copy
 
 
 eps = np.finfo(np.float).eps
@@ -147,4 +150,109 @@ def probableSegmentationPOints(pitchFile, tonicExt = '.tonic', segFileExt = '.se
 
 #5) Use microsoft types method but it needs training and labelled data!!!
 
-#5) Using above mentioned methods but using a low pass or median  filtered pitch contour.
+class flatNoteCompression():
+
+
+  def __init__(self, pitch, tonic, flatSegments, hopSize, saturateLen=0.3):
+    
+    "Initializing the object and computing pitch histogram..."
+    phObj = PH.PitchHistogram(pitch, tonic)
+    #getting valid swar locations (within one octave)
+    phObj.ValidSwarLocEstimation(Oct_fold=1)
+    #converting swar locations in indexes to cents
+    phObj.SwarLoc2Cents()
+    #since the swar locations are computed using octave folded histogram, propagating them to other octaves
+    phObj.ExtendSwarOctaves()
+    self.swarCents = phObj.swarCents
+    self.pitch = pitch
+    self.pCents = phObj.pCents
+    self.phop = hopSize
+    self.tonic = tonic
+    self.maxFlatLen = np.round(saturateLen/hopSize).astype(np.int)
+    
+    if flatSegments.size == len(flatSegments): #sometimes if ther is only one segment in a file, np.loadtxt reads 1 d array
+      flatSegments = np.array([flatSegments])
+
+    self.flatSegs = flatSegments
+
+    self.flatArrayFlag = np.zeros(self.pCents.size)
+    for segs in self.flatSegs:
+      startInd = np.round(segs[0]/hopSize).astype(np.int)
+      endInd = np.round(segs[1]/hopSize).astype(np.int)
+      self.flatArrayFlag[startInd:endInd+1] = 1
+    
+    self.flatInds = np.where(self.flatArrayFlag==1)[0]
+
+  def compress(self, phraseStartInd, phraseLen, segOutLen):
+    """
+    This function compresses flat notes which are longer in duration than segOutLen and make them equal to segOutLen. Also the pitch sequence is substituted with the note frequency computed automatically using pitch histograms.
+    """
+
+    #differentiate between phrase length and segOutLen. SegOutLen is needed becasue output segments dumped are all of constant length and before compressino we dont know how much a segment will compress
+    segmentLen = 4*segOutLen
+    #find flatnotes in the given segment
+    indSegments = np.arange(phraseStartInd, phraseStartInd+segmentLen)
+
+    indFlatRegions = np.intersect1d(self.flatInds, indSegments)
+    indFlatSegments = seg.groupIndices(indFlatRegions)
+    lenSegments = indFlatSegments[:,1] - indFlatSegments[:,0]
+    indLongNotes = np.where(lenSegments>=self.maxFlatLen)[0]
+    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
+    if len(indLongNotes)==0:
+      return pitchSegCandidate[:segOutLen], phraseLen
+    else:
+      delInds = []
+      for indLongNote in indLongNotes:
+        segStart = indFlatSegments[indLongNote,0]
+        segEnd = indFlatSegments[indLongNote,1]
+        segPitch = self.pCents[segStart:segEnd+1]
+        segPitch = np.sort(segPitch)
+        meanSegment = np.mean(segPitch[np.round(len(segPitch)*0.1).astype(np.int):np.round(len(segPitch)*0.9).astype(np.int)])
+        indMin = np.argmin(abs(self.swarCents-meanSegment))
+        pVal = self.tonic*np.power(2,self.swarCents[indMin]/1200)
+        pitchSegCandidate[segStart-phraseStartInd:segEnd-phraseStartInd]=pVal
+        delInds.extend(np.arange(segStart+self.maxFlatLen-phraseStartInd, segEnd-phraseStartInd+1))
+      delInds = np.array(delInds)
+      reductionLen = len(np.where(delInds<phraseLen)[0])
+      pitchSegCandidate = np.delete(pitchSegCandidate, delInds)
+      return pitchSegCandidate[:segOutLen], phraseLen-reductionLen
+
+  def supressOrnamentation(self, phraseStartInd, segOutLen):
+    """
+    This function substitute a flat note (musical flat note which might have many ornamentations) with a constant pitch value that corresponds to the note that was sung
+    """
+
+    #differentiate between phrase length and segOutLen. SegOutLen is needed becasue output segments dumped are all of constant length and before compressino we dont know how much a segment will compress
+    segmentLen = 4*segOutLen
+    #find flatnotes in the given segment
+    indSegments = np.arange(phraseStartInd, phraseStartInd+segmentLen)
+
+    indFlatRegions = np.intersect1d(self.flatInds, indSegments)
+    indFlatSegments = seg.groupIndices(indFlatRegions)
+    lenSegments = indFlatSegments[:,1] - indFlatSegments[:,0]
+    indLongNotes = np.where(lenSegments>=self.maxFlatLen)[0]
+    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
+    if len(indLongNotes)==0:
+      return pitchSegCandidate[:segOutLen]
+    else:
+      #delInds = []
+      for indLongNote in indLongNotes:
+        segStart = indFlatSegments[indLongNote,0]
+        segEnd = indFlatSegments[indLongNote,1]
+        segPitch = self.pCents[segStart:segEnd+1]
+        segPitch = np.sort(segPitch)
+        meanSegment = np.mean(segPitch[np.round(len(segPitch)*0.1).astype(np.int):np.round(len(segPitch)*0.9).astype(np.int)])
+        indMin = np.argmin(abs(self.swarCents-meanSegment))
+        pVal = self.tonic*np.power(2,self.swarCents[indMin]/1200)
+        pitchSegCandidate[segStart-phraseStartInd:segEnd-phraseStartInd]=pVal
+        #delInds.extend(range(segStart+self.maxFlatLen-phraseStartInd, segEnd-phraseStartInd+1))
+      #delInds = np.array(delInds)
+      #reductionLen = len(np.where(delInds<phraseLen)[0])
+      #pitchSegCandidate = np.delete(pitchSegCandidate, delInds)
+      return pitchSegCandidate[:segOutLen]
+
+
+
+
+
+
