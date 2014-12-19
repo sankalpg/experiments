@@ -190,14 +190,17 @@ class flatNoteCompression():
 
     #differentiate between phrase length and segOutLen. SegOutLen is needed becasue output segments dumped are all of constant length and before compressino we dont know how much a segment will compress
     segmentLen = 4*segOutLen
+    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
     #find flatnotes in the given segment
     indSegments = np.arange(phraseStartInd, phraseStartInd+segmentLen)
 
     indFlatRegions = np.intersect1d(self.flatInds, indSegments)
+    if len(indFlatRegions)==0:
+      return pitchSegCandidate[:segOutLen], phraseLen
     indFlatSegments = seg.groupIndices(indFlatRegions)
     lenSegments = indFlatSegments[:,1] - indFlatSegments[:,0]
     indLongNotes = np.where(lenSegments>=self.maxFlatLen)[0]
-    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
+    
     if len(indLongNotes)==0:
       return pitchSegCandidate[:segOutLen], phraseLen
     else:
@@ -224,14 +227,18 @@ class flatNoteCompression():
 
     #differentiate between phrase length and segOutLen. SegOutLen is needed becasue output segments dumped are all of constant length and before compressino we dont know how much a segment will compress
     segmentLen = 4*segOutLen
+    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
+    
     #find flatnotes in the given segment
     indSegments = np.arange(phraseStartInd, phraseStartInd+segmentLen)
 
     indFlatRegions = np.intersect1d(self.flatInds, indSegments)
+    if len(indFlatRegions)==0:
+      return pitchSegCandidate[:segOutLen]
     indFlatSegments = seg.groupIndices(indFlatRegions)
     lenSegments = indFlatSegments[:,1] - indFlatSegments[:,0]
     indLongNotes = np.where(lenSegments>=self.maxFlatLen)[0]
-    pitchSegCandidate = copy.deepcopy(self.pitch[phraseStartInd:phraseStartInd+segmentLen])
+    
     if len(indLongNotes)==0:
       return pitchSegCandidate[:segOutLen]
     else:
