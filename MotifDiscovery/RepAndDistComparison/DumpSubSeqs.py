@@ -195,6 +195,11 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
         annots = np.loadtxt(changePrefix(line + anotExt))
         
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
+
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
         
@@ -224,6 +229,11 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
         annots = np.loadtxt(changePrefix(line + anotExt))
+
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -288,6 +298,11 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
 
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
+
         objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch)
         
         for ii in range(annots.shape[0]):
@@ -320,6 +335,11 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
         annots = np.loadtxt(changePrefix(line + anotExt))
+
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
 
         objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch)
         
@@ -386,6 +406,11 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         flats = np.loadtxt(changePrefix(line + segExt))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
         annots = np.loadtxt(changePrefix(line + anotExt))
+
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -422,6 +447,11 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
         annots = np.loadtxt(changePrefix(line + anotExt))
+
+        #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
 
         objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch)
         
