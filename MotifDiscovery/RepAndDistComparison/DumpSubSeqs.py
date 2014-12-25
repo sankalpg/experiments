@@ -308,8 +308,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
         for ii in range(annots.shape[0]):
             start = annots[ii,0]
             end = annots[ii,1]
-            pattID = annots[ii,2]
-            
+            pattID = annots[ii,2]            
 
             if end-start > filterLengthAnot and filterLengthAnot >=0:
                 continue
@@ -356,7 +355,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
             #pitchTime = np.delete(pitchTime, range(indStart,indend+1),0)
         
         # Total number of noise candidates to be added in this file based on a hop specified by the user
-        nCandidates = int(np.floor((pitchTime.shape[0] - 4*nSamplesSub)/hopSamples))
+        nCandidates = int(np.floor((pitchTime.shape[0] - nSamplesSub)/hopSamples))
         
         for ss in range(nCandidates):
             indStart = np.floor(ss*hopSamples)
@@ -415,7 +414,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
 
-        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch)
+        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = 0.15)
         
         for ii in range(annots.shape[0]):
             start = annots[ii,0]
@@ -453,7 +452,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
         pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
 
-        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch)
+        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = 0.15)
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -468,7 +467,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
             #pitchTime = np.delete(pitchTime, range(indStart,indend+1),0)
         
         # Total number of noise candidates to be added in this file based on a hop specified by the user
-        nCandidates = int(np.floor((pitchTime.shape[0] - 4*nSamplesSub)/hopSamples))
+        nCandidates = int(np.floor((pitchTime.shape[0] - nSamplesSub)/hopSamples))
         
         for ss in range(nCandidates):
             indStart = np.floor(ss*hopSamples)
@@ -478,7 +477,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
                 print pitchFile
                 continue
             infoOutFileFULL.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLenRandom, jj, -1))#start, duration, 
-            infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, lenNew*hopPitch, jj, -1))#start, duration, fileID(lineNumber), pattID
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], lenNew*hopPitch, jj, -1))#start, duration, fileID(lineNumber), pattID
             pitchCents = 1200*np.log2((pitchFlatCom+eps)/55.0)
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
@@ -490,3 +489,194 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
     infoOutFile.close() 
     
     
+
+def dumpSubsequencesQueryAndNoise_1(fileList, pitchExt, anotExt, tonicExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot):
+    
+    open(subOutFilename, "w").close()
+    open(subOutFilenameTonicNorm, "w").close()
+    open(infoOutFile, "w").close()
+    
+    subOutFile = open(subOutFilename, "ab")
+    subOutFileTonicNorm = open(subOutFilenameTonicNorm, "ab")
+    infoOutFile = open(infoOutFile, "ab")
+    
+    pattLens = getPatternLengthsDB(fileList)
+    pattLens = np.array(pattLens)
+    
+    if filterLengthAnot>0:
+      indDel = np.where(pattLens>filterLengthAnot)[0]
+      pattLens = np.delete(pattLens, indDel)
+      print "Max patt length is " + str(np.max(pattLens))
+    
+    lines = open(fileList,"r").readlines()
+    
+    # This loop dumps the query info and subseqs
+    for jj, line in enumerate(lines):
+        line = line.strip()
+        pitchFile = changePrefix(line + pitchExt)
+        pitchTime = np.loadtxt(pitchFile)
+        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        hopPitch = pitchTime[1,0]-pitchTime[0,0]        
+        annots = np.loadtxt(changePrefix(line + anotExt))
+        
+         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
+        
+        if annots.shape[0] ==annots.size:
+            annots = np.array([annots])
+        
+        for ii in range(annots.shape[0]):
+            start = annots[ii,0]
+            end = annots[ii,1]
+            pattID = annots[ii,2]
+            
+            if end-start > filterLengthAnot and filterLengthAnot>=0:
+                continue
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
+            indStart = nearestInd(pitchTime[:,0], start)
+            pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1]+eps)/55.0)
+            if len(pitchCents) != nSamplesSub:
+                print pitchFile
+            subOutFile.write(pitchCents)
+            subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
+    
+    
+    #loop to dump noise candidates
+    for jj, line in enumerate(lines):
+        line = line.strip()
+        pitchFile = changePrefix(line + pitchExt)
+        pitchTime = np.loadtxt(pitchFile)
+        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        hopPitch = pitchTime[1,0]-pitchTime[0,0]
+        hopSamples = np.ceil(hopSizeCandidates/hopPitch)
+        
+        annots = np.loadtxt(changePrefix(line + anotExt))
+
+         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]        
+        
+        if annots.shape[0] ==annots.size:
+            annots = np.array([annots])
+        # This loop removes all the query segments from the pitch array
+        for ii in range(annots.shape[0]):
+            start = annots[ii,0]
+            end = annots[ii,1]
+            indStart = nearestInd(pitchTime[:,0], start)
+            indend = nearestInd(pitchTime[:,0], end)
+            pitchTime = np.delete(pitchTime, range(indStart,indend+1),0)#TODO there should be a +1 at the indEnd
+        
+        # Total number of noise candidates to be added in this file based on a hop specified by the user
+        nCandidates = int(np.floor((pitchTime.shape[0] - nSamplesSub)/hopSamples))
+        
+        for ss in range(nCandidates):
+            indStart = np.floor(ss*hopSamples)
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLens[np.random.randint(len(pattLens))], jj, -1))#start, duration, 
+            pitchCents = 1200*np.log2((copy.copy(pitchTime[indStart:indStart+nSamplesSub,1])+eps)/55.0)
+            subOutFile.write(pitchCents)
+            subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
+            
+    #closing all the files
+    subOutFile.close()
+    subOutFileTonicNorm.close()
+    infoOutFile.close()    
+    
+
+def dumpSubsequencesQueryAndNoise_2(fileList, pitchExt, anotExt, tonicExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot):
+    
+    open(subOutFilename, "w").close()
+    open(subOutFilenameTonicNorm, "w").close()
+    open(infoOutFile, "w").close()
+    
+    subOutFile = open(subOutFilename, "ab")
+    subOutFileTonicNorm = open(subOutFilenameTonicNorm, "ab")
+    infoOutFile = open(infoOutFile, "ab")
+    
+    pattLens = getPatternLengthsDB(fileList)
+    pattLens = np.array(pattLens)
+    
+    if filterLengthAnot>0:
+      indDel = np.where(pattLens>filterLengthAnot)[0]
+      pattLens = np.delete(pattLens, indDel)
+      print "Max patt length is " + str(np.max(pattLens))
+    
+    lines = open(fileList,"r").readlines()
+    
+    # This loop dumps the query info and subseqs
+    for jj, line in enumerate(lines):
+        line = line.strip()
+        pitchFile = changePrefix(line + pitchExt)
+        pitchTime = np.loadtxt(pitchFile)
+        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        hopPitch = pitchTime[1,0]-pitchTime[0,0]        
+        annots = np.loadtxt(changePrefix(line + anotExt))
+        
+         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
+        
+        if annots.shape[0] ==annots.size:
+            annots = np.array([annots])
+        
+        for ii in range(annots.shape[0]):
+            start = annots[ii,0]
+            end = annots[ii,1]
+            pattID = annots[ii,2]
+            
+            if end-start > filterLengthAnot and filterLengthAnot>=0:
+                continue
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(start, end-start, jj, ii))#start, duration, fileID(lineNumber), pattID
+            indStart = nearestInd(pitchTime[:,0], start)
+            pitchCents = 1200*np.log2(copy.copy(pitchTime[indStart:indStart+nSamplesSub,1]+eps)/55.0)
+            if len(pitchCents) != nSamplesSub:
+                print pitchFile
+            subOutFile.write(pitchCents)
+            subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
+    
+    
+    #loop to dump noise candidates
+    for jj, line in enumerate(lines):
+        line = line.strip()
+        pitchFile = changePrefix(line + pitchExt)
+        pitchTime = np.loadtxt(pitchFile)
+        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        hopPitch = pitchTime[1,0]-pitchTime[0,0]
+        hopSamples = np.ceil(hopSizeCandidates/hopPitch)
+        
+        annots = np.loadtxt(changePrefix(line + anotExt))
+
+         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
+        pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
+        pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
+        pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]        
+        
+        if annots.shape[0] ==annots.size:
+            annots = np.array([annots])
+        # This loop removes all the query segments from the pitch array
+        for ii in range(annots.shape[0]):
+            start = annots[ii,0]
+            end = annots[ii,1]
+            indStart = nearestInd(pitchTime[:,0], start)
+            indend = nearestInd(pitchTime[:,0], end)
+            p = pitchTime[indStart:indend+1,1]
+            pitchTime[indStart:indend+1,1] = p[np.random.random_integers(0,len(p)-1, len(p))]
+            #pitchTime = np.delete(pitchTime, range(indStart,indend+1),0)#TODO there should be a +1 at the indEnd
+        
+        # Total number of noise candidates to be added in this file based on a hop specified by the user
+        nCandidates = int(np.floor((pitchTime.shape[0] - nSamplesSub)/hopSamples))
+        
+        for ss in range(nCandidates):
+            indStart = np.floor(ss*hopSamples)
+            infoOutFile.write("%f\t%f\t%d\t%d\n"%(pitchTime[indStart,0], pattLens[np.random.randint(len(pattLens))], jj, -1))#start, duration, 
+            pitchCents = 1200*np.log2((copy.copy(pitchTime[indStart:indStart+nSamplesSub,1])+eps)/55.0)
+            subOutFile.write(pitchCents)
+            subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
+            
+    #closing all the files
+    subOutFile.close()
+    subOutFileTonicNorm.close()
+    infoOutFile.close()  
