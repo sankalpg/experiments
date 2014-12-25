@@ -1,5 +1,7 @@
 import numpy as np
 import os, sys
+import matplotlib
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/batchProcessing/'))
@@ -143,6 +145,72 @@ def dumpAudioMelodyTrueGTAnots(root_dir, outputDir, patternID, annotExt = '.anot
               fig.savefig(outFileName, dpi=75, bbox_inches='tight')
               fig.clear()
               clipAudio(audioFile, outAudioFileName, sTime, eTime)
+              
+              
+def dumpAudioMelodyTrueGTAnotsFromDB(subSeqFileTNFNC, subSeqFileTN,  patternInfoFileFNC, patternInfoFile, outputDir, fileListDB, anotExt = '.anot', audioExt = '.wav', hopSize=0.01, subSeqLen = 800):
+  
+  
+  filelistFiles = open(fileListDB,'r').readlines()
+  
+  subData = np.fromfile(subSeqFileTN)
+  if np.mod(len(subData),subSeqLen)!=0:
+    print "Please provide a subsequence database and subSeqLen which make sense, total number of elements in the database should be multiple of subSeqLen"
+    return -1
+  subData = np.reshape(subData, (len(subData)/float(subSeqLen), subSeqLen))
+  
+  subDataFNC = np.fromfile(subSeqFileTNFNC)
+  if np.mod(len(subDataFNC),subSeqLen)!=0:
+    print "Please provide a subsequence database and subSeqLen which make sense, total number of elements in the database should be multiple of subSeqLen"
+    return -1
+  subDataFNC = np.reshape(subDataFNC, (len(subDataFNC)/float(subSeqLen), subSeqLen))  
+  
+  #reading the info file and database file to create a mapping
+  pattInfosFNC = np.loadtxt(patternInfoFileFNC)
+  pattInfos = np.loadtxt(patternInfoFile)
+
+  lineToType = -1*np.ones(pattInfosFNC.shape[0])
+  
+  #obtaining only query indeces (and not noise candidate indices)
+  qInds = np.where(pattInfosFNC[:,3]>-1)[0]
+  
+  #iterating over all the unique file indices in the queries
+  for fileInd in np.unique(pattInfosFNC[qInds][:,2]):
+    
+    fileInd = int(fileInd)
+    #open the annotation file for this index
+    annots = np.loadtxt(changePrefix(filelistFiles[fileInd].strip()+anotExt))
+    
+    if annots.shape[0] == annots.size:
+        annots = np.array([annots])
+    
+    indSingleFile = np.where(pattInfosFNC[qInds][:,2]==fileInd)[0]
+    ind = pattInfosFNC[qInds][indSingleFile,3].astype(int).tolist()
+    
+    for ii,val in enumerate(annots[ind,2]):
+      lineToType[qInds[indSingleFile[ii]]] =  val
+  
+  totalPattTypes = np.unique(lineToType[qInds])
+  
+  fig = plt.figure()
+  for pattType in totalPattTypes:
+    localDir = os.path.join(outputDir, str(pattType))
+    if not os.path.exists(localDir):
+      os.makedirs(localDir)
+    indsPatt = np.where(lineToType==pattType)[0]
+    for indPatt in indsPatt:
+        outFileName = os.path.join(localDir, str(indPatt)+'.png')
+        outAudioFileName = os.path.join(localDir, str(indPatt)+audioExt)
+        pitch = subData[indPatt, :np.floor(pattInfos[indPatt,1]/hopSize)]
+        pitchFNC = subDataFNC[indPatt, :np.floor(pattInfosFNC[indPatt,1]/hopSize)]
+        audioFile = changePrefix(filelistFiles[pattInfosFNC[indPatt,2].astype(np.int)].strip() + audioExt)
+        plt.plot(pitch,'k.')
+        plt.plot(pitchFNC, 'r')
+        fig.tight_layout()        
+        plt.axis([0,600, -500, 3000])
+        fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+        fig.clear()
+        clipAudio(audioFile, outAudioFileName, pattInfos[indPatt,0], pattInfos[indPatt,0] + pattInfos[indPatt,1])
+
               
 def dumpAudioMelodyTrueGTAnotsWithLoudness(root_dir, outputDir, patternID, annotExt = '.anot', pitchExt = '.tpe', audioExt = '.wav', tonicExt = '.tonic', loudExt = '.loudness'):
   
