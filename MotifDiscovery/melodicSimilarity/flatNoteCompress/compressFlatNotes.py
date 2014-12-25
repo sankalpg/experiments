@@ -179,6 +179,9 @@ class flatNoteCompression():
     for segs in self.flatSegs:
       startInd = np.round(segs[0]/hopSize).astype(np.int)
       endInd = np.round(segs[1]/hopSize).astype(np.int)
+      #sometimes there are two flat notes back to back and this way of assigning 1 to regions might make them single flat note. To preserve them as two notes, here's a hack to shift one index if they are back to back
+      if self.flatArrayFlag[startInd-1]==1:
+        startInd = startInd + 1             #this introduces a 1 sample gap which is enough to treat them as two segments later on.
       self.flatArrayFlag[startInd:endInd+1] = 1
     
     self.flatInds = np.where(self.flatArrayFlag==1)[0]
