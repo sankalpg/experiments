@@ -56,7 +56,7 @@ def getGlobalComplexityFor_FP_TP(searchPatternFile, pattDataFile, pattInfoFile, 
     pattLen = np.round(pattInfo[ii,1]/hopSize).astype(np.int)
     if pattLen == 0:
       print "Print what the heck is this, 0 Pattern length, non sense!!", ii
-    pattPitch = 1200*np.log2((pattData[ii,:pattLen+1]+eps)/tonic[pattInfo[ii,2].astype(np.int)])
+    pattPitch = pattData[ii,:pattLen+1]
     globalComplexity[ii] = computeGlobalMelodicComplexity(pattPitch)
   
   
@@ -68,7 +68,6 @@ def getGlobalComplexityFor_FP_TP(searchPatternFile, pattDataFile, pattInfoFile, 
   for ii, line in enumerate(searchedData):
     cmp1 = globalComplexity[line[0].astype(np.int)]
     cmp2 = globalComplexity[line[1].astype(np.int)]
-    
     if float(min(cmp1,cmp2)) !=0:
       complexityMeasure[ii] = max(cmp1, cmp2)/float(min(cmp1,cmp2))
     else:
