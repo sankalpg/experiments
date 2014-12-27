@@ -14,11 +14,11 @@ eps =  np.finfo('float').eps
 This file has functions to mainly dump the subsequences needed for experiments related with supervised anlaysis where we evaluate several similarity methodologies
 """
 
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 def changePrefix(audiofile):
     
@@ -373,7 +373,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
     subOutFileTonicNorm.close()
     infoOutFile.close()      
     
-def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, tonicExt, segExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot):
+def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, tonicExt, segExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot, saturateLen = 0.3):
     
     infoOutFileFlatCompress = infoOutFile+'_FULL'
     open(subOutFilename, "w").close()
@@ -414,7 +414,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
 
-        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = 0.15)
+        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = saturateLen)
         
         for ii in range(annots.shape[0]):
             start = annots[ii,0]
@@ -452,7 +452,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
         pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
         pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
 
-        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = 0.15)
+        objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = saturateLen)
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -581,16 +581,15 @@ def dumpSubsequencesQueryAndNoise_1(fileList, pitchExt, anotExt, tonicExt, hopSi
     subOutFileTonicNorm.close()
     infoOutFile.close()    
 
-    def dumpSubsequencesQueryAndNoise_2(fileList, pitchExt, anotExt, tonicExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot):
+def dumpSubsequencesQueryAndNoise_2(fileList, pitchExt, anotExt, tonicExt, hopSizeCandidates, nSamplesSub, infoOutFile, subOutFilename, subOutFilenameTonicNorm, filterLengthAnot):
     """
-    DUPLICATE FUNCTION TO REPLICATE OLDER VERSION FOR DEBUGGING
-    THIS IS SAME AS USED IN ICASSP
-
-    -> Doesnt have ICASSP bug (total lenghth not a multiple of sub length)
-    -> has eps
-    -> Doesn't have +1 at the end index
-
+     DUPLICATE FUNCTION TO REPLICATE OLDER VERSION FOR DEBUGGING
+     THIS IS SAME AS USED IN ICASSP
+     Doesnt have ICASSP bug (total lenghth not a multiple of sub length)
+     has eps
+     Doesn't have +1 at the end index
     """
+
     open(subOutFilename, "w").close()
     open(subOutFilenameTonicNorm, "w").close()
     open(infoOutFile, "w").close()
