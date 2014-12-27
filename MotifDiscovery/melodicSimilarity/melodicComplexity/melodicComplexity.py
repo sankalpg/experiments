@@ -69,7 +69,10 @@ def getGlobalComplexityFor_FP_TP(searchPatternFile, pattDataFile, pattInfoFile, 
     cmp1 = globalComplexity[line[0].astype(np.int)]
     cmp2 = globalComplexity[line[1].astype(np.int)]
     
-    complexityMeasure[ii] = max(cmp1, cmp2)/float(min(cmp1,cmp2))
+    if float(min(cmp1,cmp2)) !=0:
+      complexityMeasure[ii] = max(cmp1, cmp2)/float(min(cmp1,cmp2))
+    else:
+      complexityMeasure[ii] = 10000
   
   indCorrect = np.where(results[2]==1)[0]
   indWrong = np.where(results[2]==0)[0]
