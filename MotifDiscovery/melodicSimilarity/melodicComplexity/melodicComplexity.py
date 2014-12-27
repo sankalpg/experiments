@@ -20,7 +20,11 @@ def computeGlobalMelodicComplexity(pitch):
   diff = pitch[1:]-pitch[:-1]  
   inds = np.where(abs(diff)>=600)[0]
   diff = np.delete(diff, inds)
-  complexity = np.sqrt(np.sum(np.power(diff,2)))/len(diff)
+  if len(diff)!=0:
+    complexity = np.sqrt(np.sum(np.power(diff,2)))/len(diff)
+  else:
+    print "Here comes zero length diff"
+    complexity = 10000
   
   return complexity
 
@@ -50,6 +54,8 @@ def getGlobalComplexityFor_FP_TP(searchPatternFile, pattDataFile, pattInfoFile, 
   
   for ii, pattern in enumerate(pattData):
     pattLen = np.round(pattInfo[ii,1]/hopSize).astype(np.int)
+    if pattLen == 0:
+      print "Print what the heck is this, 0 Pattern length, non sense!!", ii
     pattPitch = 1200*np.log2((pattData[ii,:pattLen+1]+eps)/tonic[pattInfo[ii,2].astype(np.int)])
     globalComplexity[ii] = computeGlobalMelodicComplexity(pattPitch)
   
