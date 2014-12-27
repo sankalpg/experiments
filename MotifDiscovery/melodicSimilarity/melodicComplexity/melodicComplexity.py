@@ -28,6 +28,49 @@ def computeGlobalMelodicComplexity(pitch):
   
   return complexity
 
+def computeLocalMelodicComplexity(pitch, halfWinLen):
+  N = pitch.size
+  complexity = np.zeros(pitch.size)
+  diff = np.zeros(pitch.size)
+  diff[:-1] = pitch[1:]-pitch[:-1]
+  diff[-1] = diff[-2]
+  diff = np.power(diff,2)
+  for ii in range(N):
+    start = min( max(0,ii-halfWinLen), N - (2*halfWinLen + 1))
+    end  = start + (2*halfWinLen + 1)
+    complexity[ii] = np.sum(diff[start:end])
+
+  return complexity
+
+
+def generateComplexityDB(outputDBFile, pattDataFile, pattInfoFile, nSamplesPerPatt, hopSize, winLen = 0.3):
+  fid = open(outputDBFile, 'w')
+  fid.close()
+  # read the information about the patterns
+  pattInfo = np.loadtxt(pattInfoFile)
+  #read the pattern data
+  pattData = np.fromfile(pattDataFile)
+  pattData = np.reshape(pattData, (len(pattData)/nSamplesPerPatt, nSamplesPerPatt))
+
+  fid = open(outputDBFile, 'ab')
+  halfWinSamples = np.round((winLen/2.0)/hopSize).astype(np.int)
+  temp = np.zeros(nSamplesPerPatt)
+  for ii, pattern in enumerate(pattData):
+    temp = temp*0
+    pattLen = np.round(pattInfo[ii,1]/hopSize).astype(np.int)
+    pattPitch = pattData[ii,:pattLen+1]
+    temp[:pattLen+1] = computeLocalMelodicComplexity(pattPitch, halfWinSamples)
+    fid.write(temp)
+
+  fid.close()
+
+
+
+
+
+    
+
+
 
 def getGlobalComplexityFor_FP_TP(searchPatternFile, pattDataFile, pattInfoFile, fileListFile, nSamplesPerPatt, hopSize, tonicExt = '.tonic'):
   """
@@ -133,7 +176,7 @@ def plotPatternsComputeComplexity(pattDataFile, pattInfoFile, fileListFile, nSam
   
   for ii, pattern in enumerate(pattData):
     pattLen = np.round(pattInfo[ii,1]/hopSize).astype(np.int)
-    pattPitch = 1200*np.log2((pattData[ii,:pattLen+1]+eps)/tonic[pattInfo[ii,2].astype(np.int)])
+    pattPitch = pattData[ii,:pattLen+1]
     globalComplexity[ii] = computeGlobalMelodicComplexity(pattPitch)
     plt.plot(pattPitch)
     plt.show()
