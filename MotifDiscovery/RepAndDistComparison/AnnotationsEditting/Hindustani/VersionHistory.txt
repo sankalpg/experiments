@@ -1,0 +1,25 @@
+
+I have converted annotated given by Kaustuv from textgrid (praat) format to simple csv files easily read and worked with. There were many phrases marked in the text grid files at various levels and I choose the labels which were finally consolidated set of phrases.  I choose 5 labels
+
+".anot" extension 
+
+5 phrases - A, B, C, D, F
+There is no tempering in the time stamps of the phrases
+
+Issues with these annotations
+1) Many phrases have silence reginos at the boundaries (since the phrases were marked by listening and not by looking at pitch tracks). Sometimes in low evergy region pitch estimation gives unvoiced segment. NOTE that some phrases have silence in the middle because of short breath pauses in the middle of the phrases.
+2) There were some very short duration phrases. These might be problematic for our task
+3) Boundaries of these phrases are roughly/coarsly marked. 
+
+".anotEdit1" extension
+
+Issues resolved:
+1) Now there is no silence region at the boundaries of the phrases.
+2) Phrases > .5 seconds are removed! (only 1 -2 in number)
+
+
+".anotEdit2" extension
+
+Issues resolved: 
+1) Boundaries of the phrases are fine tuned by Sankalp based on inputs from Kaustuv's document where they have shown the boundaries to be considered for every phrase. Note that this is a hard task since most of thetimes boundaries are fuzzy and depend on the approach taken to render the melodic phrase.
+
