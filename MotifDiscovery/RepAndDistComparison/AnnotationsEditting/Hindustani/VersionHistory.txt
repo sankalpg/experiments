@@ -21,5 +21,9 @@ Issues resolved:
 ".anotEdit2" extension
 
 Issues resolved: 
-1) Boundaries of the phrases are fine tuned by Sankalp based on inputs from Kaustuv's document where they have shown the boundaries to be considered for every phrase. Note that this is a hard task since most of thetimes boundaries are fuzzy and depend on the approach taken to render the melodic phrase.
+1) Boundaries of the phrases are fine tuned by Sankalp based on inputs from Kaustuv's document where they have shown the boundaries to be considered for every phrase. Also there was a big discussion to decide which part to retain in phrases. Note that this is a hard task since most of thetimes boundaries are fuzzy and depend on the approach taken to render the melodic phrase.
+2) Also minor pitch related issues in tpe were also corrected.
+3) Couple of annotations had wrong labels were correected.
+
+Kaustuv suggested to remobe DG phrase and include other phrase, maybe in future versions of the annotations.
 

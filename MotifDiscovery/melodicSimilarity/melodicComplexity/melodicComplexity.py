@@ -38,7 +38,7 @@ def computeLocalMelodicComplexity(pitch, halfWinLen):
   for ii in range(N):
     start = min( max(0,ii-halfWinLen), N - (2*halfWinLen + 1))
     end  = start + (2*halfWinLen + 1)
-    complexity[ii] = np.sum(diff[start:end])
+    complexity[ii] = np.sqrt(np.sum(np.power(diff[start:end],2)))
 
   return complexity
 

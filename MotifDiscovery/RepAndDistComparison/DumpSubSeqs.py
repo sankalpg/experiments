@@ -14,11 +14,11 @@ eps =  np.finfo('float').eps
 This file has functions to mainly dump the subsequences needed for experiments related with supervised anlaysis where we evaluate several similarity methodologies
 """
 
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 def changePrefix(audiofile):
     
@@ -28,7 +28,7 @@ def changePrefix(audiofile):
         #print audiofile
     return audiofile
 
-def getPatternLengthFile(fname, annotExt='.anot'):
+def getPatternLengthFile(fname, annotExt=''):
     
     pattInFile = np.loadtxt(fname)
     if pattInFile.shape[0] == pattInFile.size:
@@ -176,7 +176,7 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
     subOutFileTonicNorm = open(subOutFilenameTonicNorm, "ab")
     infoOutFile = open(infoOutFile, "ab")
     
-    pattLens = getPatternLengthsDB(fileList)
+    pattLens = getPatternLengthsDB(fileList, annotExt = anotExt)
     pattLens = np.array(pattLens)
     
     if filterLengthAnot>0:
@@ -275,7 +275,7 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
     subOutFileTonicNorm = open(subOutFilenameTonicNorm, "ab")
     infoOutFile = open(infoOutFile, "ab")
     
-    pattLens = getPatternLengthsDB(fileList)
+    pattLens = getPatternLengthsDB(fileList, annotExt = anotExt)
     pattLens = np.array(pattLens)
     
     if filterLengthAnot>0:
@@ -386,7 +386,7 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
     infoOutFileFULL = open(infoOutFileFlatCompress, "ab")
     infoOutFile = open(infoOutFile, "ab")
     
-    pattLens = getPatternLengthsDB(fileList)
+    pattLens = getPatternLengthsDB(fileList, annotExt = anotExt)
     pattLens = np.array(pattLens)
     
     if filterLengthAnot>0:
