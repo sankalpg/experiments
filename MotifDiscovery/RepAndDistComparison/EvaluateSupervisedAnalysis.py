@@ -9,15 +9,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_python
 import batchProcessing as BP
 
 
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+serverPrefixC = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+localPrefixC = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
-
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
-
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+serverPrefixH = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefixH = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 def getAnotsPerCategory(queryFileList, anotExt = '.anot'):
     
@@ -45,8 +41,12 @@ def getAnotsPerCategory(queryFileList, anotExt = '.anot'):
 
 def changePrefix(audiofile):
     
-    if audiofile.count(serverPrefix):
-        audiofile = localPrefix + audiofile.split(serverPrefix)[1]
+    if audiofile.count(serverPrefixH):
+        audiofile = localPrefixH + audiofile.split(serverPrefixH)[1]
+        
+    if audiofile.count(serverPrefixC):
+        audiofile = localPrefixC + audiofile.split(serverPrefixC)[1]
+        
     return audiofile
 
 def evaluateSupSearch(searchPatternFile, queryFileList, anotExt = '.anot', fileListExt = '.flist', TopNResult = 10):

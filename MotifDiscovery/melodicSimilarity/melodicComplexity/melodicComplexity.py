@@ -39,11 +39,24 @@ def computeLocalMelodicComplexity(pitch, halfWinLen):
     start = min( max(0,ii-halfWinLen), N - (2*halfWinLen + 1))
     end  = start + (2*halfWinLen + 1)
     complexity[ii] = np.sqrt(np.sum(np.power(diff[start:end],2)))
-
   return complexity
 
+def computeLocalMelodicComplexity2(pitch, halfWinLen):
+  N = pitch.size
+  complexity = np.zeros(pitch.size)
+  diff = np.zeros(pitch.size)
+  diff[:-1] = pitch[1:]-pitch[:-1]
+  diff[-1] = diff[-2]
+  diff[:-1] = diff[1:]-diff[:-1]
+  diff[-1] = diff[-2]
+  diff = np.power(diff,2)
+  for ii in range(N):
+    start = min( max(0,ii-halfWinLen), N - (2*halfWinLen + 1))
+    end  = start + (2*halfWinLen + 1)
+    complexity[ii] = np.sqrt(np.sum(np.power(diff[start:end],2)))
+  return complexity
 
-def generateComplexityDB(outputDBFile, pattDataFile, pattInfoFile, nSamplesPerPatt, hopSize, winLen = 0.3):
+def generateComplexityDB(outputDBFile, pattDataFile, pattInfoFile, nSamplesPerPatt, hopSize, winLen = 0.3, complexityType=1):
   fid = open(outputDBFile, 'w')
   fid.close()
   # read the information about the patterns
@@ -59,16 +72,14 @@ def generateComplexityDB(outputDBFile, pattDataFile, pattInfoFile, nSamplesPerPa
     temp = temp*0
     pattLen = np.round(pattInfo[ii,1]/hopSize).astype(np.int)
     pattPitch = pattData[ii,:pattLen+1]
-    temp[:pattLen+1] = computeLocalMelodicComplexity(pattPitch, halfWinSamples)
+    if complexityType==1:
+      temp[:pattLen+1] = computeLocalMelodicComplexity(pattPitch, halfWinSamples)
+    elif complexityType==2:
+      temp[:pattLen+1] = computeLocalMelodicComplexity2(pattPitch, halfWinSamples)
     fid.write(temp)
 
   fid.close()
 
-
-
-
-
-    
 
 
 

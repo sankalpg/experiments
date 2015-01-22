@@ -8,17 +8,19 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pyt
 import batchProcessing as BP
 eps = np.finfo(np.float64).resolution
 
-#serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
-#localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
+serverPrefixC = '/homedtic/sgulati/motifDiscovery/dataset/carnatic/CarnaticAlaps_IITM_edited/'
+localPrefixC = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_edited/'
 
-serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
-localPrefix = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
+serverPrefixH = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
+localPrefixH = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
 
 def changePrefix(audiofile):
     
-    if audiofile.count(serverPrefix):
-        audiofile = localPrefix + audiofile.split(serverPrefix)[1]
+    if audiofile.count(serverPrefixH):
+        audiofile = localPrefixH + audiofile.split(serverPrefixH)[1]
+    if audiofile.count(serverPrefixC):
+        audiofile = localPrefixC + audiofile.split(serverPrefixC)[1]
     return audiofile
 
 def find_nearest_element_ind(array,value):
@@ -395,6 +397,133 @@ def dumpFalseAlarms(outputDir, searchPatternFile, patternInfoFile, fileListDB, a
   
   np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoGlobal)
   return dumpInfoGlobal
+
+
+
+def dumpFalseAlarmsCombined(outputDir, searchPatternFile, patternInfoFile, fileListDB, anotExt = '.anot', topNGlobal = 200, topNPerQ = 20, pitchExt = '.pitch', tonicExt = '.tonic', audioExtIn = '.mp3', audioExtOut = '.mp3', withContext=0):
+  """
+  This function dumps false positives.
+  topNGlobal number of false positives per pattern class and topNPerQ number of false positives per query
+  """
+  
+  filelistFiles = open(fileListDB,'r').readlines()
+  
+  #reading the info file and database file to create a mapping
+  pattInfos = np.loadtxt(patternInfoFile)
+
+  lineToType = -1*np.ones(pattInfos.shape[0])
+  
+  #obtaining only query indeces (and not noise candidate indices)
+  qInds = np.where(pattInfos[:,3]>-1)[0]
+  
+  #iterating over all the unique file indices in the queries
+  for fileInd in np.unique(pattInfos[qInds][:,2]):
+    
+    fileInd = int(fileInd)
+    #open the annotation file for this index
+    annots = np.loadtxt(changePrefix(filelistFiles[fileInd].strip()+anotExt))
+    
+    if annots.shape[0] == annots.size:
+        annots = np.array([annots])
+    
+    indSingleFile = np.where(pattInfos[qInds][:,2]==fileInd)[0]
+    ind = pattInfos[qInds][indSingleFile,3].astype(int).tolist()
+    
+    for ii,val in enumerate(annots[ind,2]):
+      lineToType[qInds[indSingleFile[ii]]] =  val
+      
+  searchPatts = np.loadtxt(searchPatternFile)
+    
+  line2TypeSearch = np.zeros(searchPatts.shape)
+  
+  for ii in range(searchPatts.shape[0]):
+    line2TypeSearch[ii,0] = lineToType[searchPatts[ii,0]]
+    line2TypeSearch[ii,1] = lineToType[searchPatts[ii,1]]
+  
+  totalPattTypes = np.unique(lineToType[qInds])
+    
+  decArray = np.zeros(searchPatts.shape[0])
+  
+  indCorrect = np.where(line2TypeSearch[:,0]==line2TypeSearch[:,1])
+  decArray[indCorrect] = 1
+  
+  
+  
+  falsePostivesInfo = {}
+  for queryPattType in totalPattTypes:
+    
+    indQPattType = np.where(line2TypeSearch[:,0]==queryPattType)[0]
+    
+    #Obtaining top topNGlobal false positives per pattern class, making a list of their ids (line numbers)
+    falsePostivesInfo[queryPattType] = {}
+    indWrong = np.where(line2TypeSearch[indQPattType,0]!=line2TypeSearch[indQPattType,1])[0]
+    
+    indSort = np.argsort(searchPatts[indQPattType[indWrong],2])[:topNGlobal]
+    storeInds = indQPattType[indWrong[indSort]]
+    
+    lineStore = searchPatts[storeInds.astype(np.int),1]
+    lineStore = np.unique(lineStore)
+    
+    falsePostivesInfo[queryPattType]['gobal'] = lineStore.tolist()
+    
+    #obtaining top topNPerQ number of false positives per query for this class.
+    queryIndsUnique = np.unique(searchPatts[indQPattType,0])
+    falsePostivesInfo[queryPattType]['local'] = []
+    for Qind in queryIndsUnique:
+      indQs = np.where(searchPatts[indQPattType,0]==Qind)[0]
+      indWrong = np.where(line2TypeSearch[indQPattType[indQs],0]!=line2TypeSearch[indQPattType[indQs],1])[0]
+      indSort = np.argsort(searchPatts[indQPattType[indQs[indWrong]],2])[:topNPerQ]
+      storeInds = indQPattType[indQs[indWrong[indSort]]]
+      lineStore = searchPatts[storeInds.astype(np.int),1]
+      lineStore = np.unique(lineStore)
+      falsePostivesInfo[queryPattType]['local'].extend(lineStore.tolist())
+ 
+  dumpInfoOverall = np.zeros((1,7))
+  for queryPattType in totalPattTypes:
+    linesToDump = []
+    linesToDump.extend(falsePostivesInfo[queryPattType]['gobal'])
+    linesToDump.extend(falsePostivesInfo[queryPattType]['local'])
+    linesToDump = np.unique(np.array(linesToDump))
+    print len(linesToDump)
+    dumpInfo = np.zeros((linesToDump.size,7))
+    dumpInfo[:,:4]= pattInfos[linesToDump.astype(np.int),:4]
+    dumpInfo[:,4]= queryPattType
+    dumpInfo[:,6]= linesToDump.astype(np.int)
+    dumpInfoOverall = np.vstack((dumpInfoOverall, dumpInfo))
+  
+  dumpInfoOverall = np.delete(dumpInfoOverall,0,0)
+ 
+  indUniqFiles = np.unique(dumpInfoOverall[:,2])
+  fig = plt.figure()
+  for fileId in indUniqFiles:
+    indFiles = np.where(dumpInfoOverall[:,2]==fileId)[0]
+    fname = changePrefix(filelistFiles[fileId.astype(np.int)]).strip()
+    timePitch = np.loadtxt(fname + pitchExt)
+    tonic = np.loadtxt(fname + tonicExt)
+    for ind in indFiles:
+      if (withContext):
+        starTime = max(0, dumpInfoOverall[ind,0]-1)#take one second before
+        EndTime = min(timePitch[-1,0],dumpInfoOverall[ind,0] + dumpInfoOverall[ind,1]+1) #take one second after
+      else:
+        starTime = max(0, dumpInfoOverall[ind,0])
+        EndTime = min(timePitch[-1,0],dumpInfoOverall[ind,0] + dumpInfoOverall[ind,1])
+      dirName = os.path.join(outputDir, str(dumpInfoOverall[ind,4].astype(int)), str(dumpInfoOverall[ind,5].astype(np.int)))
+      if not os.path.exists(dirName):
+        os.makedirs(dirName)
+      ind1 = find_nearest_element_ind(timePitch[:,0], starTime)
+      ind2 = find_nearest_element_ind(timePitch[:,0], EndTime)
+      pitch = timePitch[ind1:ind2,1]
+      plt.plot(1200*np.log2((pitch+eps)/tonic), 'b')
+      outFileName = os.path.join(dirName,  str(dumpInfoOverall[ind.astype(np.int),6])+'.png')
+      outAudioFileName = os.path.join(dirName, str(dumpInfoOverall[ind.astype(np.int),6]) + audioExtIn)
+      plt.axis([0,800, -700, 3000])
+      fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+      fig.clear()
+      clipAudio(fname+audioExtOut, outAudioFileName, starTime, EndTime)
+  
+  np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoOverall)
+  return 1
+
   
 
 def plotTwoMatchedPatterns(pattDataFile, nSamplesPerPatt, ind1, ind2):
@@ -404,3 +533,173 @@ def plotTwoMatchedPatterns(pattDataFile, nSamplesPerPatt, ind1, ind2):
   plt.plot(data1[ind2,:]-np.mean(data1[ind2,:]),'r')
   plt.show()
   
+  
+  
+def dumpPatterns(outputDir, searchPatternFile, DBFile, fileListDB, topNGlobal = 200, topNPerQ = 20, patternInfoExt = '.SubSeqsInfo', anotExt = '.anot', tonicExt = '.tonic', audioExtIn = '.mp3', audioExtOut = '.mp3', withContext=0, data2Dump = [['FILE', '.pitch', 1, '.tonic']], nSamplesDB=-1):
+  """
+  This function dumps false positives.
+  topNGlobal number of false positives per pattern class and topNPerQ number of false positives per query
+  
+  , ['DB', '.complexity1', 1], ['FILE', '.loudness',1]
+  """
+  
+  filelistFiles = open(fileListDB,'r').readlines()
+  
+  #reading the info file and database file to create a mapping
+  pattInfos = np.loadtxt(DBFile+patternInfoExt)
+
+  lineToType = -1*np.ones(pattInfos.shape[0])
+  
+  #obtaining only query indeces (and not noise candidate indices)
+  qInds = np.where(pattInfos[:,3]>-1)[0]
+  
+  #Since DB dumps created for experiments are single files they can be read once and for all
+  DBdata = []
+  for dataInfo in data2Dump:
+    if dataInfo[0]=='DB':
+      dataTemp = np.fromfile(DBFile+dataInfo[1])
+      dataTemp = np.reshape(dataTemp, (len(dataTemp)/nSamplesDB, nSamplesDB))
+      DBdata.append(dataTemp)
+    elif dataInfo[0]=='FILE':
+      DBdata.append(-1)
+    else:
+      print "Please provide a valid type of mode to read, Either 'DB' to read data from the DB Dump or 'FILE' to read from the text files."
+      return 0
+    
+  
+  #iterating over all the unique file indices in the queries
+  for fileInd in np.unique(pattInfos[qInds][:,2]):
+    
+    fileInd = int(fileInd)
+    #open the annotation file for this index
+    annots = np.loadtxt(changePrefix(filelistFiles[fileInd].strip()+anotExt))
+    
+    if annots.shape[0] == annots.size:
+        annots = np.array([annots])
+    
+    indSingleFile = np.where(pattInfos[qInds][:,2]==fileInd)[0]
+    ind = pattInfos[qInds][indSingleFile,3].astype(int).tolist()
+    
+    for ii,val in enumerate(annots[ind,2]):
+      lineToType[qInds[indSingleFile[ii]]] =  val
+      
+  searchPatts = np.loadtxt(searchPatternFile)
+    
+  line2TypeSearch = np.zeros(searchPatts.shape)
+  
+  for ii in range(searchPatts.shape[0]):
+    line2TypeSearch[ii,0] = lineToType[searchPatts[ii,0]]
+    line2TypeSearch[ii,1] = lineToType[searchPatts[ii,1]]
+  
+  totalPattTypes = np.unique(lineToType[qInds])
+    
+  decArray = np.zeros(searchPatts.shape[0])
+  
+  indCorrect = np.where(line2TypeSearch[:,0]==line2TypeSearch[:,1])
+  decArray[indCorrect] = 1
+  
+  falsePostivesInfo = {}
+  for queryPattType in totalPattTypes:
+    
+    indQPattType = np.where(line2TypeSearch[:,0]==queryPattType)[0]
+    
+    #Obtaining top topNGlobal false positives per pattern class, making a list of their ids (line numbers)
+    falsePostivesInfo[queryPattType] = {}
+    indWrong = np.where(line2TypeSearch[indQPattType,0]!=line2TypeSearch[indQPattType,1])[0]
+    
+    indSort = np.argsort(searchPatts[indQPattType[indWrong],2])[:topNGlobal]
+    storeInds = indQPattType[indWrong[indSort]]
+    
+    lineStore = searchPatts[storeInds.astype(np.int),1]
+    lineStore = np.unique(lineStore)
+    
+    falsePostivesInfo[queryPattType]['gobal'] = lineStore.tolist()
+    
+    #obtaining top topNPerQ number of false positives per query for this class.
+    queryIndsUnique = np.unique(searchPatts[indQPattType,0])
+    falsePostivesInfo[queryPattType]['local'] = []
+    for Qind in queryIndsUnique:
+      indQs = np.where(searchPatts[indQPattType,0]==Qind)[0]
+      indWrong = np.where(line2TypeSearch[indQPattType[indQs],0]!=line2TypeSearch[indQPattType[indQs],1])[0]
+      indSort = np.argsort(searchPatts[indQPattType[indQs[indWrong]],2])[:topNPerQ]
+      storeInds = indQPattType[indQs[indWrong[indSort]]]
+      lineStore = searchPatts[storeInds.astype(np.int),1]
+      lineStore = np.unique(lineStore)
+      falsePostivesInfo[queryPattType]['local'].extend(lineStore.tolist())
+    
+    #also storing true positives
+    indTrue = np.where(lineToType==queryPattType)[0]
+    falsePostivesInfo[queryPattType]['true'] = indTrue.tolist()
+ 
+  dumpInfoOverall = np.zeros((1,7))
+  for queryPattType in totalPattTypes:
+    linesToDump = []
+    linesToDump.extend(falsePostivesInfo[queryPattType]['gobal'])
+    linesToDump.extend(falsePostivesInfo[queryPattType]['local'])
+    linesToDump = np.unique(np.array(linesToDump)).tolist()
+    
+    NTrue = len(falsePostivesInfo[queryPattType]['true'])
+    linesToDump.extend(falsePostivesInfo[queryPattType]['true'])
+    print len(linesToDump)
+    linesToDump = np.array(linesToDump)
+    
+    dumpInfo = np.zeros((linesToDump.size,7))
+    dumpInfo[:,:4]= pattInfos[linesToDump.astype(np.int),:4]
+    dumpInfo[:,4]= queryPattType
+    dumpInfo[:,6]= linesToDump.astype(np.int)
+    dumpInfo[-NTrue:,5] = queryPattType
+    dumpInfoOverall = np.vstack((dumpInfoOverall, dumpInfo))
+  
+  dumpInfoOverall = np.delete(dumpInfoOverall,0,0)
+ 
+  indUniqFiles = np.unique(dumpInfoOverall[:,2])
+  fig = plt.figure()
+  colors = ['r', 'b', 'g', 'k']
+  for fileId in indUniqFiles:
+    indFiles = np.where(dumpInfoOverall[:,2]==fileId)[0]
+    fname = changePrefix(filelistFiles[fileId.astype(np.int)]).strip()
+    FILEdata = []
+    tonic=1
+    
+    for dataInfo in data2Dump:
+      if dataInfo[0]=='FILE':
+        tempData = np.loadtxt(fname + dataInfo[1])
+        FILEdata.append(tempData)
+        #if there are 4 elements in the array, that means its a pitch data to be displayed and the 4th element is tonic extionsion
+        if len(dataInfo)==4:
+          tonic = float(np.loadtxt(fname + dataInfo[3]).astype(np.float))
+      else:
+        FILEdata.append(-1)
+    
+    for ind in indFiles:
+      #creating directory to store the dump if it doesn;t exist
+      dirName = os.path.join(outputDir, str(dumpInfoOverall[ind,4].astype(int)), str(dumpInfoOverall[ind,5].astype(np.int)))
+      if not os.path.exists(dirName):
+        os.makedirs(dirName)
+        
+      for ii,dataInfo in enumerate(data2Dump):
+        if  dataInfo[0]=='DB':
+          plt.plot(DBdata[ii][dumpInfoOverall[ind,6]]/dataInfo[2], colors[ii])
+        else:
+          if (withContext):
+            starTime = max(0, dumpInfoOverall[ind,0]-1)#take one second before
+            EndTime = min(FILEdata[ii][-1,0],dumpInfoOverall[ind,0] + dumpInfoOverall[ind,1]+1) #take one second after
+          else:
+            starTime = max(0, dumpInfoOverall[ind,0])
+            EndTime = min(FILEdata[ii][-1,0],dumpInfoOverall[ind,0] + dumpInfoOverall[ind,1])
+          ind1 = find_nearest_element_ind(FILEdata[ii][:,0], starTime)
+          ind2 = find_nearest_element_ind(FILEdata[ii][:,0], EndTime)
+          data2Plot = FILEdata[ii][ind1:ind2,1]
+          if len(dataInfo)==4:
+            data2Plot = 1200*np.log2((data2Plot+eps)/tonic)
+          plt.plot(data2Plot/dataInfo[2], colors[ii])
+      
+      outFileName = os.path.join(dirName,  str(dumpInfoOverall[ind.astype(np.int),6])+'.png')
+      outAudioFileName = os.path.join(dirName, str(dumpInfoOverall[ind.astype(np.int),6]) + audioExtIn)
+      plt.axis([0,800, -700, 3000])
+      fig.savefig(outFileName, dpi=150, bbox_inches='tight')
+      fig.clear()
+      #clipAudio(fname+audioExtOut, outAudioFileName, starTime, EndTime)
+  
+  np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoOverall)
+  return 1
