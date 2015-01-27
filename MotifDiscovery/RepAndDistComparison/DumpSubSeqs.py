@@ -3,6 +3,7 @@ import os, sys
 import matplotlib.pyplot as plt
 import copy
 import pickle as pkl
+import shutil
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_pythonnew/batchProcessing/'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../melodicSimilarity/flatNoteCompress'))
@@ -21,6 +22,11 @@ localPrefixC = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_e
 serverPrefixH = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
 localPrefixH = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB'
+localPrefix = '/media/Data/Datasets/PatternProcessing_DB'
+
+
+
 def changePrefix(audiofile):
     
     if audiofile.count(serverPrefixC):
@@ -33,10 +39,21 @@ def changePrefix(audiofile):
         audiofile = audiofile.replace(serverPrefixH, localPrefixH)
         #print audiofile
     return audiofile
+  
+def changePrefix2(audiofile):
+    
+    if audiofile.count(localPrefix):
+        audiofile = audiofile.replace(localPrefix, serverPrefix)
+    elif audiofile.count(serverPrefix):
+        audiofile = audiofile.replace(serverPrefix, localPrefix)
+
+    return audiofile
 
 def getPatternLengthFile(fname, annotExt=''):
     
     pattInFile = np.loadtxt(fname)
+    if pattInFile.size==0:
+      return []
     if pattInFile.shape[0] == pattInFile.size:
         #this is when there is only a single line in the annotatin file
         durs = pattInFile[1]-pattInFile[0]
@@ -51,8 +68,9 @@ def getPatternLengthsDB(fileList, annotExt='.anot'):
     lines = open(fileList,"r").readlines()
     pattLen = []
     for line in lines:
+        print line
         line = line.strip()
-        fname = changePrefix(line + annotExt)
+        fname = changePrefix2(line + annotExt)
         #print fname
         pattLen.extend(getPatternLengthFile(fname))
     return pattLen
@@ -63,7 +81,7 @@ def computeTotalDuratoin(fileList, pitchExt):
     dur =0
     for line in lines:
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
         dur+=pitchTime[-1,0]
     return dur
@@ -75,9 +93,9 @@ def computeNoiseSamplingFrequency(fileList, pitchExt, anotExt, nNoiseCands):
     pattDur = 0
     for line in lines:
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        pattLens = getPatternLengthFile(changePrefix(line + anotExt))
+        pattLens = getPatternLengthFile(changePrefix2(line + anotExt))
         fileDur+=pitchTime[-1,0]
         pattDur+=np.sum(pattLens)
         
@@ -96,12 +114,12 @@ def dumpQuerySubsequences(fileList, pitchExt, anotExt, tonicExt, nSamplesSub, in
     lines = open(fileList,"r").readlines()
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -138,13 +156,13 @@ def dumpNoiseCandidatesSubsequences(fileList, pitchExt, anotExt, tonicExt, hopSi
     lines = open(fileList,"r").readlines()
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -195,11 +213,11 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -228,13 +246,13 @@ def dumpSubsequencesQueryAndNoise(fileList, pitchExt, anotExt, tonicExt, hopSize
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -294,12 +312,12 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
-        flats = np.loadtxt(changePrefix(line + segExt))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
+        flats = np.loadtxt(changePrefix2(line + segExt))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -332,14 +350,14 @@ def dumpSubsequencesQueryAndNoiseSupressOrnamentation(fileList, pitchExt, anotEx
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
-        flats = np.loadtxt(changePrefix(line + segExt))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
+        flats = np.loadtxt(changePrefix2(line + segExt))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -405,12 +423,12 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
-        flats = np.loadtxt(changePrefix(line + segExt))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
+        flats = np.loadtxt(changePrefix2(line + segExt))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -444,14 +462,14 @@ def dumpSubsequencesQueryAndNoiseCompressFlats(fileList, pitchExt, anotExt, toni
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
-        flats = np.loadtxt(changePrefix(line + segExt))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
+        flats = np.loadtxt(changePrefix2(line + segExt))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -526,11 +544,11 @@ def dumpSubsequencesQueryAndNoise_1(fileList, pitchExt, anotExt, tonicExt, hopSi
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -554,13 +572,13 @@ def dumpSubsequencesQueryAndNoise_1(fileList, pitchExt, anotExt, tonicExt, hopSi
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         if annots.shape[0] ==annots.size:
             annots = np.array([annots])
@@ -617,11 +635,11 @@ def dumpSubsequencesQueryAndNoise_2(fileList, pitchExt, anotExt, tonicExt, hopSi
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -650,13 +668,13 @@ def dumpSubsequencesQueryAndNoise_2(fileList, pitchExt, anotExt, tonicExt, hopSi
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -715,11 +733,11 @@ def dumpSubsequencesQueryAndNoise_3(fileList, pitchExt, anotExt, tonicExt, hopSi
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
          #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -748,13 +766,13 @@ def dumpSubsequencesQueryAndNoise_3(fileList, pitchExt, anotExt, tonicExt, hopSi
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
          #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -810,11 +828,11 @@ def dumpSubsequencesQueryAndNoise_4(fileList, pitchExt, anotExt, tonicExt, hopSi
     # This loop dumps the query info and subseqs
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
          #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -843,13 +861,13 @@ def dumpSubsequencesQueryAndNoise_4(fileList, pitchExt, anotExt, tonicExt, hopSi
     #loop to dump noise candidates
     for jj, line in enumerate(lines):
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
          #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -925,10 +943,10 @@ def generateSegmentationDataSubSeqs(fileList, pitchExt, anotExt, hopSizeCandidat
         segInfo['segs'][jj]['annotations']=[]
         
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
         
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -952,12 +970,12 @@ def generateSegmentationDataSubSeqs(fileList, pitchExt, anotExt, hopSizeCandidat
     for jj, line in enumerate(lines):
         segInfo['segs'][jj]['noiseCands']=[]
         line = line.strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
-        annots = np.loadtxt(changePrefix(line + anotExt))
+        annots = np.loadtxt(changePrefix2(line + anotExt))
 
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
@@ -978,7 +996,7 @@ def generateSegmentationDataSubSeqs(fileList, pitchExt, anotExt, hopSizeCandidat
     pkl.dump(segInfo, open(segInfoFile,'w'))
     
 
-def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseName, subSeqExt = '.SubSeqs', subSeqTNExt = '.SubSeqsTN', subSeqInfoExt = '.SubSeqsInfo', CompressionOrSupression=-1, saturationLen = -1):
+def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseName, flatSegExt = '.flatSegNyas', subSeqExt = '.SubSeqs', subSeqTNExt = '.SubSeqsTN', subSeqInfoExt = '.SubSeqsInfo', CompressionOrSupression=-1, saturationLen = -1, pathExt = '.path'):
     """
     This function generates subsequence dataset, tonic normalized subsequence dataset and info file containing lengths and other relevant information about the patterns. 
     NOTE: This function needs a segmentation file, which affectively stores starting time stamps and lengths of the patterns (annotations + noise candidates). This was needed for making experiments consistent across different runs since these information are obtained by random sampling.
@@ -992,7 +1010,7 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
       subSeqExt = '.SubSeqs':
       subSeqTNExt = '.SubSeqsTN':
       subSeqInfoExt = '.SubSeqsInfo':
-      CompressionOrSupression: 1 indicate compression of flat notes and 2 denotes supression of ornaments (default -1, no compression or supression)
+      CompressionOrSupression: 2 indicate compression of flat notes and 1 denotes supression of ornaments (default -1, no compression or supression)
       saturationLen (seconds): if CompressionOrSupression is either 1 or 2, this param indicate beyond what length of the flat segment in the melody supression of compressino is applied. its a saturating length
     
     Output:
@@ -1002,10 +1020,16 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
     subOutFilename = outFileBaseName + subSeqExt
     subOutFilenameTonicNorm = outFileBaseName + subSeqTNExt
     infoOutFile = outFileBaseName + subSeqInfoExt
+    pathFile = outFileBaseName + pathExt
     
     open(subOutFilename, "w").close()
     open(subOutFilenameTonicNorm, "w").close()
     open(infoOutFile, "w").close()
+    
+    #writing path of this DB in the file
+    fid = open(pathFile, "w")
+    fid.write("%s\n"%changePrefix2(outFileBaseName))
+    fid.close()
   
     subOutFile = open(subOutFilename, "ab")
     subOutFileTonicNorm = open(subOutFilenameTonicNorm, "ab")
@@ -1019,26 +1043,48 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
     nSamplesSub = segInfo['nSamplesSub']
     hopSizeCandidates = segInfo['hopSizeCandidates']
     
+    if CompressionOrSupression==1 or CompressionOrSupression==2:
+      if saturationLen<0:
+        print "If you wnat supression of oranaments during flat regions or compression of flat notes you should provide a valid saturationLen in seconds"
+        return -1
+    
     # This loop dumps the annotated pattern info and subseqs (eventually used as queries in the experiments)
     for jj in segInfo['segs'].keys():
         line = lines[jj].strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]        
         
         #we need nSamplesSub number of samples, sometimes annotations are at the very end and we dont have pitch after that. So appending some pitch :)
         pitchTime = np.vstack((pitchTime, np.ones((nSamplesSub, pitchTime.shape[1]))))
         pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
         pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
+        
+        if CompressionOrSupression ==1 or CompressionOrSupression ==2:
+          flats = np.loadtxt(changePrefix2(line + flatSegExt))
+          objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = saturationLen)
 
         for info in segInfo['segs'][jj]['annotations']:
             start = info[0]
             end = info[1]
-            infoOutFile.write("%f\t%f\t%d\t%d\t%d\n"%(start, end-start, jj, info[6], info[7]))#start, duration, fileID(lineNumber), pattID
-            pitchCents = 1200*np.log2(copy.copy(pitchTime[info[3]:info[4],1] + eps)/55.0)
+            lengthFinal = end-start
+            
+            pitchSegment = copy.copy(pitchTime[info[3]:info[4],1])
+            
+            if CompressionOrSupression ==2:
+              pitchSegment, lenNew = objComp.compress(info[3], np.round((lengthFinal)/hopPitch).astype(np.int), nSamplesSub)
+              lengthFinal = lenNew*hopPitch
+              
+            elif CompressionOrSupression==1:
+              pitchSegment = objComp.supressOrnamentation(info[3], nSamplesSub)
+            
+            
+            pitchCents = 1200*np.log2( (pitchSegment+ eps)/55.0)
             if len(pitchCents) != nSamplesSub:
                 print pitchFile
+            
+            infoOutFile.write("%f\t%f\t%d\t%d\t%d\n"%(start, lengthFinal, jj, info[6], info[7]))#start, duration, fileID(lineNumber), pattID
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
     
@@ -1046,9 +1092,9 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
     #loop to dump noise candidates
     for jj in segInfo['segs'].keys():
         line = lines[jj].strip()
-        pitchFile = changePrefix(line + pitchExt)
+        pitchFile = changePrefix2(line + pitchExt)
         pitchTime = np.loadtxt(pitchFile)
-        tonic = float(np.loadtxt(changePrefix(line + tonicExt)))
+        tonic = float(np.loadtxt(changePrefix2(line + tonicExt)))
         hopPitch = pitchTime[1,0]-pitchTime[0,0]
         hopSamples = np.ceil(hopSizeCandidates/hopPitch)
         
@@ -1057,12 +1103,14 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
         pitchTime[-nSamplesSub:,0] = pitchTime[-nSamplesSub-1,0]+np.arange(nSamplesSub)*hopPitch
         pitchTime[-nSamplesSub:,1] = pitchTime[-nSamplesSub:,0]*pitchTime[-nSamplesSub-1,1]
         
+        if CompressionOrSupression ==1 or CompressionOrSupression ==2:
+          flats = np.loadtxt(changePrefix2(line + flatSegExt))
+          objComp = cmp.flatNoteCompression(pitchTime[:,1], tonic, flats, hopPitch, saturateLen = saturationLen)
+        
         # This loop removes all the query segments from the pitch array
         for info in segInfo['segs'][jj]['annotations']:
-            start = info[0]
-            end = info[1]
             indStart = info[3]
-            indend = info[4]
+            indend = indStart  + np.round((info[2])/hopPitch).astype(np.int)
             p = pitchTime[indStart:indend+1,1]
             pitchTime[indStart:indend+1,1] = p[np.random.random_integers(0,len(p)-1, len(p))]
             
@@ -1070,11 +1118,23 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
         nCandidates = int(np.floor((pitchTime.shape[0] - nSamplesSub)/hopSamples))
         
         for info in segInfo['segs'][jj]['noiseCands']:
-            indStart = info[3]
-            infoOutFile.write("%f\t%f\t%d\t%d\t%d\n"%(pitchTime[indStart,0],info[2], jj, info[6], info[7]))#start, duration, 
-            pitchCents = 1200*np.log2((copy.copy(pitchTime[indStart:info[4],1])+eps)/55.0)
+            indStart = info[3]  
+            lengthFinal = info[2]  
+            
+            pitchSegment = copy.copy(pitchTime[info[3]:info[4],1])
+            
+            if CompressionOrSupression ==2:
+              pitchSegment, lenNew = objComp.compress(info[3], np.round((lengthFinal)/hopPitch).astype(np.int), nSamplesSub)
+              lengthFinal = lenNew*hopPitch
+              
+            elif CompressionOrSupression==1:
+              pitchSegment = objComp.supressOrnamentation(info[3], nSamplesSub)
+            
+            pitchCents = 1200*np.log2( (pitchSegment+ eps)/55.0)
+            
             if len(pitchCents) != nSamplesSub:
                 print pitchFile
+            infoOutFile.write("%f\t%f\t%d\t%d\t%d\n"%(pitchTime[indStart,0],lengthFinal, jj, info[6], info[7]))#start, duration, 
             subOutFile.write(pitchCents)
             subOutFileTonicNorm.write(pitchCents-(1200*np.log2(tonic/55.0)))
             
@@ -1082,4 +1142,38 @@ def generateSubSeqDB(fileList, segmentInfoFile, pitchExt, tonicExt, outFileBaseN
     subOutFile.close()
     subOutFileTonicNorm.close()
     infoOutFile.close()
+    
   
+  
+def batchGenSegInfoSubSeqDB(baseDir, fileList,  pitchExt, anotExt, hopSizeCandidates, nSamplesSub, filterLengthAnot, NCRIndex, runs=5, segFileName = 'segmentInfo.pkl'):
+  
+  for ii in range(runs):
+    print "run %d"%(ii+1)
+    segInfoFile = os.path.join(baseDir, NCRIndex, 'r'+str(ii+1), segFileName)    
+    generateSegmentationDataSubSeqs(fileList, pitchExt, anotExt, hopSizeCandidates, nSamplesSub, segInfoFile, filterLengthAnot)
+
+
+def batchGenSubSeqDB(baseDir, DBName, fileList, segFileName, pitchExt, tonicExt, NCRIndex, runs=5, pathExt = '.path', flatSegExt = '.flatSegNyas', subSeqExt = '.SubSeqs', subSeqTNExt = '.SubSeqsTN', subSeqInfoExt = '.SubSeqsInfo', CompressionOrSupression=-1, saturationLen = -1):
+  
+  for ii in range(runs):
+    print "run %d"%(ii+1)
+    segInfoFile = os.path.join(baseDir, NCRIndex, 'r'+str(ii+1), segFileName)
+    outDir = os.path.join(baseDir, NCRIndex, 'r'+str(ii+1), DBName)
+    if not os.path.exists(outDir):
+      os.mkdir(outDir)
+    outFileBaseName = os.path.join(outDir, DBName)
+    generateSubSeqDB(fileList, segInfoFile, pitchExt, tonicExt, outFileBaseName, flatSegExt, subSeqExt, subSeqTNExt, subSeqInfoExt, CompressionOrSupression, saturationLen, pathExt)
+    
+    
+def batchCopyDBPath(baseDirIn, baseDirOut, DBName, NCRIndex, runs=5, pathFileExtIn = '.path', pathFileExtOut = '.flist', searchExt = '.txt'):
+  
+  for ii in range(runs):
+    filenameIn = os.path.join(baseDirIn, NCRIndex, 'r'+str(ii+1), DBName, DBName + pathFileExtIn)
+    outDirTmp = os.path.join(baseDirOut, NCRIndex, 'r'+str(ii+1))
+    
+    configFiles =  BP.GetFileNamesInDir(outDirTmp, searchExt)
+    for configFile in configFiles:
+      fname, ext = os.path.splitext(configFile)
+      shutil.copy(filenameIn, fname+pathFileExtOut)
+    
+    
