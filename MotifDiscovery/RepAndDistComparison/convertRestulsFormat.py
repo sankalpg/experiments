@@ -52,6 +52,6 @@ def convertResutlsToHumanReadable(csvFile,accuracyFile, outFile):
 		Norm = 'N_'+normalization[str(normVal)]+quantization[str(quantVal)]
 		TScale = scaling[str(scalVal)]
 		Dist = 'D'+distances[str(distVal)] + DTWType[str(dtwtVal)] + constraint[str(bandVal)]
-		fid.write(str(round(data[ii,-1],2)) + '\t' + Srate + '\t' + Norm+ '\t' + TScale+ '\t' +Dist + '\n')
+		fid.write(str(round(data[ii,-1],4)) + '\t' + Srate + '\t' + Norm+ '\t' + TScale+ '\t' +Dist + '\n')
 
 	fid.close()
