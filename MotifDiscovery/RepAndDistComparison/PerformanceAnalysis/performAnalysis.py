@@ -3,6 +3,7 @@ import os, sys
 import matplotlib
 matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
+import copy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/batchProcessing/'))
 import batchProcessing as BP
@@ -14,8 +15,20 @@ localPrefixC = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_e
 serverPrefixH = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
 localPrefixH = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
-
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB'
+localPrefix = '/media/Data/Datasets/PatternProcessing_DB'
+  
 def changePrefix(audiofile):
+    
+    if audiofile.count(localPrefix):
+        audiofile = audiofile.replace(localPrefix, serverPrefix)
+    elif audiofile.count(serverPrefix):
+        audiofile = audiofile.replace(serverPrefix, localPrefix)
+
+    return audiofile
+  
+
+def changePrefix2(audiofile):
     
     if audiofile.count(serverPrefixH):
         audiofile = localPrefixH + audiofile.split(serverPrefixH)[1]
@@ -695,11 +708,74 @@ def dumpPatterns(outputDir, searchPatternFile, DBFile, fileListDB, topNGlobal = 
           plt.plot(data2Plot/dataInfo[2], colors[ii])
       
       outFileName = os.path.join(dirName,  str(dumpInfoOverall[ind.astype(np.int),6])+'.png')
-      outAudioFileName = os.path.join(dirName, str(dumpInfoOverall[ind.astype(np.int),6]) + audioExtIn)
+      outAudioFileName = os.path.join(dirName, str(dumpInfoOverall[ind.astype(np.int),6]) + audioExtOut)
       plt.axis([0,800, -700, 3000])
       fig.savefig(outFileName, dpi=150, bbox_inches='tight')
       fig.clear()
-      #clipAudio(fname+audioExtOut, outAudioFileName, starTime, EndTime)
+      clipAudio(fname+audioExtIn, outAudioFileName, starTime, EndTime)
   
   np.savetxt(os.path.join(outputDir, 'falseAlarmsDetails.txt'),dumpInfoOverall)
   return 1
+
+
+def getMaxSilDurationInDB(baseFile, subSeqFileExt = '.SubSeqs', pattFileExt = '.SubSeqsInfo',  nSamplesDB=800, SamplingRate = 0.0029):
+  
+  #reading info file = 
+  pattInfo = np.loadtxt(baseFile + pattFileExt)
+  indsQ = np.where(pattInfo[:,3]>-1)[0]
+  
+  data = np.fromfile(baseFile + subSeqFileExt)
+  data = np.reshape(data,(len(data)/nSamplesDB, nSamplesDB))
+  
+  maxSilSamples = 0
+  maxInd = -1
+  for indQ in indsQ:
+    samplesInPatt = int(pattInfo[indQ,1]/SamplingRate)
+    indSil = np.where(data[indQ,:samplesInPatt]<=0)[0]
+    if len(indSil) > maxSilSamples and data[indQ,0]>0:
+      maxSilSamples = len(indSil)
+      maxInd = indQ
+    
+  print "Maximum silence duration is %f and its %d"%(maxSilSamples*SamplingRate, maxInd)
+    
+    
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% These are the function which can be used to anlyse the affect of various processing parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def digAffectOfParameter(performanceSummaryCSV, refRow, configsIter = []):
+  """
+  This function summarizes affect of a partricular parameter on the performance accuracy.
+  
+  performanceSummaryCSV: this is the summary file containing all the configs and their performances. 
+  configsIter: this is a format in which we specify what do we have to iterate. we say that 
+  configsIter = [{m:n, j:k}, {}]. The number of dictionaries in this list are number of configs we have to check the performance, and within each dict we say that look for mth now and nth value. 
+  
+  """
+  #NOTE: the performance for all the configurations is with respect tothe best config, which is expected to be the first row of the results. Results are assumed to be in the sorted order.
+  #samplingRateVars = {'vars': [10,15,20,25,30], 'col':21}
+  #quantizationVars = {'vars': [12, 24], 'col':xx}
+  #DTWVars = {'vars': [0,1], 'col':xx}
+  #DTWBandVars = {'vars': [0.05, 0.1, 0.9], 'col':16} 
+  #normalizationVars = {'vars': [0,1,2,3,4,5], 'col':18} 
+  #interpVars = {'vars': [1,5], 'col':xx} 
+  
+    
+  lines = open(performanceSummaryCSV, "r").readlines()
+  referenceConfig = np.array(lines[refRow].split(',')).astype(np.float)
+  print referenceConfig[0], referenceConfig[-1]
+  for ii, line in enumerate(lines):
+    if ii==0:
+      headers = line.split('\t')
+    else:
+      testConfig = np.array(line.split(',')).astype(np.float)
+      for jj, config in enumerate(configsIter):
+        tempRef = copy.copy(referenceConfig)
+        for k in config.keys():
+          tempRef[k] = config[k]
+        if np.sum(abs(testConfig[1:-1] - tempRef[1:-1]))==0:
+          print jj, testConfig[0], testConfig[-1]
+
+      
+      
+    
+  
+  
