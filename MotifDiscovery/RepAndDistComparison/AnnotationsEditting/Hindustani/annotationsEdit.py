@@ -46,10 +46,13 @@ def convertSonicAnotsToMine(root_dir, anotExt = '.anot', outExt = '.anot'):
 	filenames = BP.GetFileNamesInDir(root_dir, anotExt)
 
 	for filename in filenames:
+		#print filename
 		fname, ext = os.path.splitext(filename)
 		anots = np.loadtxt(filename)
 		anots[:,1] = anots[:,0] + anots[:,1]
-		np.savetxt(fname + outExt, anots)
+		if anots[:,1].any()>anots[:,0].any():
+			print filename
+		np.savetxt(fname + outExt, anots, fmt='%.3f\t%.3f\t%d')
 
 def renameAnotFiles(root_dir, inpExt = '.anot', outExt = '.anotEdit1'):
 
