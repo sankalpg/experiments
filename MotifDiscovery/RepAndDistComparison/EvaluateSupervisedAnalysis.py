@@ -15,13 +15,25 @@ localPrefixC = '/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM_e
 serverPrefixH = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/IITB_Dataset_New/'
 localPrefixH = '/media/Data/Datasets/MotifDiscovery_Dataset/IITB_Dataset_New/'
 
+serverPrefix = '/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB'
+localPrefix = '/media/Data/Datasets/PatternProcessing_DB'
+
+def changePrefix2(audiofile):
+    
+    if audiofile.count(localPrefix):
+        audiofile = audiofile.replace(localPrefix, serverPrefix)
+    elif audiofile.count(serverPrefix):
+        audiofile = audiofile.replace(serverPrefix, localPrefix)
+
+    return audiofile
+  
 def getAnotsPerCategory(queryFileList, anotExt = '.anot'):
     
     lines = open(queryFileList,"r").readlines()
     anotPC={}
     for ii, line in enumerate(lines):
         filename = line.strip() + anotExt
-        annotations = np.loadtxt(changePrefix(filename))
+        annotations = np.loadtxt(changePrefix2(filename))
         if annotations.size ==0:
             continue
         if len(annotations.shape)==1:
@@ -77,13 +89,13 @@ def evaluateSupSearch(searchPatternFile, queryFileList, anotExt = '.anot', fileL
         fileInd = int(fileInd)
         
         #Lets fetch all the annotations in the search space of a query file
-        anots = getAnotsPerCategory(changePrefix(queryFileNames[fileInd].strip()+fileListExt), anotExt)
+        anots = getAnotsPerCategory(changePrefix2(queryFileNames[fileInd].strip()+fileListExt), anotExt)
         
         #find all the index where the a query is performed from query file with index fileInd
         qFileInd = np.where(searchResults[:,0]==fileInd)[0]
         
         #obtain all the queries of this query File
-        queryList = np.loadtxt(changePrefix(queryFileNames[fileInd].strip())+anotExt)
+        queryList = np.loadtxt(changePrefix2(queryFileNames[fileInd].strip())+anotExt)
         
         #obntaining all the unique query index
         qIndUnique = np.unique(searchResults[qFileInd,1])
@@ -266,7 +278,7 @@ def evaluateSupSearchNEWFORMAT(searchPatternFile, patternInfoFile, fileListDB, a
     
     fileInd = int(fileInd)
     #open the annotation file for this index
-    annots = np.loadtxt(changePrefix(filelistFiles[fileInd].strip()+anotExt))
+    annots = np.loadtxt(changePrefix2(filelistFiles[fileInd].strip()+anotExt))
     
     if annots.shape[0] == annots.size:
         annots = np.array([annots])
@@ -316,7 +328,7 @@ def evaluateSupSearchNEWFORMAT(searchPatternFile, patternInfoFile, fileListDB, a
   return queryByqueryResults, pattIdWiseResults, decArray
   
   
-def evaluateAllResultsNEWFORMAT(root_dir, fileListDB, SummaryFile, baseName = 'configFiles_', searchResultExt = '.motifSearch.motifSearch', dbPathExt = '.flist', infoFileExt= '.subSeqsInfo', nFiles = 560, TopNResult=1000, outputExtQW= '.MAPQW', outputExtCW= '.MAPCW'):
+def evaluateAllResultsNEWFORMAT(root_dir, fileListDB, SummaryFile, baseName = 'configFiles_', searchResultExt = '.motifSearch.motifSearch', dbPathExt = '.flist', infoFileExt= '.SubSeqsInfo', nFiles = 560, TopNResult=1000, outputExtQW= '.MAPQW', outputExtCW= '.MAPCW', anotExt = '.anot'):
   
     """
     outputExtQW = for every file the code will create a average precision file  for every query with this extension
@@ -331,7 +343,7 @@ def evaluateAllResultsNEWFORMAT(root_dir, fileListDB, SummaryFile, baseName = 'c
         
         pattInfoFile = open(filename2, 'r').readlines()[0].strip() + infoFileExt
         
-        res = evaluateSupSearchNEWFORMAT(filename1, changePrefix(pattInfoFile), fileListDB)
+        res = evaluateSupSearchNEWFORMAT(filename1, changePrefix2(pattInfoFile), fileListDB, anotExt = anotExt)
         
         pickle.dump(res[0], open(tempBase+outputExtQW,'w'))
         pickle.dump(res[1], open(tempBase+outputExtCW,'w'))
@@ -362,17 +374,22 @@ def performStatisticalSigTest(root_dir, SummaryFile, baseName = 'configFiles_', 
   for ii in range(0,nFiles):
     for jj in range(ii+1, nFiles):
       statSigMTX[ii,jj]= 0.5
-      p = wilcoxon(AP_perQuery[indSort_AP[ii]], AP_perQuery[indSort_AP[jj]])
-      pVals.append(p[1])
-      pValsCord.append((ii,jj))
-      statSigMTX[ii,jj] =0
+      if np.sum(abs(AP_perQuery[indSort_AP[ii]]-AP_perQuery[indSort_AP[jj]]))==0:
+        pass
+      else:
+        p = wilcoxon(AP_perQuery[indSort_AP[ii]], AP_perQuery[indSort_AP[jj]])
+        pVals.append(p[1])
+        pValsCord.append((ii,jj))
+        statSigMTX[ii,jj] =0
   
+  print pVals
   indSort_PVals = np.argsort(pVals)
   M = len(pVals)
   
   cnt = 0
   
   while pVals[indSort_PVals[cnt]] < (alpha/(M - cnt)):
+    print cnt
     cnt+=1
   
   
@@ -392,50 +409,37 @@ def performStatisticalSigTest(root_dir, SummaryFile, baseName = 'configFiles_', 
           
         
 
-def getCatWisePatternStats(patternInfoFile, fileListDB, anotExt = '.anot'):
+def getCatWisePatternStats(patternInfoFile):
     """
     searchPatternFile = output of the code
     patternInfoFile = file in which pattern info is dumped for each subsequence
-    fileListDB = filelist using which the subsequences were dumped
     """
-    filelistFiles = open(fileListDB,'r').readlines()
-    
     #reading the info file and database file to create a mapping
-    pattInfos = np.loadtxt(patternInfoFile)
-      
-    lineToType = -1*np.ones(pattInfos.shape[0])
-    
-    #obtaining only query indeces (and not noise candidate indices)
-    qInds = np.where(pattInfos[:,3]>-1)[0]
-    
-    #iterating over all the unique file indices in the queries
-    for fileInd in np.unique(pattInfos[qInds][:,2]):
-      
-        fileInd = int(fileInd)
-        #open the annotation file for this index
-        annots = np.loadtxt(changePrefix(filelistFiles[fileInd].strip()+anotExt))
-        
-        if annots.shape[0] == annots.size:
-            annots = np.array([annots])
-        
-        indSingleFile = np.where(pattInfos[qInds][:,2]==fileInd)[0]
-        ind = pattInfos[qInds][indSingleFile,3].astype(int).tolist()
-        
-        for ii,val in enumerate(annots[ind,2]):
-          lineToType[qInds[indSingleFile[ii]]] =  val
-          
+    pattInfos = np.loadtxt(patternInfoFile)      
     stats = {}   
     totallen=[]
-    for ii in np.unique(lineToType[qInds]):
+    for ii in np.unique(pattInfos[:,-1]):
+        if ii==-1:
+          continue
         stats[ii]={}
-        indCat = np.where(lineToType==ii)[0]
+        indCat = np.where(pattInfos[:,-1]==ii)[0]
         lengths = pattInfos[indCat,1]
+        print "\n"
+        print "\n"
+        print "\n"
+        print "Phrase", ii
         stats[ii]['mean'] = np.mean(lengths)
+        print "Mean", stats[ii]['mean']
         stats[ii]['std'] = np.std(lengths)
+        print "STD", stats[ii]['std']
         stats[ii]['median'] = np.median(lengths)
+        print "Median", stats[ii]['median']
         stats[ii]['max'] = np.max(lengths)
+        print "Max", stats[ii]['max']
         stats[ii]['min'] = np.min(lengths)
+        print "Min", stats[ii]['min']
         stats[ii]['Reps'] = len(lengths)
+        print "Reps", stats[ii]['Reps']
         totallen.extend(lengths)
         
     stats['total']={}
