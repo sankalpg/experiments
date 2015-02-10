@@ -11,7 +11,8 @@ import textgridParser as TGParser
 
 allowedPhrases = ['DnDP', 'mnDP', 'GmGRGP']
 
-allowedPhrases_NEWFORMAT = ['A', 'B','C', 'D','F']
+#allowedPhrases_NEWFORMAT = ['A', 'B','C', 'D','F']
+allowedPhrases_NEWFORMAT = ['E']
 
 def organizeIITBAnnots(root_Dir, inpExt, outExt, FilterOutput, dumpFile):
     
