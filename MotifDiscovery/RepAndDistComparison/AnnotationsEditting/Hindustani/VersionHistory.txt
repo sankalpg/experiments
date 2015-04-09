@@ -27,3 +27,9 @@ Issues resolved:
 
 Kaustuv suggested to remobe DG phrase and include other phrase, maybe in future versions of the annotations.
 
+".anotEdit3" 
+
+Same as .anotEdit2 but with some more phrases added. A lot of false alarms obtained using .anotEdit2 phrases were actually true positives. Kaustuv listened to top false alarms and marked the ones which
+should be added in the ground truth data. So this version is that. Also I corrected the boundaries for newly added annotaitons to be consistent with the old ones and the specification that I discussed with Kaustuv.
+
+.anotEdit4 is same as .anotEdit3 but the second column is end time instead of duration.

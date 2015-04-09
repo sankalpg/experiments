@@ -159,10 +159,44 @@ def dumpAudioMelodyTrueGTAnots(root_dir, outputDir, patternID, annotExt = '.anot
               plt.axis([-500,1000, 0, 5000])
               fig.savefig(outFileName, dpi=75, bbox_inches='tight')
               fig.clear()
-              clipAudio(audioFile, outAudioFileName, sTime, eTime)
+              #clipAudio(audioFile, outAudioFileName, sTime, eTime)
+
+              
+def dumpAudioMelodyTrueGTAnotsDB(subSeqFileTN, patternInfoFile, outputDir, subSeqLen = 1600, hopSize = 0.005):
+  
+  subData = np.fromfile(subSeqFileTN)
+  if np.mod(len(subData),subSeqLen)!=0:
+    print "Please provide a subsequence database and subSeqLen which make sense, total number of elements in the database should be multiple of subSeqLen"
+    return -1
+  subData = np.reshape(subData, (len(subData)/float(subSeqLen), subSeqLen))
+  
+  pattInfos = np.loadtxt(patternInfoFile)
+  
+  for ii, line in enumerate(pattInfos):
+    if line[3] == -1:
+        continue
+    pattType = int(line[-1])
+    localDir = os.path.join(outputDir, str(pattType))
+    if not os.path.exists(localDir):
+        os.makedirs(localDir)
+        
+    outFileName = os.path.join(localDir, str(ii)+'.pdf')
+    length = np.floor(line[1]/hopSize)
+    fig = plt.figure() 
+    ax = fig.add_subplot(111)
+    plt.plot(subData[ii,:length],color = 'b', linewidth=2)
+    fig.tight_layout() 
+    plt.xlim([0,1200])
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()    
+    ax.set_aspect((xLim[1]-xLim[0])/(4*float(yLim[1]-yLim[0])))
+    #plt.axis([0,600, -500, 3000])
+    fig.savefig(outFileName, dpi=75, bbox_inches='tight')
+    fig.clear()
+    plt.close()
               
               
-def dumpAudioMelodyTrueGTAnotsFromDB(subSeqFileTNFNC, subSeqFileTN,  patternInfoFileFNC, patternInfoFile, outputDir, fileListDB, anotExt = '.anot', audioExt = '.wav', hopSize=0.01, subSeqLen = 800):
+def dumpAudioMelodyTrueGTAnotsFromDBWithFlatNotes(subSeqFileTNFNC, subSeqFileTN,  patternInfoFileFNC, patternInfoFile, outputDir, fileListDB, anotExt = '.anot', audioExt = '.wav', hopSize=0.01, subSeqLen = 800):
   
   
   filelistFiles = open(fileListDB,'r').readlines()
@@ -764,9 +798,9 @@ def digAffectOfParameter(performanceSummaryCSV, refRow, configsIter = []):
   print referenceConfig[0], referenceConfig[-1]
   for ii, line in enumerate(lines):
     if ii==0:
-      headers = line.split('\t')
+      headers = line.split(',')
     else:
-      testConfig = np.array(line.split(',')).astype(np.float)
+      testConfig = np.array(line.split(',')).asrsync type(np.float)
       for jj, config in enumerate(configsIter):
         tempRef = copy.copy(referenceConfig)
         for k in config.keys():

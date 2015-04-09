@@ -411,7 +411,6 @@ def performStatisticalSigTest(root_dir, SummaryFile, baseName = 'configFiles_', 
 
 def getCatWisePatternStats(patternInfoFile):
     """
-    searchPatternFile = output of the code
     patternInfoFile = file in which pattern info is dumped for each subsequence
     """
     #reading the info file and database file to create a mapping

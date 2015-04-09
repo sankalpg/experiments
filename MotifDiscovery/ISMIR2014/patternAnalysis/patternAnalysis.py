@@ -671,7 +671,7 @@ def plotMeanAvgPrecision(annotationFile, plotName = -1):
     plt.ylim([0,1])
     plt.xlabel("Version of the rank refinement method", fontsize = fsize, fontname=font)
     plt.ylabel("Mean average precision", fontsize = fsize, fontname=font, labelpad=fsize2)
-    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], loc ='lower right', ncol = 4, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    plt.legend(pLeg, [CategoryNames[pp] for pp in range(len(CategoryNames))], )
     ax.set_aspect(5/(1*2))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     #ax.tick_params(axis='y', pad=30)
