@@ -1,0 +1,4 @@
+Generation of network variants (weighted) for tonic normalization method
+
+import import networkAnalysisForISMIR2015 as net
+net.batchGenerateAllNetworkVariants(out_dir, fileListFile, pattDistExt, wghts=[-1, 0, 1], d_thslds=[30])
