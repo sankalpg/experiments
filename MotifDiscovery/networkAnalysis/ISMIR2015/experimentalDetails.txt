@@ -1,12 +1,13 @@
 ### Generation of network variants (weighted) for tonic normalization method ###
 
-import import networkAnalysisForISMIR2015 as net (c00fe1bad67c14cea28c8241f967b7fa21135dc1)
+import import networkAnalysisForISMIR2015 as net (07af427353405ced75eaaf7a4caed6ba53c48c6a)
 
 it uses import constructNetwork as cons (b760514195af9d0a97d24116449e55bbcf84837c)
 
-command: net.batchGenerateAllNetworkVariants('/home/sankalp/Work/Work_PhD/library_pythonnew/networkAnalysis/networkData/tonicNorm',
+command: net.batchGenerateAllNetworkVariants('/home/sankalp/Work/Work_PhD/library_pythonnew/networkAnalysis/networkData/tonicNorm/weight0/',
             '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/__dbInfo__/Carnatic10RagasISMIR2015DB.flistLocal',
-            '.pattDistances1', wghts=[-1, 0, 1], d_thslds=[30])
+            '.pattDistances1', wghts=[0], d_thslds=[30], confs =[-1, 0.01, 0.1, 0.2, 0.5, 0.7, 0.9])
+
 
 
 ### Generation of network variants (weighted) for Pasa normalization method ###
