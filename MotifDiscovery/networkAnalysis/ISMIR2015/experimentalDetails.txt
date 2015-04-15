@@ -1,13 +1,30 @@
 ### Generation of network variants (weighted) for tonic normalization method ###
 
-import import networkAnalysisForISMIR2015 as net (07af427353405ced75eaaf7a4caed6ba53c48c6a)
+import import networkAnalysisForISMIR2015 as net (e97f7d9bf5ef13c94ae16aee0aa3510c6b6a7c3f)
 
 it uses import constructNetwork as cons (b760514195af9d0a97d24116449e55bbcf84837c)
 
 command: net.batchGenerateAllNetworkVariants('/home/sankalp/Work/Work_PhD/library_pythonnew/networkAnalysis/networkData/tonicNorm/weight0/',
             '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/__dbInfo__/Carnatic10RagasISMIR2015DB.flistLocal',
-            '.pattDistances1', wghts=[0], d_thslds=[30], confs =[-1, 0.01, 0.1, 0.2, 0.5, 0.7, 0.9])
+            '.pattDistances1', wghts=[0], d_thslds=[30], confs =[-1, 0.001, 0.01, 0.1, 0.2, 0.5, 0.7, 0.9])
 
 
 
 ### Generation of network variants (weighted) for Pasa normalization method ###
+
+command: net.batchGenerateAllNetworkVariants('/home/sankalp/Work/Work_PhD/library_pythonnew/networkAnalysis/networkData/pasaNorm/weight0/', 
+            '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/__dbInfo__/Carnatic10RagasISMIR2015DB.flistLocal',
+            '.pattDistances2', wghts=[0], d_thslds=[25], confs =[-1, 0.001, 0.01, 0.1, 0.2, 0.5, 0.7, 0.9])
+            
+
+            
+Following this, we generate an undirectional unweighted network/graph for different filtered graphs (confidence value) and for different distance threshold values such that 
+every network has only the edges which are there in the filtered network. We perform this task in C using function clusteringCoffGenFilteredNetwork.cpp
+
+Also doing this we compute the clustering coefficient of every resulting network. Using Clustering coefficient curve we can reject some of the parameters above.
+
+Now we take these unweighted undirectional network and apply Louvain's method (community in networkX) and detect communities
+
+
+command: net.batchProcessCommunityDetection('/home/sankalp/Work/Work_PhD/library_pythonnew/networkAnalysis/networkData')
+
