@@ -150,6 +150,180 @@ def hindustani_flat_note_compression_example(plotName=-1):
 
     return 1
 
+def plotPerCategoryMAPHindustaniBOXPLOTS(plotName=-1):
+    
+    outConfigs = [21,30]
+    
+    
+    base_dir = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/hindustaniDB/results/NCR100/r1/out'
+    config_file = 'configFiles_462'
+    searchExt = '.motifSearch.motifSearch'
+    dbFileExt = '.flist'
+    methoVariant = 'var1'
+    SubSeqsInfoExt = '.SubSeqsInfo'
+    
+    local = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/hindustaniDB/subSeqDB/'
+    server = '/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB/supervisedDBs/hindustaniDB/subSeqDB/'
+    fileList = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/hindustaniDB/audioCollection/AllFiles.flist'
+    
+    perClassResults = []
+    for ii, outConfig in enumerate(outConfigs):
+        dbFilePath = os.path.join(base_dir+str(outConfig), methoVariant, config_file+dbFileExt)
+        dbFileName = open(dbFilePath).readlines()[0].strip()
+        output = eval.evaluateSupSearchNEWFORMAT(os.path.join(base_dir+str(outConfig), methoVariant, config_file+searchExt), dbFileName.replace(server,local)+SubSeqsInfoExt, fileList, anotExt='.anotEdit4')
+        perClassResults.append({})
+        perClassResults[ii]['mean']=[]
+        perClassResults[ii]['std']=[]
+        perClassResults[ii]['ap']=[]
+        print np.mean(output[0])
+        for k in output[1].keys():
+            perClassResults[ii]['mean'].append(np.mean(output[1][k]))
+            perClassResults[ii]['std'].append(np.std(output[1][k]))
+            perClassResults[ii]['ap'].append(output[1][k])
+
+    fig, ax = plt.subplots()
+    n_groups = len(perClassResults[0]['mean'])
+    index = np.arange(n_groups)
+    bar_width = .25
+    
+    
+    
+    temp = []
+    temp.append(perClassResults[0]['ap'][0])
+    temp.append(perClassResults[1]['ap'][0])
+    
+    temp.append(perClassResults[0]['ap'][1])
+    temp.append(perClassResults[1]['ap'][1])
+                                
+    temp.append(perClassResults[0]['ap'][2])
+    temp.append(perClassResults[1]['ap'][2])
+    
+    temp.append(perClassResults[0]['ap'][3])
+    temp.append(perClassResults[1]['ap'][3])
+    
+    temp.append(perClassResults[0]['ap'][4])
+    temp.append(perClassResults[1]['ap'][4])
+                                
+    box = plt.boxplot(temp, patch_artist=True)
+    
+    colors = ['#B9B9B9', '#33CCFF', '#B9B9B9', '#33CCFF','#B9B9B9', '#33CCFF','#B9B9B9', '#33CCFF','#B9B9B9', '#33CCFF','#B9B9B9', '#33CCFF','#B9B9B9', '#33CCFF']
+    for patch, color in zip(box['boxes'], colors):
+        patch.set_facecolor(color)
+    
+    fsize = 16
+    fsize2 = 12
+    font="Times New Roman"
+    
+    plt.xlabel('Phrase Category', fontsize = fsize, fontname=font, labelpad=25)
+    plt.ylabel('Average precision', fontsize = fsize, fontname=font)
+    #plt.title('Scores by group and gender')
+    plt.xticks(1+np.arange(10), 5*['$M_{B}$', '$M_{DT}$'], fontsize = fsize, fontname=font)
+    #plt.legend(loc ='top right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    #plt.ylim(np.array([.25,0.8]))
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #plt.tight_layout()
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName, bbox_inches='tight')
+
+    return 1
+
+
+def plotPerCategoryMAPCarnaticBOXPLOTS(plotName=-1):
+    
+    outConfigs = [5,17,23]
+    
+    
+    base_dir = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/carnaticDB/results/NCR100/r1/out'
+    config_file = 'configFiles_524'
+    searchExt = '.motifSearch.motifSearch'
+    dbFileExt = '.flist'
+    methoVariant = 'var1'
+    SubSeqsInfoExt = '.SubSeqsInfo'
+    
+    local = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/carnaticDB/subSeqDB/'
+    server = '/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB/supervisedDBs/carnaticDB/subSeqDB/'
+    fileList = '/media/Data/Datasets/PatternProcessing_DB/supervisedDBs/carnaticDB/audioCollection/AllFiles.flist'
+    
+    perClassResults = []
+    ap_per_categories = []
+    for ii, outConfig in enumerate(outConfigs):
+        dbFilePath = os.path.join(base_dir+str(outConfig), methoVariant, config_file+dbFileExt)
+        dbFileName = open(dbFilePath).readlines()[0].strip()
+        output = eval.evaluateSupSearchNEWFORMAT(os.path.join(base_dir+str(outConfig), methoVariant, config_file+searchExt), dbFileName.replace(server,local)+SubSeqsInfoExt, fileList, anotExt='.anotEdit1')
+        perClassResults.append({})
+        perClassResults[ii]['mean']=[]
+        perClassResults[ii]['std']=[]
+        perClassResults[ii]['ap']=[]
+        print np.mean(output[0])
+        for k in output[1].keys():
+            perClassResults[ii]['mean'].append(np.mean(output[1][k]))
+            perClassResults[ii]['std'].append(np.std(output[1][k]))
+            perClassResults[ii]['ap'].append(output[1][k])
+    fig, ax = plt.subplots()
+    n_groups = len(perClassResults[0]['mean'])
+    index = np.arange(n_groups)
+    bar_width = .25
+    
+    
+    
+    temp = []
+    temp.append(perClassResults[0]['ap'][0])
+    temp.append(perClassResults[1]['ap'][0])
+    temp.append(perClassResults[2]['ap'][0])
+
+    temp.append(perClassResults[0]['ap'][1])
+    temp.append(perClassResults[1]['ap'][1])
+    temp.append(perClassResults[2]['ap'][1])
+                                
+    temp.append(perClassResults[0]['ap'][2])
+    temp.append(perClassResults[1]['ap'][2])
+    temp.append(perClassResults[2]['ap'][2])
+
+    temp.append(perClassResults[0]['ap'][3])
+    temp.append(perClassResults[1]['ap'][3])
+    temp.append(perClassResults[2]['ap'][3])
+
+    temp.append(perClassResults[0]['ap'][4])
+    temp.append(perClassResults[1]['ap'][4])
+    temp.append(perClassResults[2]['ap'][4])
+                                
+    box = plt.boxplot(temp, patch_artist=True)
+    
+    colors = ['#B9B9B9', '#33CCFF', '#FF6666', '#B9B9B9', '#33CCFF', '#FF6666', '#B9B9B9', '#33CCFF', '#FF6666', '#B9B9B9', '#33CCFF', '#FF6666', '#B9B9B9', '#33CCFF', '#FF6666']
+    for patch, color in zip(box['boxes'], colors):
+        patch.set_facecolor(color)
+    
+    fsize = 16
+    fsize2 = 12
+    font="Times New Roman"
+    
+    plt.xlabel('Phrase Category', fontsize = fsize, fontname=font, labelpad=25)
+    plt.ylabel('Average precision', fontsize = fsize, fontname=font)
+    #plt.title('Scores by group and gender')
+    plt.xticks(1+np.arange(15), 5*['$M_{B}$', '$M_{DT}$', '$M_{CW2}$'], fontsize = fsize, fontname=font)
+    #plt.legend(loc ='top right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    #plt.ylim(np.array([.25,0.8]))
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    #plt.tight_layout()
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName, bbox_inches='tight')
+
+    return 1
+
+
+
 def plotPerCategoryMAPCarnatic(plotName=-1):
     
     outConfigs = [5,17,23]
