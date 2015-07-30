@@ -32,7 +32,7 @@ What is to be done:
 def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pattDistExt, myDatabase = '', myUser = '', force_build_network =0, top_N_com = 10, comm_types = 'raga', network_wght_type = -1):
     """
     This function determines the distribution of items (mbid or raga_id or comp id) across communities. 
-    The communities selected for this analysis is determined by filtering.
+    The communities selected for this analysis is determined by comm_types.
     
     comm_types: determine what type of communities are used for the analysis of the distribution ('raga' or 'all' or 'compositions')
     """
@@ -81,19 +81,21 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
                 comIds.append(raga_comm['comId'])
     
     #Initializing arrays to store the dists    
-    mbid_vs_comm = np.zeros((len(u_mbids), top_N_com*len(u_ragas)))
-    mbid_vs_comm_wght = np.zeros((len(u_mbids), top_N_com*len(u_ragas)))    #weighted
+    mbid_vs_comm = np.zeros((len(u_mbids), len(comIds)))
+    mbid_vs_comm_wght = np.zeros((len(u_mbids), len(comIds)))    #weighted
     
-    ragaid_vs_comm = np.zeros((len(u_ragas), top_N_com*len(u_ragas)))
-    ragaid_vs_comm_whtd = np.zeros((len(u_ragas), top_N_com*len(u_ragas)))  #weighted
+    ragaid_vs_comm = np.zeros((len(u_ragas), len(comIds)))
+    ragaid_vs_comm_whtd = np.zeros((len(u_ragas), len(comIds)))  #weighted
     
     
     cnt_col = 0
     mbid_centroid_vs_comm = []
     ragaid_centroid_vs_comm = []
+    nodes_in_comm = []
     for comId in comIds:
         mbids_in_comm = []
         ragaids_in_comm = []
+        nodes_in_comm.append(len(comm_data[str(comId)]))
         for node in comm_data[str(comId)]:
             ind_mbid = np.where(u_mbids == node['mbid'])[0]
             ind_raga = np.where(u_ragas == node['ragaId'])[0]
@@ -109,12 +111,16 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
         mbid_centroid_vs_comm.append(comm_char.fileCentroid(comm_char.get_histogram_sorted(mbids_in_comm)[0]))
         ragaid_centroid_vs_comm.append(comm_char.fileCentroid(comm_char.get_histogram_sorted(ragaids_in_comm)[0]))
     
-    N_mbid_vs_comm = np.sum(mbid_vs_comm,axis=0)
-    N_ragaid_vs_comm = np.sum(ragaid_vs_comm,axis=0)
+    N_umbid_vs_comms = np.sum(mbid_vs_comm,axis=0)  #how many unique mbids are there in each communities
     
-    comms_vs_mbid = np.sum(mbid_vs_comm,axis=1)
+    N_umbids_comms_distribution, n_umbids = comm_char.get_histogram_sorted(N_umbid_vs_comms)   # how many unique mbids have appeared in how many communities.
     
-    N_mbid_comm_distribution, n_comms = comm_char.get_histogram_sorted(comms_vs_mbid)
+    N_uragaid_vs_comms = np.sum(ragaid_vs_comm,axis=0)
+    
+    N_ucomms_vs_mbids = np.sum(mbid_vs_comm,axis=1) # one mbid has appeared in how many communities    
+    N_mbid_comm_distribution, n_comms = comm_char.get_histogram_sorted(N_ucomms_vs_mbids)   # how many mbids have appeared in how many communities.
+    
+    
     
     output_dir = os.path.join(out_dir, 'network_wght_%d_Tshld_%d_NoDispFilt_NComms_%d'%(network_wght_type, thresholdBin, top_N_com), comm_types+'_comms_plots')
     if not os.path.exists(output_dir):
@@ -156,14 +162,14 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     fig.savefig(plotName, bbox_inches='tight')
     fig.clear()
     
-    plt.plot(N_mbid_vs_comm, '*')
+    plt.plot(N_umbid_vs_comms, '*')
     plt.xlabel("Communities", fontsize = fsize, fontname=font)
     plt.ylabel("# of MBIDs", fontsize = fsize, fontname=font, labelpad=fsize2)
     plotName = os.path.join(output_dir, 'N_MBIDs_vs_communities.pdf')
     fig.savefig(plotName, bbox_inches='tight')
     fig.clear()
     
-    plt.plot(N_ragaid_vs_comm, '*')
+    plt.plot(N_uragaid_vs_comms, '*')
     plt.xlabel("Communities", fontsize = fsize, fontname=font)
     plt.ylabel("# of RAGAs", fontsize = fsize, fontname=font, labelpad=fsize2)
     plotName = os.path.join(output_dir, 'N_ragas_vs_communities.pdf')
@@ -185,10 +191,10 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     fig.savefig(plotName, bbox_inches='tight')
     fig.clear()     
     
-    plt.plot(comms_vs_mbid, '*')
+    plt.plot(N_ucomms_vs_mbids, '*')
     plt.xlabel("MBID", fontsize = fsize, fontname=font)
     plt.ylabel("# Communities", fontsize = fsize, fontname=font, labelpad=fsize2)
-    plotName = os.path.join(output_dir, 'N_comms_vs_mbids.pdf')
+    plotName = os.path.join(output_dir, 'N_N_ucomms_vs_mbidss.pdf')
     fig.savefig(plotName, bbox_inches='tight')
     fig.clear()  
     
@@ -197,7 +203,21 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     plt.ylabel("# MBIDS", fontsize = fsize, fontname=font, labelpad=fsize2)
     plotName = os.path.join(output_dir, 'N_MBIDS_vs_N_comms.pdf')
     fig.savefig(plotName, bbox_inches='tight')
-    fig.clear()        
+    fig.clear()    
+    
+    plt.plot(n_umbids, N_umbids_comms_distribution, '*')
+    plt.xlabel("# unique MBIDS", fontsize = fsize, fontname=font)
+    plt.ylabel("# Communities", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plotName = os.path.join(output_dir, 'N_Comms_vs_N_UMBIDs.pdf')
+    fig.savefig(plotName, bbox_inches='tight')
+    fig.clear()   
+    
+    plt.plot(nodes_in_comm, '*')
+    plt.xlabel("Communities", fontsize = fsize, fontname=font)
+    plt.ylabel("# nodes", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plotName = os.path.join(output_dir, 'N_nodes_vs_Comms.pdf')
+    fig.savefig(plotName, bbox_inches='tight')
+    fig.clear()      
     
 
     
