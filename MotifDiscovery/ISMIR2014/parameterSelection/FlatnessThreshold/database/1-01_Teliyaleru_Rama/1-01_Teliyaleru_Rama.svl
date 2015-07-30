@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sonic-visualiser>
+<sv>
+  <data>
+    <model id="2" name="" sampleRate="44100" start="810496" end="16602368" type="sparse" dimensions="3" resolution="1" notifyOnAdd="true" dataset="1"  subtype="region" valueQuantization="0" minimum="1" maximum="1" units=""/>
+    <dataset id="1" dimensions="3">
+      <point frame="810496" value="1" duration="100352" label="f" />
+      <point frame="1159936" value="1" duration="60416" label="nf" />
+      <point frame="1412608" value="1" duration="48128" label="nf" />
+      <point frame="1470720" value="1" duration="41216" label="nf" />
+      <point frame="1652480" value="1" duration="16128" label="f" />
+      <point frame="1717760" value="1" duration="24064" label="f" />
+      <point frame="1762048" value="1" duration="44800" label="nf" />
+      <point frame="1821440" value="1" duration="67584" label="nf" />
+      <point frame="2012160" value="1" duration="26112" label="f" />
+      <point frame="2057216" value="1" duration="63744" label="nf" />
+      <point frame="2280192" value="1" duration="37632" label="f" />
+      <point frame="2402304" value="1" duration="83712" label="nf" />
+      <point frame="2592768" value="1" duration="16128" label="f" />
+      <point frame="2728192" value="1" duration="30720" label="nf" />
+      <point frame="2842368" value="1" duration="58368" label="nf" />
+      <point frame="3275264" value="1" duration="94208" label="nf" />
+      <point frame="3553280" value="1" duration="58112" label="nf" />
+      <point frame="3686400" value="1" duration="59392" label="nf" />
+      <point frame="3838720" value="1" duration="60672" label="nf" />
+      <point frame="3921920" value="1" duration="77824" label="nf" />
+      <point frame="4043264" value="1" duration="50688" label="nf" />
+      <point frame="4232960" value="1" duration="64256" label="nf" />
+      <point frame="4568576" value="1" duration="24832" label="f" />
+      <point frame="4599296" value="1" duration="29184" label="f" />
+      <point frame="4716032" value="1" duration="30720" label="nf" />
+      <point frame="5345024" value="1" duration="127232" label="f" />
+      <point frame="5482496" value="1" duration="110848" label="nf" />
+      <point frame="5645312" value="1" duration="72192" label="nf" />
+      <point frame="5723640" value="1" duration="15030" label="f" />
+      <point frame="5747456" value="1" duration="56832" label="nf" />
+      <point frame="5869824" value="1" duration="34048" label="f" />
+      <point frame="6140416" value="1" duration="33792" label="f" />
+      <point frame="6211072" value="1" duration="14848" label="f" />
+      <point frame="6267648" value="1" duration="121088" label="nf" />
+      <point frame="6409472" value="1" duration="27904" label="f" />
+      <point frame="6604032" value="1" duration="49152" label="nf" />
+      <point frame="6675456" value="1" duration="22272" label="f" />
+      <point frame="7133184" value="1" duration="39680" label="nf" />
+      <point frame="7196672" value="1" duration="28160" label="f" />
+      <point frame="7264256" value="1" duration="31232" label="nf" />
+      <point frame="7321088" value="1" duration="14336" label="f" />
+      <point frame="7645440" value="1" duration="50688" label="nf" />
+      <point frame="7786240" value="1" duration="36864" label="nf" />
+      <point frame="7832832" value="1" duration="35840" label="nf" />
+      <point frame="8211712" value="1" duration="11520" label="f" />
+      <point frame="8252928" value="1" duration="72960" label="nf" />
+      <point frame="8411136" value="1" duration="12544" label="f" />
+      <point frame="8525312" value="1" duration="40192" label="nf" />
+      <point frame="9079040" value="1" duration="44032" label="nf" />
+      <point frame="9616640" value="1" duration="20736" label="f" />
+      <point frame="9866240" value="1" duration="25344" label="f" />
+      <point frame="9906688" value="1" duration="84480" label="nf" />
+      <point frame="10114816" value="1" duration="28160" label="f" />
+      <point frame="10155520" value="1" duration="42240" label="nf" />
+      <point frame="10223872" value="1" duration="25856" label="nf" />
+      <point frame="10337792" value="1" duration="15616" label="f" />
+      <point frame="10424832" value="1" duration="52736" label="nf" />
+      <point frame="10816000" value="1" duration="20480" label="f" />
+      <point frame="11082752" value="1" duration="11520" label="f" />
+      <point frame="13415130" value="1" duration="18180" label="f" />
+      <point frame="13595940" value="1" duration="31680" label="nf" />
+      <point frame="14375552" value="1" duration="16640" label="f" />
+      <point frame="14851584" value="1" duration="15104" label="f" />
+      <point frame="15322624" value="1" duration="15488" label="f" />
+      <point frame="16602368" value="1" duration="18048" label="f" />
+    </dataset>
+  </data>
+  <display>
+    <layer id="3" type="regions" name="Regions" model="2"  verticalScale="1" plotStyle="1" colourName="Bright Blue" colour="#1e96ff" darkBackground="true" />
+  </display>
+</sv>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sonic-visualiser>
+<sv>
+  <data>
+    <model id="4" name="" sampleRate="44100" start="137160" end="20926440" type="sparse" dimensions="3" resolution="1" notifyOnAdd="true" dataset="3"  subtype="region" valueQuantization="0" minimum="0" maximum="1" units=""/>
+    <dataset id="3" dimensions="3">
+      <point frame="137160" value="1" duration="60840" label="nf" />
+      <point frame="207000" value="1" duration="20520" label="f" />
+      <point frame="235800" value="1" duration="103680" label="nf" />
+      <point frame="343800" value="1" duration="13320" label="f" />
+      <point frame="433440" value="1" duration="30960" label="f" />
+      <point frame="471600" value="1" duration="47160" label="nf" />
+      <point frame="605520" value="1" duration="91080" label="nf" />
+      <point frame="702360" value="1" duration="57960" label="f" />
+      <point frame="772200" value="1" duration="51120" label="nf" />
+      <point frame="909360" value="1" duration="155880" label="nf" />
+      <point frame="1148400" value="1" duration="87840" label="nf" />
+      <point frame="1252440" value="1" duration="68400" label="f" />
+      <point frame="1481040" value="1" duration="47160" label="nf" />
+      <point frame="1573920" value="1" duration="91440" label="f" />
+      <point frame="1751040" value="1" duration="141480" label="f" />
+      <point frame="1905120" value="0" duration="92520" label="nf" />
+      <point frame="2118600" value="0" duration="67320" label="f" />
+      <point frame="2193840" value="0" duration="153000" label="nf" />
+      <point frame="2471760" value="0" duration="165240" label="nf" />
+      <point frame="2771640" value="0" duration="109440" label="nf" />
+      <point frame="3009960" value="0" duration="21960" label="nf" />
+      <point frame="3038760" value="0" duration="85320" label="f" />
+      <point frame="3133080" value="0" duration="57960" label="nf" />
+      <point frame="3193200" value="0" duration="25560" label="f" />
+      <point frame="3224160" value="0" duration="121680" label="nf" />
+      <point frame="3485160" value="0" duration="118440" label="f" />
+      <point frame="3611520" value="0" duration="65520" label="nf" />
+      <point frame="3773160" value="0" duration="55440" label="nf" />
+      <point frame="3832920" value="0" duration="19440" label="f" />
+      <point frame="3858480" value="0" duration="70920" label="nf" />
+      <point frame="4073040" value="0" duration="38520" label="f" />
+      <point frame="4257360" value="0" duration="99000" label="f" />
+      <point frame="4365720" value="0" duration="126720" label="nf" />
+      <point frame="4730400" value="0" duration="91080" label="nf" />
+      <point frame="4925880" value="0" duration="89640" label="nf" />
+      <point frame="5017320" value="0" duration="25200" label="f" />
+      <point frame="5110560" value="0" duration="261360" label="nf" />
+      <point frame="5613840" value="0" duration="118440" label="nf" />
+      <point frame="5853600" value="0" duration="145800" label="nf" />
+      <point frame="6095520" value="0" duration="284040" label="nf" />
+      <point frame="6384240" value="0" duration="51480" label="nf" />
+      <point frame="6487920" value="0" duration="168840" label="nf" />
+      <point frame="6792480" value="0" duration="275400" label="nf" />
+      <point frame="7251840" value="0" duration="109440" label="nf" />
+      <point frame="7422480" value="0" duration="57600" label="nf" />
+      <point frame="7483680" value="0" duration="42840" label="f" />
+      <point frame="7621920" value="0" duration="194040" label="f" />
+      <point frame="7823520" value="0" duration="83160" label="nf" />
+      <point frame="7972200" value="0" duration="43920" label="nf" />
+      <point frame="8024760" value="0" duration="16560" label="f" />
+      <point frame="8057520" value="0" duration="90720" label="nf" />
+      <point frame="8150040" value="0" duration="29520" label="f" />
+      <point frame="8415000" value="0" duration="109440" label="f" />
+      <point frame="8598240" value="0" duration="51840" label="nf" />
+      <point frame="8870760" value="0" duration="72000" label="nf" />
+      <point frame="9176400" value="0" duration="126360" label="f" />
+      <point frame="9405360" value="0" duration="27360" label="f" />
+      <point frame="9477000" value="0" duration="185400" label="nf" />
+      <point frame="9679320" value="0" duration="67680" label="nf" />
+      <point frame="9776520" value="0" duration="119520" label="nf" />
+      <point frame="10037520" value="0" duration="54720" label="f" />
+      <point frame="10611720" value="0" duration="115200" label="nf" />
+      <point frame="10907640" value="0" duration="55080" label="nf" />
+      <point frame="11011320" value="0" duration="100800" label="nf" />
+      <point frame="11316240" value="0" duration="129600" label="nf" />
+      <point frame="12323520" value="0" duration="37080" label="f" />
+      <point frame="12880080" value="0" duration="63720" label="nf" />
+      <point frame="13281120" value="0" duration="27720" label="f" />
+      <point frame="13511520" value="0" duration="123840" label="nf" />
+      <point frame="14077440" value="0" duration="15120" label="f" />
+      <point frame="14502240" value="0" duration="34920" label="f" />
+      <point frame="14580360" value="0" duration="27000" label="f" />
+      <point frame="15006600" value="0" duration="164160" label="f" />
+      <point frame="16016760" value="0" duration="37440" label="f" />
+      <point frame="17027280" value="0" duration="153000" label="f" />
+      <point frame="18554760" value="0" duration="73800" label="f" />
+      <point frame="20597400" value="0" duration="63000" label="f" />
+      <point frame="20768040" value="0" duration="56520" label="f" />
+      <point frame="20926440" value="0" duration="69120" label="f" />
+    </dataset>
+  </data>
+  <display>
+    <layer id="9" type="regions" name="Regions" model="4"  verticalScale="1" plotStyle="1" colourName="Bright Blue" colour="#1e96ff" darkBackground="true" />
+  </display>
+</sv>

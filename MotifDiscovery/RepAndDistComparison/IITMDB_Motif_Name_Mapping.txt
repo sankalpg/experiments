@@ -1,0 +1,8 @@
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Bhairavi_fullwav	1000	m4
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Kalyani_fullwav	2000	m5
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Kamboji_fullwav	3000	m3
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Kedaragowla_fullwav	4000	m4
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Sahana_fullwav	5000	m8
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Saveri_fullwav	6000	m5	m1
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Shankarabharanam_fullwav	7000	m2	m3
+/media/Data/Datasets/MotifDiscovery_Dataset/CarnaticAlaps_IITM/Varali_fullwav	8000	m1

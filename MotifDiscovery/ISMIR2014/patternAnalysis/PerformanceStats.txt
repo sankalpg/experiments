@@ -1,0 +1,57 @@
+Mean Average Precision results
+
+                        V1          V2          V3          V4
+SeedCategory1           0.917042    0.915770    0.914695    0.885625 
+SeedCategory2           0.681321    0.734711    0.726066    0.656107   
+SeedCategory3           0.353468    0.340162    0.346387    0.348434  
+SeedCategory4(all)      0.652096    0.665165    0.663963    0.631463 
+
+
+THESE ARE THE STATISTICAL TESTING RESULTS
+
+
+These are the conbinations that you choose and obtained p values
+
+
+Version = 2,    Category = 1,   with Version = 1,   Category = 1,   Pval = 0.711894
+
+Version = 2,    Category = 1,   with Version = 3,   Category = 1,   Pval = 0.443106
+
+Version = 2,    Category = 1,   with Version = 4,   Category = 1,   Pval = 0.017497
+
+Version = 2,    Category = 2,   with Version = 4,   Category = 2,   Pval = 0.001087
+
+Version = 3,    Category = 2,   with Version = 4,   Category = 2,   Pval = 0.001487
+
+Version = 1,    Category = 2,   with Version = 4,   Category = 2,   Pval = 0.003872
+
+Version = 2,    Category = 2,   with Version = 1,   Category = 2,   Pval = 0.005904
+
+Version = 3,    Category = 2,   with Version = 1,   Category = 2,   Pval = 0.010359
+
+Version = 3,    Category = 2,   with Version = 2,   Category = 2,   Pval = 0.927720
+
+Version = 2,    Category = 1,   with Version = 2,   Category = 2,   Pval = 0.000032
+
+Version = 2,    Category = 3,   with Version = 4,   Category = 3,   Pval = 0.744382
+
+Version = 2,    Category = 1,   with Version = 2,   Category = 3,   Pval = 0.000000
+
+
+
+
+
+These are the statistically significant differences
+
+Version = 2, Category = 1, with Version = 2, Category = 3
+
+Version = 2, Category = 1, with Version = 2, Category = 2
+
+Version = 2, Category = 2, with Version = 4, Category = 2
+
+Version = 3, Category = 2, with Version = 4, Category = 2
+
+Version = 1, Category = 2, with Version = 4, Category = 2
+
+Version = 2, Category = 2, with Version = 1, Category = 2
+

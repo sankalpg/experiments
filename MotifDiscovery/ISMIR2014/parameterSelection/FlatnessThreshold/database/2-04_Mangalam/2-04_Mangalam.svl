@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sonic-visualiser>
+<sv>
+  <data>
+    <model id="2" name="" sampleRate="44100" start="172800" end="3498840" type="sparse" dimensions="3" resolution="1" notifyOnAdd="true" dataset="1"  subtype="region" valueQuantization="0" minimum="0" maximum="1" units=""/>
+    <dataset id="1" dimensions="3">
+      <point frame="172800" value="1" duration="99328" label="nf" />
+      <point frame="545792" value="0" duration="79872" label="nf" />
+      <point frame="734040" value="1" duration="28080" label="f" />
+      <point frame="801792" value="0" duration="87552" label="nf" />
+      <point frame="939008" value="0" duration="83456" label="nf" />
+      <point frame="1428930" value="1" duration="17325" label="f" />
+      <point frame="1484460" value="0" duration="13500" label="f" />
+      <point frame="1668780" value="0" duration="136800" label="nf" />
+      <point frame="1842840" value="0" duration="32400" label="nf" />
+      <point frame="1994400" value="0" duration="11520" label="f" />
+      <point frame="2297520" value="0" duration="17280" label="f" />
+      <point frame="2383020" value="0" duration="16740" label="f" />
+      <point frame="2436300" value="0" duration="36900" label="nf" />
+      <point frame="2476620" value="0" duration="9900" label="f" />
+      <point frame="2622960" value="0" duration="57060" label="nf" />
+      <point frame="2743740" value="0" duration="62820" label="nf" />
+      <point frame="2871000" value="0" duration="95580" label="nf" />
+      <point frame="3387960" value="0" duration="94320" label="f" />
+      <point frame="3498840" value="0" duration="21600" label="f" />
+    </dataset>
+  </data>
+  <display>
+    <layer id="3" type="regions" name="Regions" model="2"  verticalScale="1" plotStyle="1" colourName="Bright Blue" colour="#1e96ff" darkBackground="true" />
+  </display>
+</sv>
