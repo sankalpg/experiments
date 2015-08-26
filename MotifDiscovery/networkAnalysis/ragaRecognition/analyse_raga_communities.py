@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import time 
 import networkx as nx
 
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/networkAnalysis'))
 
+DEBUG = False
 
 import networkProcessing as net_pro
 import communityCharacterization as comm_char
@@ -23,10 +25,6 @@ community and how does it vary over community rank etc.
 2) This would give some insights needed for raga recognition task. 
 3) This would also give some insights if the criterion for choosing raga communities is good or not
 
-What is to be done:
-1) #number of unique recordings in the communities, across communities of the same raga
-2) Distribution of nodes in communities of differenr ragas.
-3) #number of unique compositions in the communities
 """
 
 def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pattDistExt, myDatabase = '', myUser = '', force_build_network =0, top_N_com = 10, comm_types = 'raga', network_wght_type = -1):
@@ -39,7 +37,8 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     
     #construncting graph
     t1 = time.time()
-    wghtd_graph_filename = 'graph_temp'+'_'+str(thresholdBin)
+    base_name = 'Thsldbin_%d_pattDistExt_%s_WghtType_%d'%(thresholdBin, pattDistExt, network_wght_type)
+    wghtd_graph_filename = os.path.join(out_dir, base_name+'.edges')
     if force_build_network or not os.path.isfile(wghtd_graph_filename):
         cons_net.constructNetwork_Weighted_NetworkX(fileListFile, wghtd_graph_filename , thresholdBin, pattDistExt, network_wght_type , -1) #we dont apply any disparity filtering here!!!!!!!
         #TODO disparity filtering didn't prove much useful in the ISMIR 2015 analysis. Maybe worth a shot again...try it later point in time
@@ -49,11 +48,11 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     print "time taken = %f"%(t2-t1)
     
     #detecting communities 
-    comm_filename = 'comm'+'_'+str(thresholdBin)+'.community'
+    comm_filename = os.path.join(out_dir, base_name+'.community')
     net_pro.detectCommunitiesInNewtworkNX(wghtd_graph_filename, comm_filename)
     
     #Ranking communities based on which we can later decide raga communities
-    comm_rank_filename  = 'comm'+'_'+str(thresholdBin)+'.communityRank'
+    comm_rank_filename  = os.path.join(out_dir, base_name+'.communityRank')
     comm_char.rankCommunities(comm_filename, comm_rank_filename, myDatabase = myDatabase, myUser = myUser)
     
     #fetching all the relevant attributes for each phrase and all the communities
@@ -108,8 +107,8 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
             ragaid_vs_comm[ind_raga, cnt_col]=1            
             ragaid_vs_comm_whtd[ind_raga, cnt_col]+=1            
         cnt_col+=1
-        mbid_centroid_vs_comm.append(comm_char.fileCentroid(comm_char.get_histogram_sorted(mbids_in_comm)[0]))
-        ragaid_centroid_vs_comm.append(comm_char.fileCentroid(comm_char.get_histogram_sorted(ragaids_in_comm)[0]))
+        mbid_centroid_vs_comm.append(comm_char.compute_centroid(comm_char.get_histogram_sorted(mbids_in_comm)[0]))
+        ragaid_centroid_vs_comm.append(comm_char.compute_centroid(comm_char.get_histogram_sorted(ragaids_in_comm)[0]))
     
     N_umbid_vs_comms = np.sum(mbid_vs_comm,axis=0)  #how many unique mbids are there in each communities
     
@@ -120,12 +119,39 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     N_ucomms_vs_mbids = np.sum(mbid_vs_comm,axis=1) # one mbid has appeared in how many communities    
     N_mbid_comm_distribution, n_comms = comm_char.get_histogram_sorted(N_ucomms_vs_mbids)   # how many mbids have appeared in how many communities.
     
+    #computing mbids which either doesn't appear in any of the communities or appear in communities which only have one mbid. Basically trying to find out the mbids which do no combine with any other mbids to for mcommunities.
+    ind_mbid_no_comm = np.where(N_ucomms_vs_mbids==0)[0]
+    if DEBUG:
+        print "Number of files with no communties %d"%(len(ind_mbid_no_comm))
+        print ind_mbid_no_comm
+        
+    ind_mbid_no_comm = ind_mbid_no_comm.tolist()
     
+    ind_comm_one_mbid = np.where(N_umbid_vs_comms==1)[0]
+    if DEBUG:
+        print "There are %d number of communities with only one file in them"%(len(ind_comm_one_mbid))
+
+    for ind in ind_comm_one_mbid:
+        ind_mbid = np.where(mbid_vs_comm[:,ind]==1)[0]
+        if len(ind_mbid)>1:
+            print "There is a serious problem here"
+        ind_comms = np.where(mbid_vs_comm[ind_mbid[0],:]==1)[0]
+        if len(np.union1d(ind_comms, ind_comm_one_mbid)) > len(ind_comm_one_mbid):
+            continue        
+        ind_mbid_no_comm.append(ind_mbid[0])
+    ind_mbid_no_comm = np.unique(np.array(ind_mbid_no_comm)).tolist()
     
-    output_dir = os.path.join(out_dir, 'network_wght_%d_Tshld_%d_NoDispFilt_NComms_%d'%(network_wght_type, thresholdBin, top_N_com), comm_types+'_comms_plots')
+    print "There are %d number of files which do not contribute to any community or are found in communities with only one files"%(len(ind_mbid_no_comm))
+    
+    output_dir = os.path.join(out_dir, base_name+'_NComms_%d'%(top_N_com), comm_types+'_comms_plots')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
+    #saving list of mbids which are found in none of the communities or in communities with only one mbid
+    fname = os.path.join(output_dir, 'problematic_mbids.json')
+    mbid_problematic = [u_mbids[r] for r in ind_mbid_no_comm]
+    json.dump(mbid_problematic, open(fname,'w'))
+    
     #saving the plots
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -219,23 +245,28 @@ def plot_item_distribution_per_community(fileListFile, out_dir, thresholdBin, pa
     fig.savefig(plotName, bbox_inches='tight')
     fig.clear()      
     
+    
+    
+if __name__ == "__main__":
+        
+        distance_bins = [8, 10, 12, 14, 16]
+        pattDistExts = ['.pattDistances1']
+        top_N_coms = [10, 20, 30, 40, 50]
+        comm_types = ['raga']
+        network_wght_types = [-1] 
+        
+        fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/__dbInfo__/Carnatic10RagasISMIR2015DB.flist'
+        out_dir = 'community_analysis_data/ISMIR2015_10RAGA_TONICNORM'
+        myDatabase = 'ISMIR2015_10RAGA_TONICNORM'
+        myUser = 'sankalp'
+        
+        for dbin in distance_bins:
+            for ext in pattDistExts:
+                for topN in top_N_coms:
+                    for comm_type in comm_types:
+                        for wght_type in network_wght_types:
+                            print dbin, ext, topN, comm_type, wght_type
+                            plot_item_distribution_per_community(fileListFile, out_dir, dbin, ext, myDatabase = myDatabase, myUser = myUser, force_build_network =0, top_N_com = topN, comm_types = comm_type, network_wght_type = wght_type)
 
-    
-    #plt.plot(mbid_centroid_vs_comm)
-    #plt.show()
-    #plt.plot(ragaid_centroid_vs_comm)
-    #plt.show()
-    
-    
-    #np.save(wghtd_graph_filename+'.mbid_dist', mbid_vs_comm)
-    #np.save(wghtd_graph_filename+'.raga_dist', ragaid_vs_comm)
-    
-    #mbid_per_comm = np.sum(mbid_vs_comm, axis =0)
-    #raga_per_comm = np.sum(ragaid_vs_comm, axis =0)
-    
-    
-    
-    
-    
-    
-    
+        
+        
