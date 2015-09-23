@@ -1,7 +1,7 @@
 import numpy as np
 import os,sys
 import matplotlib.pyplot as plt
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 baseClusterCoffFileName = '_ClusteringCoff'
 randomizationSuffix = '_RANDOM'
@@ -78,5 +78,49 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
         
         
 #def plot_confusion_matrix(result_file, raga_uuid_name_file):
+
+
+def plot_confusion_matrix(alphabet, conf_arr, outputname):
+    norm_conf = []
+    width = len(conf_arr)
+    height = len(conf_arr[0])
+    for i in conf_arr:
+        a = 0
+        tmp_arr = []
+        a = sum(i, 0)
+        for j in i:
+            tmp_arr.append(float(j)/float(a))
+        norm_conf.append(tmp_arr)
+
+    fig = plt.figure(figsize=(14,14))
+    #fig = plt.figure()
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ax.set_aspect(1)
+    ax.grid(which='major')
+    cmap_local = plt.get_cmap('OrRd', np.max(conf_arr)-np.min(conf_arr)+1)
+    res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
+                    interpolation='nearest', aspect='1', cmap=cmap_local,
+                    ##Commenting out this line sets labels correctly,
+                    ##but the grid is off
+                    extent=[0, width, height, 0], vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
+                    )
+    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+1)
+    tickpos = np.linspace(ticks[0] , ticks[-1] , len(ticks));
+    #cax = plt.colorbar(mat, ticks=tickpos)
+    #cax.set_ticklabels(ticks)
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("bottom", size="5%", pad=0.4)
+    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
+
+    #Axes
+    ax.set_xticks(range(width))
+    ax.set_xticklabels(alphabet, rotation='vertical')
+    ax.xaxis.labelpad = 0.5
+    ax.set_yticks(range(height))
+    ax.set_yticklabels(alphabet, rotation='horizontal')
+    #plt.tight_layout()
+    plt.savefig(outputname, format='pdf')
     
     
