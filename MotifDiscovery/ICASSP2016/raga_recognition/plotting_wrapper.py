@@ -1,7 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import numpy as np
 import os,sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import json, pickle
+import codecs
 
 baseClusterCoffFileName = '_ClusteringCoff'
 randomizationSuffix = '_RANDOM'
@@ -80,25 +85,29 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
 #def plot_confusion_matrix(result_file, raga_uuid_name_file):
 
 
-def plot_confusion_matrix(alphabet, conf_arr, outputname):
-    norm_conf = []
+def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
+    
+    raga_name_map = json.load(open(raga_name_map_file,'r'))
+    results = pickle.load(open(result_file, 'r'))
+    conf_arr = results['var2']['cm'][0]
+    raga_names = results['var2']['mapping']
+    
+    y_labels = []
+    x_labels = []
+    for ii, r in enumerate(raga_names):
+        y_labels.append('R'+str(ii+1))
+        x_labels.append(y_labels[-1] + '-'+raga_name_map[r])
+    
     width = len(conf_arr)
     height = len(conf_arr[0])
-    for i in conf_arr:
-        a = 0
-        tmp_arr = []
-        a = sum(i, 0)
-        for j in i:
-            tmp_arr.append(float(j)/float(a))
-        norm_conf.append(tmp_arr)
-
+ 
     fig = plt.figure(figsize=(14,14))
     #fig = plt.figure()
     plt.clf()
     ax = fig.add_subplot(111)
     ax.set_aspect(1)
     ax.grid(which='major')
-    cmap_local = plt.get_cmap('OrRd', np.max(conf_arr)-np.min(conf_arr)+1)
+    cmap_local = plt.get_cmap('binary', np.max(conf_arr)-np.min(conf_arr)+1)
     res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
                     interpolation='nearest', aspect='1', cmap=cmap_local,
                     ##Commenting out this line sets labels correctly,
@@ -116,11 +125,94 @@ def plot_confusion_matrix(alphabet, conf_arr, outputname):
 
     #Axes
     ax.set_xticks(range(width))
-    ax.set_xticklabels(alphabet, rotation='vertical')
+    ax.set_xticklabels(x_labels, rotation='vertical')
     ax.xaxis.labelpad = 0.5
     ax.set_yticks(range(height))
-    ax.set_yticklabels(alphabet, rotation='horizontal')
+    ax.set_yticklabels(y_labels , rotation='horizontal')
     #plt.tight_layout()
-    plt.savefig(outputname, format='pdf')
+    plt.savefig(outputname)
+    #plt.show()
     
+
+def plotPerThresholdAcuracy(cc_dir, thsld_dir, plotName=-1):
+    """
+    """
+    #lets read all the clustering coffs
+    cc, cc_rand = readClusterinCoffCurve(cc_dir, 35)
+    cc_diff = {}
+    for ii in range(30):
+        cc_diff[ii] = cc[ii+1]-cc_rand[ii+1]
+    
+    #lets read accuracies for all the files with different distance threhsolds
+    range_thslds = range(6,16)
+    cnt=1
+    accuracy = {}
+    for ii in range_thslds:
+        data = pickle.load(open(os.path.join(thsld_dir, 'config_%d'%cnt, 'experiment_results.pkl')))
+        cnt+=1
+        accuracy[ii] = data['var2']['accuracy']
+    
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax2 = ax1.twinx()
+    plt.hold(True)
+    fsize = 18
+    fsize2 = 16
+    font="Times New Roman"
+    
+    ax1.set_xlabel("$T_s$ (bin index)", fontsize = fsize, fontname=font)
+    ax1.set_ylabel("Clustering Coefficient $C$", fontsize = fsize, fontname=font, labelpad=fsize2)
+    ax2.set_ylabel("Accuracy (%)", fontsize = fsize, fontname=font, labelpad=fsize2)
+    
+    pLeg = []
+    markers = ['.', 'o', 's', '^', '<', '>', 'p']    
+    colors = ['r', 'b', 'm', 'c', 'g', 'k']
+    colors_dotted = ['r--', 'b--', 'm--', 'c--', 'g--', 'k--']
+
+    p, = ax1.plot(range_thslds, [cc_diff[i] for i in range_thslds], 'r--', linewidth=2)
+    pLeg.append(p)
+    p, = ax2.plot(range_thslds, [accuracy[i]*100 for i in range_thslds], 'b', linewidth=2)
+    pLeg.append(p)
+    
+    ax1.set_ylim([.1,0.25])
+    ax1.set_xlim([5,16])
+    ax2.set_ylim([30,70])
+    
+    xLim = ax1.get_xlim()
+    yLim = ax1.get_ylim()
+    
+    ax1.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    xLim = ax2.get_xlim()
+    yLim = ax2.get_ylim()
+    
+    ax2.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy'], fontsize = 12, loc=2)
+    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    
+    if isinstance(plotName, int):
+        plt.show()
+    elif isinstance(plotName, str):
+        fig.savefig(plotName, bbox_inches='tight')
+        
+
+
+#fig, ax1 = plt.subplots()
+#t = np.arange(0.01, 10.0, 0.01)
+#s1 = np.exp(t)
+#ax1.plot(t, s1, 'b-')
+#ax1.set_xlabel('time (s)')
+## Make the y-axis label and tick labels match the line color.
+#ax1.set_ylabel('exp', color='b')
+#for tl in ax1.get_yticklabels():
+    #tl.set_color('b')
+
+
+#ax2 = ax1.twinx()
+#s2 = np.sin(2*np.pi*t)
+#ax2.plot(t, s2, 'r.')
+#ax2.set_ylabel('sin', color='r')
+#for tl in ax2.get_yticklabels():
+    #tl.set_color('r')
+#plt.show()
+
     
