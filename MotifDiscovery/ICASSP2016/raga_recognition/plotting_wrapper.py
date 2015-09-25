@@ -120,16 +120,16 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     #cax.set_ticklabels(ticks)
     
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("bottom", size="5%", pad=0.4)
+    cax = divider.append_axes("bottom", size="5%", pad=0.1)
     cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
 
     #Axes
     ax.set_xticks(range(width))
     ax.set_xticklabels(x_labels, rotation='vertical')
-    ax.xaxis.labelpad = 0.5
+    #ax.xaxis.labelpad = 0.1
     ax.set_yticks(range(height))
     ax.set_yticklabels(y_labels , rotation='horizontal')
-    #plt.tight_layout()
+    plt.tight_layout()
     plt.savefig(outputname)
     #plt.show()
     
