@@ -1,0 +1,169 @@
+<html>
+<head>
+
+<style type="text/css">
+  #sigma-container {
+    max-width: 2000px;
+    height: 1000px;
+    margin: auto;
+  }
+</style>
+
+</head>
+<body>
+
+<div id="sigma-container"></div>
+<script src="sigma.min.js"></script>
+<script src="sigma.parsers.json.min.js"></script>
+<script src="sigma.parsers.gexf.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+<script>
+    
+    /*ONE WAY TO MAKE AJAX CALLS (WITHOUT JQUERY)*/
+//     function createCORSRequest(method, url) {
+//     var xhr = new XMLHttpRequest();
+//     if ("withCredentials" in xhr) {
+//         // XHR for Chrome/Firefox/Opera/Safari.
+//         xhr.open(method, url, true);
+//     } else if (typeof XDomainRequest != "undefined") {
+//         // XDomainRequest for IE.
+//         xhr = new XDomainRequest();
+//         xhr.open(method, url);
+//     } else {
+//         // CORS not supported.
+//         xhr = null;
+//     }
+//     return xhr;
+//     }
+ 
+//var xmlhttp = new createCORSRequest('GET', "http://127.0.0.1:5000/get_phrase_data?nid=1&format=jsonp&callback?");
+//xmlhttp.send()
+//xmlhttp.onreadystatechange = function() {
+//if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//    var myArr = JSON.parse(JSON.stringify(xmlhttp.responseText));
+    //   console.log(myArr);
+//}
+//}
+
+
+  // Add a method to the graph model that returns an
+  // object with every neighbors of a node inside:
+  sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+    var k,
+        neighbors = {},
+        index = this.allNeighborsIndex[nodeId] || {};
+
+    for (k in index)
+      neighbors[k] = this.nodesIndex[k];
+
+    return neighbors;
+  });
+
+  sigma.parsers.gexf(
+    'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma.gexf',
+    {
+      container: 'sigma-container',
+      settings: {
+		nodesPowRatio: 0.5,
+           	labelThreshold: 16,
+           	minNodeSize: 0.01
+}
+
+    },
+    
+    function(s) {
+      // We first need to save the original colors of our
+      // nodes and edges, like this:
+      s.graph.nodes().forEach(function(n) {
+        n.originalColor = n.color;
+      });
+      s.graph.edges().forEach(function(e) {
+        e.originalColor = e.color;
+      });
+
+      // When a node is clicked, we check for each node
+      // if it is a neighbor of the clicked one. If not,
+      // we set its color as grey, and else, it takes its
+      // original color.
+      // We do the same for the edges, and we only keep
+      // edges that have both extremities colored.
+      s.bind('clickNode', function(e) {
+        var nodeId = e.data.node.id,
+            toKeep = s.graph.neighbors(nodeId);
+        toKeep[nodeId] = e.data.node;
+
+        s.graph.nodes().forEach(function(n) {
+          if (toKeep[n.id])
+            n.color = n.originalColor;
+          else
+            n.color = '#eee';
+        });
+
+        s.graph.edges().forEach(function(e) {
+          if (toKeep[e.source] && toKeep[e.target])
+            e.color = e.originalColor;
+          else
+            e.color = '#eee';
+        });
+
+        // Since the data has been modified, we need to
+        // call the refresh method to make the colors
+        // update effective.
+        s.refresh();
+
+        //playing audio        
+        $.ajax({
+        crossDomain: true,
+        dataType: 'json',
+        url: "http://10.80.26.245:5000/get_phrase_data?nid="+ e.data.node.label + "&format=jsonp&callback?"
+        }).then(function(data) {
+            playSegment(data.mbid, data.start, data.end);
+            document.body.style.cursor = "progress";
+        });
+      });
+
+      // When the stage is clicked, we just color each
+      // node and edge with its original color.
+      s.bind('clickStage', function(e) {
+        s.graph.nodes().forEach(function(n) {
+          n.color = n.originalColor;
+        });
+
+        s.graph.edges().forEach(function(e) {
+          e.color = e.originalColor;
+        });
+
+        // Same as in the previous event:
+        s.refresh();
+      });
+    }
+  );
+  
+</script>
+    <!--<audio id="sample" src="http://dunya.compmusic.upf.edu/document/by-id/2f274b05-9e9e-4faa-a61f-8f5d8cb6f89f.mp3" controls preload></audio>-->
+    <audio id = "audioHandle"   preload="auto"></audio>
+
+    <script>
+    var audio = document.getElementById('audioHandle');
+    var segmentEnd;
+
+    audio.addEventListener('timeupdate', function (){
+        if (segmentEnd && audio.currentTime >= segmentEnd) {
+            audio.pause();
+            document.body.style.cursor = "default";
+        }   
+        console.log(audio.currentTime);
+    }, false);
+
+    function playSegment(mbid, startTime, endTime){
+        segmentEnd = endTime;
+        audio.src = 'http://dunya.compmusic.upf.edu/document/by-id/' + mbid + '.mp3';
+        console.log(audio.src);
+        audio.currentTime = startTime;
+        audio.play();
+    }
+</script>
+
+</body>
+<html>

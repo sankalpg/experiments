@@ -1,0 +1,47 @@
+<html>
+<head>
+<style type="text/css">
+  #container {
+    max-width: 1000px;
+    height: 500px;
+    margin: auto;
+  }
+</style>
+</head>
+<body>
+<div id="container"></div>
+<script src="sigma.min.js"></script>
+<script src="sigma.parsers.json.min.js"></script>
+<script src="sigma.parsers.gexf.min.js"></script>
+<script>
+  sigma.parsers.gexf('graph_temp_10_demo_nodes_to_sigma.gexf', {
+    container: 'container',
+    settings: {
+      defaultNodeColor: '#ec5148'
+    }
+  });
+</script>
+<audio id="sample" src="http://dunya.compmusic.upf.edu/document/by-id/2f274b05-9e9e-4faa-a61f-8f5d8cb6f89f.mp3" controls preload></audio>
+
+<a href="javascript:playSegment(0.0, 0.5);">Play1</a>
+<a href="javascript:playSegment(120.0, 125.0);">Play2</a>
+
+<script>
+var audio = document.getElementById('sample');
+var segmentEnd;
+
+audio.addEventListener('timeupdate', function (){
+    if (segmentEnd && audio.currentTime >= segmentEnd) {
+        audio.pause();
+    }   
+    console.log(audio.currentTime);
+}, false);
+
+function playSegment(startTime, endTime){
+    segmentEnd = endTime;
+    audio.currentTime = startTime;
+    audio.play();
+}
+</script>
+</body>
+</html>
