@@ -6,6 +6,7 @@
     max-width: 2000px;
     height: 1000px;
     margin: auto;
+    background: #3C3C3C;
   }
 </style>
 
@@ -19,33 +20,6 @@
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 
 <script>
-    
-    /*ONE WAY TO MAKE AJAX CALLS (WITHOUT JQUERY)*/
-//     function createCORSRequest(method, url) {
-//     var xhr = new XMLHttpRequest();
-//     if ("withCredentials" in xhr) {
-//         // XHR for Chrome/Firefox/Opera/Safari.
-//         xhr.open(method, url, true);
-//     } else if (typeof XDomainRequest != "undefined") {
-//         // XDomainRequest for IE.
-//         xhr = new XDomainRequest();
-//         xhr.open(method, url);
-//     } else {
-//         // CORS not supported.
-//         xhr = null;
-//     }
-//     return xhr;
-//     }
- 
-//var xmlhttp = new createCORSRequest('GET', "http://127.0.0.1:5000/get_phrase_data?nid=1&format=jsonp&callback?");
-//xmlhttp.send()
-//xmlhttp.onreadystatechange = function() {
-//if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-//    var myArr = JSON.parse(JSON.stringify(xmlhttp.responseText));
-    //   console.log(myArr);
-//}
-//}
-
 
   // Add a method to the graph model that returns an
   // object with every neighbors of a node inside:
@@ -60,10 +34,13 @@
     return neighbors;
   });
 
+  //reading the graph file
   sigma.parsers.gexf(
     'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma.gexf',
     {
       container: 'sigma-container',
+      type: 'canvas',
+      camera: 'cam1',
       settings: {
 		nodesPowRatio: 0.5,
            	labelThreshold: 16,
@@ -167,3 +144,32 @@
 
 </body>
 <html>
+
+
+
+
+<!--    /*ONE WAY TO MAKE AJAX CALLS (WITHOUT JQUERY)*/
+//     function createCORSRequest(method, url) {
+//     var xhr = new XMLHttpRequest();
+//     if ("withCredentials" in xhr) {
+//         // XHR for Chrome/Firefox/Opera/Safari.
+//         xhr.open(method, url, true);
+//     } else if (typeof XDomainRequest != "undefined") {
+//         // XDomainRequest for IE.
+//         xhr = new XDomainRequest();
+//         xhr.open(method, url);
+//     } else {
+//         // CORS not supported.
+//         xhr = null;
+//     }
+//     return xhr;
+//     }
+ 
+//var xmlhttp = new createCORSRequest('GET', "http://127.0.0.1:5000/get_phrase_data?nid=1&format=jsonp&callback?");
+//xmlhttp.send()
+//xmlhttp.onreadystatechange = function() {
+//if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//    var myArr = JSON.parse(JSON.stringify(xmlhttp.responseText));
+    //   console.log(myArr);
+//}
+//}-->
