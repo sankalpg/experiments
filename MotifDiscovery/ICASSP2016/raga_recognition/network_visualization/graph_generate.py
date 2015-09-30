@@ -16,7 +16,7 @@ import communityCharacterization as comm_char
 import constructNetwork as cons_net
 import ragaRecognition as raga_recog
 
-def generate_demo_network_raga_recognition(network_file, community_file, output_network, colors = cons_net.colors, colorify = True):
+def generate_demo_network_raga_recognition(network_file, community_file, output_network, colors = cons_net.colors, colorify = True, mydatabase = ''):
     """
     This function generates a network used as a demo for demonstrating relations between phrases.
     The configuration used to generate this network should ideally be the one that is used for the
@@ -30,7 +30,7 @@ def generate_demo_network_raga_recognition(network_file, community_file, output_
     comm_data = json.load(open(community_file,'r'))
     
     #loading all the phrase data
-    comm_char.fetch_phrase_attributes(comm_data, database = 'ISMIR2015_10RAGA_TONICNORM', user= 'sankalp')
+    comm_char.fetch_phrase_attributes(comm_data, database = mydatabase, user= 'sankalp')
     
     #getting all the communities from which we dont want any node in the graph in the demo
     #obtaining gamaka communities
@@ -56,13 +56,110 @@ def generate_demo_network_raga_recognition(network_file, community_file, output_
     # colorify the nodes according to raga labels
     if colorify:
         cmd1 = "select raagaId from file where id = (select file_id from pattern where id =%d)"
-        con = psy.connect(database='ISMIR2015_10RAGA_TONICNORM', user='sankalp') 
+        con = psy.connect(database='ICASSP2016_10RAGA_2S', user='sankalp') 
         cur = con.cursor()
         for n in full_net.nodes():
             cur.execute(cmd1%(int(n)))
             ragaId = cur.fetchone()[0]
-            full_net.node[n]['color'] = colors[ragaId]
+            full_net.node[n]['color'] = ragaId
 
     #saving the network
     nx.write_gexf(full_net, output_network)
+    
+    
+def generate_artificially_connected_network(network_file, community_file, output_network, colorify = True, mydatabase = ''):
+    """  
+    Since isolated communities belonging to different ragas are scattered and jumbled up, we attempt to connect them artificaially
+    so that they are all grouped together.
+    """
+    
+     #loading the network
+    full_net = nx.read_pajek(network_file)
+    
+    #loading community data
+    comm_data = json.load(open(community_file,'r'))
+    
+    #loading all the phrase data
+    comm_char.fetch_phrase_attributes(comm_data, database = mydatabase, user= 'sankalp')
+    
+    #getting all the communities from which we dont want any node in the graph in the demo
+    #obtaining gamaka communities
+    gamaka_comms = comm_char.find_gamaka_communities(comm_data)[0]
+    
+    #obtaining communities with only phrases from one mbid
+    one_mbid_comms = comm_char.get_comm_1MBID(comm_data)
+    
+    print len(full_net.nodes()), len(full_net.edges())
+    #collect phrases which should be removed from the graph
+    phrases = []
+    for c in gamaka_comms:
+        for n in comm_data[c]:
+            phrases.append(int(n['nId']))
+    for c in one_mbid_comms:
+        for n in comm_data[c]:
+            phrases.append(int(n['nId']))
+    
+    print len(phrases)
+    
+    #removing the unwanted phrases
+    full_net = raga_recog.remove_nodes_graph(full_net, phrases)
+    print len(full_net.nodes()), len(full_net.edges())
+    
+    #lets remove these phrases from the comm_data as well
+    for g in gamaka_comms:
+        comm_data.pop(g)
+    for o in one_mbid_comms:
+        comm_data.pop(o)
+    
+    #obtaining the raga labels for each community (majority voting ofcourse)
+    comm_raga = {}
+    raga_comm = {}
+    node_cnt = 0
+    for comId in comm_data.keys():
+        ragaIds = [r['ragaId']  for r in comm_data[comId]]
+        
+        raga_hist, raga_names = comm_char.get_histogram_sorted(ragaIds)
+        comm_raga[comId] = raga_names[0]
+        if not raga_comm.has_key(raga_names[0]):
+            raga_comm[raga_names[0]] = []
+        raga_comm[raga_names[0]].append(comId)
+
+    edge_list = []
+    for comId in comm_data.keys():
+        raga = comm_raga[comId]
+        node_cnt+= len(comm_data[comId])
+        for comms_in_raga in raga_comm[raga]:
+            if comms_in_raga == comId:
+                continue
+            #full_net.add_edge(comm_data[comId][0]['nId'], comm_data[comms_in_raga][0]['nId'], weight=0.0)
+            edge_list.append((str(comm_data[comId][0]['nId']), str(comm_data[comms_in_raga][0]['nId']), 0.000000001))
+
+    print node_cnt
+    print len(full_net.nodes()), len(full_net.edges())
+    json.dump(full_net.nodes(), open('pehle.json','w'))
+    full_net.add_weighted_edges_from(edge_list)
+    json.dump(full_net.nodes(), open('baad.json','w'))
+    print len(full_net.nodes()), len(full_net.edges())
+    
+    # colorify the nodes according to raga labels
+    if colorify:
+        cmd1 = "select raagaId from file where id = (select file_id from pattern where id =%d)"
+        con = psy.connect(database='ICASSP2016_10RAGA_2S', user='sankalp') 
+        cur = con.cursor()
+        for n in full_net.nodes():
+            cur.execute(cmd1%(int(n)))
+            ragaId = cur.fetchone()[0]
+            full_net.node[n]['color'] = ragaId
+
+
+    
+    
+    #saving the network
+    nx.write_gexf(full_net, output_network)
+    
+    
+    
+    
+    
+    
     
