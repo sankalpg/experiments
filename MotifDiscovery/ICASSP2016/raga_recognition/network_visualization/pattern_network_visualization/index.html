@@ -66,7 +66,8 @@
       // original color.
       // We do the same for the edges, and we only keep
       // edges that have both extremities colored.
-      s.bind('clickNode', function(e) {
+      
+      s.bind('overNode', function(e) {
         var nodeId = e.data.node.id,
             toKeep = s.graph.neighbors(nodeId);
         toKeep[nodeId] = e.data.node;
@@ -74,18 +75,23 @@
           if (toKeep[n.id])
             n.color = n.originalColor;
           else
-            n.color = '#eee';
+            n.color = '#404040';
         });
         s.graph.edges().forEach(function(e) {
           if (toKeep[e.source] && toKeep[e.target])
             e.color = e.originalColor;
           else
-            e.color = '#eee';
+            e.color = '#404040';
         });
         // Since the data has been modified, we need to
         // call the refresh method to make the colors
         // update effective.
         s.refresh();
+        
+      });
+      
+      
+      s.bind('clickNode', function(e) {
         //playing audio        
         $.ajax({
         crossDomain: true,
@@ -98,7 +104,7 @@
       });
       // When the stage is clicked, we just color each
       // node and edge with its original color.
-      s.bind('clickStage', function(e) {
+      s.bind('outNode', function(e) {
         s.graph.nodes().forEach(function(n) {
           n.color = n.originalColor;
         });
