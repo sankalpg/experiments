@@ -3,15 +3,33 @@
 
 <style type="text/css">
   #sigma-container {
-    max-width: 2000px;
-    height: 1000px;
+    max-width: 100%;
+    height: 100%;
     margin: auto;
     background: #3C3C3C;
   }
+  
+    #info-container {
+    max-width: 200px;
+    height: 200px;
+    margin: auto;
+    position: absolute;
+    left: 50px;
+    top: 50px;
+    color: #FFFFF;
+    background: #FFFFF;
+  }
+  
 </style>
 
 </head>
 <body>
+
+<div id="info-container">
+
+hello
+
+</div>
 
 <div id="sigma-container"></div>
 <script src="sigma.min.js"></script>
@@ -43,13 +61,19 @@
   settings: {
     defaultLabelColor: '#fff',
     defaultLabelSize: 14,
-    labelColor: "node"
+    labelColor: "node",
+    defaultEdgeType: 'curve',
+    maxEdgeSize: 1,
+    hideEdgesOnMove: 'True',
+    zoomingRatio: 3,
+    borderSize: 5,
+    defaultNodeBorderColor: '#FFFF'
   }
 });
   
   //reading the graph file
    sigma.parsers.gexf( 
-            'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma_frutcherman_2.gexf',
+            'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma_frutcherman_3.gexf',
             actualGraph,
             function(s) {
       // We first need to save the original colors of our
@@ -72,16 +96,12 @@
             toKeep = s.graph.neighbors(nodeId);
         toKeep[nodeId] = e.data.node;
         s.graph.nodes().forEach(function(n) {
-          if (toKeep[n.id])
-            n.color = n.originalColor;
-          else
-            n.color = '#404040';
+          //if (toKeep[n.id])
+          //  n.color = '#FFFFFF';
         });
         s.graph.edges().forEach(function(e) {
           if (toKeep[e.source] && toKeep[e.target])
-            e.color = e.originalColor;
-          else
-            e.color = '#404040';
+            e.color = '#FFFFFF';
         });
         // Since the data has been modified, we need to
         // call the refresh method to make the colors
@@ -101,9 +121,11 @@
             playSegment(data.mbid, data.start, data.end);
             document.body.style.cursor = "progress";
         });
+        //document.getElementById("info-container").innerHTML="<img src='https://ia801504.us.archive.org/20/items/mbid-fc53907a-1295-4034-acb3-2afafa0f9523/mbid-fc53907a-1295-4034-acb3-2afafa0f9523-11306213506_thumb250.jpg'/>";
       });
       // When the stage is clicked, we just color each
       // node and edge with its original color.
+      
       s.bind('outNode', function(e) {
         s.graph.nodes().forEach(function(n) {
           n.color = n.originalColor;
@@ -122,11 +144,14 @@
 
     console.log(sigma.settings);
     var settings = new sigma.classes.configurable({
-        "labelThreshold": 10,
+        "labelThreshold": 8,
         "defaultLabelColor": "#FFF",
         "defaultEdgeType": 'curve',
-        "zoomingRatio": 10,
-        "nodesPowRatio": 2
+        "nodesPowRatio": 0.1,
+        maxEdgeSize: 1,
+        hideEdgesOnMove: 'True',
+        minEdgeSize: 0.1,
+        maxEdgeSize: 0.5
         });
     actualGraph.settings = settings;
     actualGraph.settings('defaultLabelColor', "#FFF");
