@@ -38,14 +38,14 @@
   sigma.parsers.gexf(
     'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma_frutcherman_2.gexf',
     {
-      container: 'sigma-container',
-      type: 'canvas',
-      camera: 'cam1',
-      settings: {
-		nodesPowRatio: 0.5,
-           	labelThreshold: 16,
-           	minNodeSize: 0.01
-}
+        container: 'sigma-container',
+        settings: 
+        {
+            nodesPowRatio: 0.5,
+            labelThreshold: 10,
+            minNodeSize: 0.01,
+            defaultEdgeType: 'curve'
+        }
 
     },
     
