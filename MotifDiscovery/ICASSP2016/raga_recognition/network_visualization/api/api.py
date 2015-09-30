@@ -10,7 +10,7 @@ from flask.ext.cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-con = psy.connect(database='ISMIR2015_10RAGA_TONICNORM', user='sankalp') 
+con = psy.connect(database='ICASSP2016_10RAGA_2S', user='sankalp') 
 cur = con.cursor()
 
 @app.route('/')
