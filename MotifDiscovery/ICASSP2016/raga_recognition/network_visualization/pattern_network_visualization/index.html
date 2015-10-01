@@ -181,11 +181,18 @@
                 $("#title").html("<strong>Title: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'recording/'+data.mbid+ ">"+ data1.title+"</a>");
                 $("#concert").html("<strong>Concert: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'concert/'+data1.concert[0]['mbid']+ ">"+ data1.concert[0]['title']+"</a>");
                 $("#artist").html("<strong>Artist: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'artist/'+data1.album_artists[0]['mbid']+ ">"+ data1.album_artists[0]['name']+"</a>");
-                $("#raga").html("<strong>Raga: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'raaga/'+data1.raaga[0]['uuid']+ ">"+ data1.raaga[0]['name']+"</a>");
                 $("#tonic").html("<strong>Tonic: </strong>"+Math.round(data.tonic)+" Hz <a style='color:white' href='javascript:playtone("+data.tonic+")'"+"><img id='play_pause' src='play.jpg' width='14' height='14' border='0'>");
                 $("#start-time").html("<strong>Start-time: </strong>" + Math.round(data.start) + ' s');
                 $("#end-time").html("<strong>End-time: </strong>" + Math.round(data.end)+' s');
                 $("#node").html("<strong>Node Id: </strong>" + e.data.node.label);
+                if (data1.raaga.length>0){
+                $("#raga").html("<strong>Raga: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'raaga/'+data1.raaga[0]['uuid']+ ">"+ data1.raaga[0]['name']+"</a>");
+                }
+                else
+                {
+                $("#raga").html("<strong>Raga: </strong>Error (DunyaRaga)");
+                }
+                
                 
                 
             });
