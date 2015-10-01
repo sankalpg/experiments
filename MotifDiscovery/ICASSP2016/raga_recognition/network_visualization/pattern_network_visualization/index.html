@@ -10,9 +10,9 @@
   }
   
     #info-container {
-    max-width: 200px;
-    height: 200px;
-    width: 500px;
+    max-width: 275px;
+    height: 180px;
+    width: 275px;
     margin: auto;
     position: absolute;
     left: 25px;
@@ -30,14 +30,18 @@
     opacity: 0.8;
    
   }
+  #play_pause{
+      position: relative;
+    top: 2px;
+    }
 </style>
 
 </head>
 <body>
 
 <div id="info-container">
-<strong><center><u>Phrase Details</u></center></strong>
-</br>
+<!--<strong><center><u>Phrase Details</u></center></strong>
+</br>-->
 
 
 <div id="node">
@@ -174,13 +178,13 @@
            url: "http://10.80.26.245:5000/get_rec_data?mbid="+ data.mbid + "&format=jsonp&callback?"
             }).then(function(data1) {
                 console.log(data1.title);
-                $("#title").html("<strong>Title: </strong>"+"<a style='color:white' href="+dbase+'recording/'+data.mbid+ ">"+ data1.title+"</a>");
-                $("#concert").html("<strong>Concert: </strong>"+"<a style='color:white' href="+dbase+'concert/'+data1.concert[0]['mbid']+ ">"+ data1.concert[0]['title']+"</a>");
-                $("#artist").html("<strong>Artist: </strong>"+"<a style='color:white' href="+dbase+'artist/'+data1.album_artists[0]['mbid']+ ">"+ data1.album_artists[0]['name']+"</a>");
-                $("#raga").html("<strong>Raga: </strong>"+"<a style='color:white' href="+dbase+'raaga/'+data1.raaga[0]['uuid']+ ">"+ data1.raaga[0]['name']+"</a>");
-                $("#tonic").html("<strong>Tonic: </strong>"+"<a style='color:white' href='javascript:playtone("+data.tonic+")'"+">"+Math.round(data.tonic,2)+"</a>");
-                $("#start-time").html("<strong>Start-time: </strong>" + data.start);
-                $("#end-time").html("<strong>End-time: </strong>" + data.end);
+                $("#title").html("<strong>Title: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'recording/'+data.mbid+ ">"+ data1.title+"</a>");
+                $("#concert").html("<strong>Concert: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'concert/'+data1.concert[0]['mbid']+ ">"+ data1.concert[0]['title']+"</a>");
+                $("#artist").html("<strong>Artist: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'artist/'+data1.album_artists[0]['mbid']+ ">"+ data1.album_artists[0]['name']+"</a>");
+                $("#raga").html("<strong>Raga: </strong>"+"<a style='color:white' target='_blank' href="+dbase+'raaga/'+data1.raaga[0]['uuid']+ ">"+ data1.raaga[0]['name']+"</a>");
+                $("#tonic").html("<strong>Tonic: </strong>"+Math.round(data.tonic)+" Hz <a style='color:white' href='javascript:playtone("+data.tonic+")'"+"><img id='play_pause' src='play.jpg' width='14' height='14' border='0'>");
+                $("#start-time").html("<strong>Start-time: </strong>" + Math.round(data.start) + ' s');
+                $("#end-time").html("<strong>End-time: </strong>" + Math.round(data.end)+' s');
                 $("#node").html("<strong>Node Id: </strong>" + e.data.node.label);
                 
                 
@@ -251,6 +255,7 @@
         console.log(audio.src);
         audio.currentTime = startTime;
         audio.play();
+        
     }
     function play_osc(f){
         oscillator = audioCtx.createOscillator();
@@ -267,11 +272,13 @@
         if (isplaying)
         {
         oscillator.stop();
-        console.log("Stopping")  
+        console.log("Stopping")  ;
+        $("#play_pause").attr('src', 'play.jpg');
         }
         else{
         play_osc(f);
-        console.log("Starting")  
+        console.log("Starting")  ;
+        $("#play_pause").attr('src', 'stop.jpg');
         }
         isplaying = !isplaying; 
     }
