@@ -12,12 +12,18 @@
     #info-container {
     max-width: 200px;
     height: 200px;
+    width: 500px;
     margin: auto;
     position: absolute;
     left: 50px;
     top: 50px;
     color: #FFFFF;
-    background: #FFFFF;
+    background-color: white;
+    border-radius: 15px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    z-index: 10;
+    padding: 10px;
   }
   
 </style>
@@ -25,9 +31,20 @@
 </head>
 <body>
 
-<div id="info-container">
+<div id="info-container2">
 
-hello
+<div id="title">
+
+</div>
+<div id="Artist">
+
+</div>
+<div id="Raga">
+
+</div>
+<div id="Tala">
+
+</div>
 
 </div>
 
@@ -120,8 +137,19 @@ hello
         }).then(function(data) {
             playSegment(data.mbid, data.start, data.end);
             document.body.style.cursor = "progress";
+            $.ajax({
+            crossDomain: true,
+            dataType: 'json',
+           url: "http://10.80.26.245:5000/get_rec_data?mbid="+ data.mbid + "&format=jsonp&callback?"
+            }).then(function(data1) {
+                console.log(data1.title);
+                $("#title").text(data1.title);
+                $("#title").text(data1.title);
+                $("#title").text(data1.title);
+                $("#title").text(data1.title);
+            });
         });
-        //document.getElementById("info-container").innerHTML="<img src='https://ia801504.us.archive.org/20/items/mbid-fc53907a-1295-4034-acb3-2afafa0f9523/mbid-fc53907a-1295-4034-acb3-2afafa0f9523-11306213506_thumb250.jpg'/>";
+        
       });
       // When the stage is clicked, we just color each
       // node and edge with its original color.
