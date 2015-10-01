@@ -39,10 +39,10 @@ def support_jsonp(f):
 @support_jsonp
 def get_phrase_data():
     nid = int(request.args.get('nid'))
-    cmd = "select file.mbid, file.raagaid, pattern.start_time, pattern.end_time from pattern join file on (file.id = pattern.file_id) where pattern.id = %d"
+    cmd = "select file.mbid, file.raagaid, file.tonic, pattern.start_time, pattern.end_time from pattern join file on (file.id = pattern.file_id) where pattern.id = %d"
     cur.execute(cmd%(nid))
-    mbid, raaga, start, end = cur.fetchone()
-    out = {'mbid':mbid, 'ragaid': raaga, 'start':start, 'end':end}
+    mbid, raaga, tonic, start, end = cur.fetchone()
+    out = {'mbid':mbid, 'ragaid': raaga, 'start':start, 'end':end, 'tonic': tonic}
     
     return jsonify(**out)
 
@@ -52,7 +52,6 @@ def get_rec_data():
     mbid = request.args.get('mbid')
     url = "http://dunya.compmusic.upf.edu/api/carnatic/recording/" + mbid
     data = requests.get(url, headers = {"Authorization":"Token " + auth_token})
-    print data.json()
     return jsonify(**(data.json()))
 
 
