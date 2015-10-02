@@ -89,7 +89,20 @@
 
 
 <script>
-
+   
+   
+   $('document').ready(function(){
+   
+        $.ajax({
+            crossDomain: true,
+            dataType: 'json',
+           url: "https://dunya.compmusic.upf.edu/social/api-login/?token=31fbb43414dedad8a9e9b4379be1a6c8992849b4"
+            }).then(function(data) {
+                console.log("Login succefull");
+            });
+   
+   });
+   
    var dbase = 'http://dunya.compmusic.upf.edu/carnatic/';
   // Add a method to the graph model that returns an
   // object with every neighbors of a node inside:
@@ -259,6 +272,7 @@
     function playSegment(mbid, startTime, endTime){
         segmentEnd = endTime;
         audio.src = 'http://dunya.compmusic.upf.edu/document/by-id/' + mbid + '.mp3';
+        
         console.log(audio.src);
         audio.currentTime = startTime;
         audio.play();

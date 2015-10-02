@@ -9,7 +9,7 @@ import json
 from flask.ext.cors import CORS
 from compmusic import dunya as dn
 
-auth_token = "60312f59428916bb854adaa208f55eb35c3f2f07"
+auth_token = "31fbb43414dedad8a9e9b4379be1a6c8992849b4"
 
 app = Flask(__name__)
 CORS(app)
