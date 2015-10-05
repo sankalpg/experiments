@@ -157,9 +157,54 @@ def generate_artificially_connected_network(network_file, community_file, output
     #saving the network
     nx.write_gexf(full_net, output_network)
     
+def convertFormat(sec):
+        
+    hours = int(np.floor(sec/3600))
+    minutes = int(np.floor((sec - (hours*3600))/60))
+    
+    seconds = sec - ( hours*3600 + minutes*60)
+    
+    return str(hours) + ':' + str(minutes) + ':' + str(seconds)
     
     
+def clipAudio(path, filename, start, end, pattern):
     
+    outfile = os.path.join(path,str(pattern) + '.mp3')
     
+    cmd = "sox \"%s\" \"%s\" trim %s =%s"%(filename, outfile, convertFormat(start), convertFormat(end))
+    os.system(cmd)
     
+    return 1    
+    
+def dump_melodic_phrases_in_network(network_file, output_dir, myDatabase, base_name):
+    """
+    This function dumps all the mp3 files for the patterns in the 'network' (gexf file)
+    """
+    
+    cmd1 = "select file.filename, pattern.start_time, pattern.end_time from pattern join file on (pattern.file_id = file.id) where pattern.id = %d"
+    
+    #reading the network
+    full_net = nx.read_gexf(network_file)
+    
+    patterns = full_net.nodes()
+    
+    try:
+        con = psy.connect(database=myDatabase, user='sankalp') 
+        cur = con.cursor()
+        for ii, pattern in enumerate(patterns):
+            cur.execute(cmd1%int(pattern))
+            filename, start, end = cur.fetchone()
+            clipAudio(output_dir, os.path.join(base_name, filename), start, end, int(pattern))
+        
+    except psy.DatabaseError, e:
+        print 'Error %s' % e
+        if con:
+            con.rollback()
+            con.close()
+        sys.exit(1)
+    
+    if con:
+        con.close()
+    
+    return 1
     

@@ -106,16 +106,16 @@
    var dbase = 'http://dunya.compmusic.upf.edu/carnatic/';
   // Add a method to the graph model that returns an
   // object with every neighbors of a node inside:
-  sigma.classes.graph.addMethod('neighbors', function(nodeId) {
-    var k,
-        neighbors = {},
-        index = this.allNeighborsIndex[nodeId] || {};
-
-    for (k in index)
-      neighbors[k] = this.nodesIndex[k];
-
-    return neighbors;
-  });
+//   sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+//     var k,
+//         neighbors = {},
+//         index = this.allNeighborsIndex[nodeId] || {};
+// 
+//     for (k in index)
+//       neighbors[k] = this.nodesIndex[k];
+// 
+//     return neighbors;
+//   });
 
    var actualGraph = new sigma();
    
@@ -156,24 +156,24 @@
       // We do the same for the edges, and we only keep
       // edges that have both extremities colored.
       
-      s.bind('overNode', function(e) {
-        var nodeId = e.data.node.id,
-            toKeep = s.graph.neighbors(nodeId);
-        toKeep[nodeId] = e.data.node;
-        s.graph.nodes().forEach(function(n) {
-          //if (toKeep[n.id])
-          //  n.color = '#FFFFFF';
-        });
-        s.graph.edges().forEach(function(e) {
-          if (toKeep[e.source] && toKeep[e.target])
-            e.color = '#FFFFFF';
-        });
-        // Since the data has been modified, we need to
-        // call the refresh method to make the colors
-        // update effective.
-        s.refresh();
-        
-      });
+//       s.bind('overNode', function(e) {
+//         var nodeId = e.data.node.id,
+//             toKeep = s.graph.neighbors(nodeId);
+//         toKeep[nodeId] = e.data.node;
+//         s.graph.nodes().forEach(function(n) {
+//           //if (toKeep[n.id])
+//           //  n.color = '#FFFFFF';
+//         });
+//         s.graph.edges().forEach(function(e) {
+//           if (toKeep[e.source] && toKeep[e.target])
+//             e.color = '#FFFFFF';
+//         });
+//         // Since the data has been modified, we need to
+//         // call the refresh method to make the colors
+//         // update effective.
+//         s.refresh();
+//         
+//       });
       
       
       s.bind('clickNode', function(e) {
@@ -214,16 +214,16 @@
       // When the stage is clicked, we just color each
       // node and edge with its original color.
       
-      s.bind('outNode', function(e) {
-        s.graph.nodes().forEach(function(n) {
-          n.color = n.originalColor;
-        });
-        s.graph.edges().forEach(function(e) {
-          e.color = e.originalColor;
-        });
-        // Same as in the previous event:
-        s.refresh();
-      });
+//       s.bind('outNode', function(e) {
+//         s.graph.nodes().forEach(function(n) {
+//           n.color = n.originalColor;
+//         });
+//         s.graph.edges().forEach(function(e) {
+//           e.color = e.originalColor;
+//         });
+//         // Same as in the previous event:
+//         s.refresh();
+//       });
       
       s.refresh();
     }
