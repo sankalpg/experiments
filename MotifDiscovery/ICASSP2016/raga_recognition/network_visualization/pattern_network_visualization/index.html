@@ -4,6 +4,7 @@
 <style type="text/css">
   #sigma-container {
     max-width: 100%;
+    width: 100%;
     height: 100%;
     margin: auto;
     background: #3C3C3C;
@@ -90,7 +91,7 @@
 
 <script>
    
-   
+/*   
    $('document').ready(function(){
    
         $.ajax({
@@ -101,7 +102,7 @@
                 console.log("Login succefull");
             });
    
-   });
+   });*/
    
    var dbase = 'http://dunya.compmusic.upf.edu/carnatic/';
   // Add a method to the graph model that returns an
@@ -121,24 +122,22 @@
    
   actualGraph.addRenderer({
   container: document.getElementById('sigma-container'),
-  type: 'webgl',
-  camera: 'cam1',
   settings: {
     defaultLabelColor: '#fff',
-    defaultLabelSize: 14,
+    defaultLabelSize: 12,
     labelColor: "node",
     defaultEdgeType: 'curve',
     maxEdgeSize: 1,
     hideEdgesOnMove: 'True',
-    zoomingRatio: 3,
-    borderSize: 5,
+    zoomingRatio: 2,
+    borderSize: 4,
     defaultNodeBorderColor: '#FFFF'
   }
 });
   
   //reading the graph file
-   sigma.parsers.gexf( 
-            'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma_frutcherman_3.gexf',
+   sigma.parsers.json( 
+            'network_ICASSP2016_10RAGA_2S_11_pattDistance_2s_raga_close_to_sigma_frutcherman_3.json',
             actualGraph,
             function(s) {
       // We first need to save the original colors of our
@@ -232,14 +231,13 @@
 
     console.log(sigma.settings);
     var settings = new sigma.classes.configurable({
-        "labelThreshold": 8,
+        "labelThreshold": 12,
         "defaultLabelColor": "#FFF",
-        "defaultEdgeType": 'curve',
         "nodesPowRatio": 0.1,
         maxEdgeSize: 1,
         hideEdgesOnMove: 'True',
         minEdgeSize: 0.1,
-        maxEdgeSize: 0.5
+        maxEdgeSize: 0.5,
         });
     actualGraph.settings = settings;
     actualGraph.settings('defaultLabelColor', "#FFF");

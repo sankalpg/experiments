@@ -186,12 +186,15 @@ def dump_melodic_phrases_in_network(network_file, output_dir, myDatabase, base_n
     #reading the network
     full_net = nx.read_gexf(network_file)
     
+    labels = nx.get_node_attributes(full_net, 'label')
+    
     patterns = full_net.nodes()
     
     try:
         con = psy.connect(database=myDatabase, user='sankalp') 
         cur = con.cursor()
         for ii, pattern in enumerate(patterns):
+            pattern = labels[pattern]
             cur.execute(cmd1%int(pattern))
             filename, start, end = cur.fetchone()
             clipAudio(output_dir, os.path.join(base_name, filename), start, end, int(pattern))
