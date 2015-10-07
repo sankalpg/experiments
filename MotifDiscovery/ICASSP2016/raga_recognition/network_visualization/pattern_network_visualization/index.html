@@ -44,6 +44,9 @@
 <!--<strong><center><u>Phrase Details</u></center></strong>
 </br>-->
 
+<div id="loading" style = "margin:500px">
+<strong>Loading please wait</strong>
+</div>
 
 <div id="node">
 <strong>Node Id:</strong>
@@ -225,6 +228,8 @@
 //       });
       
       s.refresh();
+      $('#loading').hide();
+      console.log("Came here");
     }
         );  
   
