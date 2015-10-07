@@ -8,6 +8,7 @@
     height: 100%;
     margin: auto;
     background: #3C3C3C;
+    position: absolute;
   }
   
     #info-container {
@@ -22,7 +23,7 @@
     border-radius: 15px;
     -webkit-border-radius: 15px;
     -moz-border-radius: 15px;
-    z-index: 10;
+    z-index: 12;
     padding: 10px;
     font-family: Gill Sans, Verdana;
     font-size: 12px;
@@ -31,6 +32,25 @@
     opacity: 0.8;
    
   }
+  
+      #desc-container {
+    max-width: 900px;
+    height: 50px;
+    width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    position: center;
+    background-color: black;
+    z-index: 10;
+    padding: 10px;
+    font-family: Gill Sans, Verdana;
+    font-size: 11px;
+    line-height: 18px;
+    color: white;
+    opacity: 0.8;
+   
+  }
+  
   #play_pause{
       position: relative;
     top: 2px;
@@ -39,6 +59,7 @@
 
 </head>
 <body>
+
 
 <div id="info-container">
 <!--<strong><center><u>Phrase Details</u></center></strong>
@@ -85,7 +106,19 @@
 
 </div>
 
-<div id="sigma-container"></div>
+
+
+<div id="sigma-container">
+
+<div id="desc-container">
+This is a network of discoverd melodic phrases from an audio collection of Carnatic music. 
+Colors represent the raga of the recordings. The connected phrases are considered as melodically similar, spacial position has no relation with the similarity.
+You can zoom in/out and play these melodic phrases and see their information in the box on the left. These phrases 
+are sung at different tonic pitches so take that into account before comparing phrases.
+</div>
+
+</div>
+
 <script src="sigma.min.js"></script>
 <script src="sigma.parsers.json.min.js"></script>
 <script src="sigma.parsers.gexf.min.js"></script>
