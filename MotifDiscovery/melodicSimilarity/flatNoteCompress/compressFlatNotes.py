@@ -260,9 +260,62 @@ class flatNoteCompression():
       #reductionLen = len(np.where(delInds<phraseLen)[0])
       #pitchSegCandidate = np.delete(pitchSegCandidate, delInds)
       return pitchSegCandidate[:segOutLen]
+  
+  
 
-
-
+  def compressEntirePitchTrack(self):
+    """
+    compress() function above does compression for a melodic segment (phrase). It was used in the supervised study. 
+    For some other application (motif discovery) we would want to do the compression of stable notes for the entire pitch track.
+    This is the code to precisely do that.
+    NOTE: one of the output should be index values of the input pitch samples which are retained. Since the code for motif discovery has to produce
+    time stamps of the phrases, it should cover the flat notes till their end time for compressed notes. So we should either give output time stamps of the samples
+    or the index of the pithc samples.
+    """
+    #indexes of the pitch samples (before truncating the duration)
+    inds = np.arange(self.pitch.size)
+    
+    #copying pitch buffer
+    pitch_local = copy.deepcopy(self.pitch)
+    
+    indFlatSegments = seg.groupIndices(self.flatInds)
+    lenSegments = indFlatSegments[:,1] - indFlatSegments[:,0]
+    indLongNotes = np.where(lenSegments>=self.maxFlatLen)[0]
+    delInds = []
+    if len(indLongNotes)==0:
+        return BP.packTimePitch(inds*self.hopSize, self.pitch)
+    else:
+        for ii in indLongNotes:
+            segStart = indFlatSegments[ii, 0]
+            segEnd = indFlatSegments[ii, 1]
+            segPitch = self.pCents[segStart:segEnd+1]
+            segPitch = np.sort(segPitch)
+            meanSegment = np.mean(segPitch[np.round(len(segPitch)*0.1).astype(np.int):np.round(len(segPitch)*0.9).astype(np.int)])
+            indMin = np.argmin(abs(self.swarCents-meanSegment))
+            if abs(self.swarCents[indMin]-meanSegment) <= 100:
+                pVal = self.tonic*np.power(2,self.swarCents[indMin]/1200.0)
+            else:
+                pVal = self.tonic*np.power(2, meanSegment/1200.0)
+            pitch_local[segStart : segEnd]=pVal
+            #delInds.extend(np.arange(segStart+self.maxFlatLen, segEnd+1))
+            #NOTE: we delete samples from half of maxFlatLen from the start to half remaining. This is to ensure that if a subseq covers this flattened note, its time stamp covers the entire note. 
+            delInds.extend(np.arange(segStart+self.maxFlatLen/2, segEnd - self.maxFlatLen/2 +1))
+    delInds = np.array(delInds)
+    pitch_local = np.delete(pitch_local, delInds)
+    inds = np.delete(inds, delInds)
+    
+    return BP.packTimePitch(inds*self.phop, pitch_local)
+            
+            
+    
+    
+    
+    
+    
+      
+      
+      
+      
 
 
 
