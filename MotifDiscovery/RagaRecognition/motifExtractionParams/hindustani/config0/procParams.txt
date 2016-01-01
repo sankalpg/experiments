@@ -16,6 +16,7 @@ rankRefDistType: -1
 maxNMotifsPairs: 30
 distType: 1
 DTWType: 0
-pitchHop: 0
+pitchHop: 0.022222
+
 
 
