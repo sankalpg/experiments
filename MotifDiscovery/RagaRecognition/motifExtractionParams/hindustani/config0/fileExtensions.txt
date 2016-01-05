@@ -14,4 +14,6 @@ distOutFileExt: .pattDistance_2s_config0
 disLogFileExt: .disLogs_2s_config0
 srchLogFileExt: .srchLogs_2s_config0
 dumpLogFileExt: .dumpLogs_2s_config0
+blackListSubSeqExt: .blackSubSeqs_2s_config0
+
 
