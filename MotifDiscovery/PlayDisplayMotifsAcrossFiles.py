@@ -71,8 +71,8 @@ def PlotPlayMotifsAcrossFiles(motifFile, mappFile, motifPairIndex, formatNEWOLD)
     pitchExt = '.pitch'
     tonicExt = '.tonic'
     
-    serverSuffix = "/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/audio/"
-    localSuffix = "/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/audio/"
+    serverSuffix = "/homedtic/sgulati/motifDiscovery/dataset/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/"
+    localSuffix = "/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/"
     
     #serverSuffix = '/homedtic/sgulati/motifDiscovery/dataset/hindustani/compmusic'
     #localSuffix = '/media/Data/Datasets/MotifDiscovery_Dataset/CompMusic/Hindustani'
