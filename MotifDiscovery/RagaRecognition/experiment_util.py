@@ -141,6 +141,9 @@ def generate_FILE_MBID_RAGAlist(filelist, database, user, outputfile):
 	lines = open(filelist, 'r').readlines()
 	for ii, line in enumerate(lines):
 		file_path = line.strip()
+		mbid_from_file = rr.get_mbid_from_mp3(file_path + '.mp3')
+		if mbid_from_file != raga_mbid[ii][1]:
+			print "Man there is a diff between the mbid read from the file and the one obtained from the database for th esame file"
 		fid.write("%s\t%s\t%s\n"% (file_path, raga_mbid[ii][1], raga_mbid[ii][0]))
 
 	fid.close()

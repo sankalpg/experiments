@@ -14,7 +14,8 @@ def run_raga_recognition_V1_gridSearch():
     
     #parameters
     out_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/hindustani/gridsearch'
-    fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/__dbInfo__/Hindustani30Ragas.flist_local'
+    fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/__dbInfo__/Hindustani30Raga300_FILE_MBID_RAGA.txt'
+    root_dir = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/pitch_tonic'
     delay = [200 , 300 , 500, 1000, 1500]
     smooth_gauss_sigma = [-1, 1, 2, 3]
     compression = [-1, 0.1, 0.25, 0.5, 0.75]
@@ -40,10 +41,9 @@ def run_raga_recognition_V1_gridSearch():
                     for dist in dist_metric:
                         for k in KNN:
                             dir_name = os.path.join(out_dir, "config_%s"%str(cnt))
-                            result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name, 
+                            result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name,
+                                                            root_dir, 
                                                             fileListFile,
-                                                            database = 'Raga_Rec_Hindustani_30Raga_Config0',
-                                                            user = 'sankalp',
                                                             phase_ext = phase_ext[d],
                                                             smooth_gauss_sigma=sigma,
                                                             compression = c,
