@@ -132,8 +132,18 @@ def generateSubsetDatasets(root_dir, file_list_file, database = '', user = '', t
 
 
 
+def generate_FILE_MBID_RAGAlist(filelist, database, user, outputfile):
 
+	raga_mbid = rr.get_mbids_raagaIds_for_collection(filelist, database, user)
 
+	fid = open(outputfile, 'w')
+
+	lines = open(filelist, 'r').readlines()
+	for ii, line in enumerate(lines):
+		file_path = line.strip()
+		fid.write("%s\t%s\t%s\n"% (file_path, raga_mbid[ii][1], raga_mbid[ii][0]))
+
+	fid.close()
 
 
 
