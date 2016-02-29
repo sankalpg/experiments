@@ -87,7 +87,7 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
 
 def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     
-    raga_name_map = json.load(open(raga_name_map_file,'r'))
+    raga_name_map = json.load(codecs.open(raga_name_map_file,'r', encoding = 'utf-8'))
     results = pickle.load(open(result_file, 'r'))
     conf_arr = results['var2']['cm'][0]
     raga_names = results['var2']['mapping']
@@ -248,7 +248,7 @@ def get_confusion_matrix_data_sertan(filename):
 
 def plot_confusion_matrix_sertan(raga_name_map_file, sertan_results_file, outputname):
     
-    raga_name_map = json.load(open(raga_name_map_file,'r'))
+    raga_name_map = json.load(codecs.open(raga_name_map_file,'r', encoding = 'utf-8'))
     conf_arr,raga_names =  get_confusion_matrix_data_sertan(sertan_results_file)
     
     y_labels = []
