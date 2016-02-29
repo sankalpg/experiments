@@ -108,27 +108,34 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     ax.set_aspect(1)
     ax.grid(which='major')
     cmap_local = plt.get_cmap('binary', np.max(conf_arr)-np.min(conf_arr)+1)
-    res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
-                    interpolation='nearest', aspect='1', cmap=cmap_local,
-                    ##Commenting out this line sets labels correctly,
-                    ##but the grid is off
-                    extent=[0, width, height, 0],
-                    vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
-                    )
-    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+1)
-    tickpos = np.linspace(ticks[0] , ticks[-1] , len(ticks));
+    #res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
+    #                interpolation='nearest', aspect='1', cmap=cmap_local,
+    #                ##Commenting out this line sets labels correctly,
+    #                ##but the grid is off
+    #                extent=[0, width, height, 0],
+    #                vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
+    #                )
+    res = ax.pcolor(np.array(conf_arr), cmap=cmap_local, edgecolor='black', linestyle=':', lw=1)
+    
+    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+2)
+    tickpos = np.linspace(ticks[0] , ticks[-2], len(ticks));
+
     #cax = plt.colorbar(mat, ticks=tickpos)
     #cax.set_ticklabels(ticks)
     
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("bottom", size="5%", pad=0.1)
-    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
+    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos+0.5)
+    cb.ax.set_xticklabels(np.arange(len(tickpos)))
 
     #Axes
-    ax.set_xticks(np.arange(width))
+    ax.invert_yaxis()
+    ax.xaxis.tick_top()
+
+    ax.set_xticks(np.arange(width)+0.5)
     ax.set_xticklabels(x_labels, rotation='vertical')
     #ax.xaxis.labelpad = 0.1
-    ax.set_yticks(np.arange(height))
+    ax.set_yticks(np.arange(height)+0.5)
     ax.set_yticklabels(y_labels , rotation='horizontal')
 
     for x in xrange(conf_arr.shape[0]):
@@ -211,29 +218,7 @@ def plotPerThresholdAcuracy(cc_dir, thsld_dir, plotName=-1):
         plt.show()
     elif isinstance(plotName, str):
         fig.savefig(plotName, bbox_inches='tight')
-        
-
-
-#fig, ax1 = plt.subplots()
-#t = np.arange(0.01, 10.0, 0.01)
-#s1 = np.exp(t)
-#ax1.plot(t, s1, 'b-')
-#ax1.set_xlabel('time (s)')
-## Make the y-axis label and tick labels match the line color.
-#ax1.set_ylabel('exp', color='b')
-#for tl in ax1.get_yticklabels():
-    #tl.set_color('b')
-
-
-#ax2 = ax1.twinx()
-#s2 = np.sin(2*np.pi*t)
-#ax2.plot(t, s2, 'r.')
-#ax2.set_ylabel('sin', color='r')
-#for tl in ax2.get_yticklabels():
-    #tl.set_color('r')
-#plt.show()
-
-    
+            
 def get_confusion_matrix_data_sertan(filename):
     
     data = json.load(open(filename,'r'))
@@ -304,5 +289,16 @@ def plot_confusion_matrix_sertan(raga_name_map_file, sertan_results_file, output
     ax.set_yticks(range(height))
     ax.set_yticklabels(y_labels , rotation='horizontal')
     #plt.tight_layout()
+    plt.savefig(outputname)
+    #plt.show()
+    for x in xrange(conf_arr.shape[0]):
+        for y in xrange(conf_arr.shape[1]):
+            textcolor = 'black'
+            if conf_arr[x,y] >= 6:
+                textcolor = 'white'
+            if conf_arr[x,y]==0:
+                continue
+            ax.annotate(int(conf_arr[x,y]), xy=(y+0.5, x+0.5),  horizontalalignment='center', verticalalignment='center', color=textcolor, fontsize=12)
+    plt.tight_layout()
     plt.savefig(outputname)
     #plt.show()
