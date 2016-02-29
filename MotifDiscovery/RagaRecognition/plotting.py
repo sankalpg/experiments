@@ -3,6 +3,9 @@
 from __future__ import unicode_literals
 import numpy as np
 import os,sys
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
+matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import json, pickle
@@ -13,7 +16,7 @@ import codecs
 
 def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     
-    raga_name_map = json.load(open(raga_name_map_file,'r'))
+    raga_name_map = json.load(codecs.open(raga_name_map_file,'r', encoding = 'utf-8'))
     results = pickle.load(open(result_file, 'r'))
     labels = results['var1']['gt_label']
     predictions = results['var1']['pred_label']
