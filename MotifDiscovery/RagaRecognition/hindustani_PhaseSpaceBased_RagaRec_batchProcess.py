@@ -20,7 +20,7 @@ def run_raga_recognition_V1_gridSearch():
     smooth_gauss_sigma = [-1, 1, 2, 3]
     compression = [-1, 0.1, 0.25, 0.5, 0.75]
     normalize = [-1, 1, 2]
-    dist_metric = ['Euclidean', 'KLD']
+    dist_metric = ['Euclidean', 'KLD_symm', 'Bhattacharya']
     KNN= [1, 3, 5]
     phase_ext = {   200:'.phasespace_200',
                     300:'.phasespace_300',

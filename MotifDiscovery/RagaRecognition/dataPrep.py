@@ -38,3 +38,5 @@ def batchProcessFlatNoteCompression(root_dir, searchExt = '.mp3', pitchExt = '.p
         performFlatNoteCompression(fname + pitchExt, fname + tonicExt, fname + flatnoteExt, fname + compressExt, saturationLen)
     
     return True
+
+    

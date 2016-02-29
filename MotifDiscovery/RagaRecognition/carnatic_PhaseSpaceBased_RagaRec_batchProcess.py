@@ -14,12 +14,13 @@ def run_raga_recognition_V1_gridSearch():
     
     #parameters
     out_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch'
-    fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/__dbInfo__/Carnatic40RagasICASSP2016.flist_local'
+    fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/__dbInfo__/Carnatic40Raga480_FILE_MBID_RAGA.txt'
+    root_dir = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/pitch_tonic'
     delay = [200 , 300 , 500, 1000, 1500]
     smooth_gauss_sigma = [-1, 1, 2, 3]
     compression = [-1, 0.1, 0.25, 0.5, 0.75]
     normalize = [-1, 1, 2]
-    dist_metric = ['Euclidean', 'KLD']
+    dist_metric = ['Euclidean', 'KLD_symm', 'Bhattacharya']
     KNN= [1, 3, 5]
     phase_ext = {   200:'.phasespace_200',
                     300:'.phasespace_300',
@@ -40,10 +41,9 @@ def run_raga_recognition_V1_gridSearch():
                     for dist in dist_metric:
                         for k in KNN:
                             dir_name = os.path.join(out_dir, "config_%s"%str(cnt))
-                            result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name, 
+                            result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name,
+                                                            root_dir, 
                                                             fileListFile,
-                                                            database = 'ICASSP2016_40RAGA_2S',
-                                                            user = 'sankalp',
                                                             phase_ext = phase_ext[d],
                                                             smooth_gauss_sigma=sigma,
                                                             compression = c,
@@ -54,4 +54,3 @@ def run_raga_recognition_V1_gridSearch():
                             fid.write('\n')
                             cnt+=1
     fid.close()
-
