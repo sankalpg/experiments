@@ -20,7 +20,7 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     u_labels = np.unique(labels)
     conf_arr = confusion_matrix(labels, predictions, labels = u_labels)
     raga_names = u_labels
-    
+   
     y_labels = []
     x_labels = []
     for ii, r in enumerate(raga_names):
@@ -41,7 +41,8 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
                     interpolation='nearest', aspect='1', cmap=cmap_local,
                     ##Commenting out this line sets labels correctly,
                     ##but the grid is off
-                    extent=[0, width, height, 0], vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
+                    extent=[0, width, height, 0],
+                    vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
                     )
     ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+1)
     tickpos = np.linspace(ticks[0] , ticks[-1] , len(ticks));
@@ -49,15 +50,23 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     #cax.set_ticklabels(ticks)
     
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("bottom", size="5%", pad=0.4)
+    cax = divider.append_axes("bottom", size="5%", pad=0.1)
     cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
 
     #Axes
-    ax.set_xticks(range(width))
+    ax.set_xticks(np.arange(width))
     ax.set_xticklabels(x_labels, rotation='vertical')
-    ax.xaxis.labelpad = 0.5
-    ax.set_yticks(range(height))
+    #ax.xaxis.labelpad = 0.1
+    ax.set_yticks(np.arange(height))
     ax.set_yticklabels(y_labels , rotation='horizontal')
-    #plt.tight_layout()
+
+    for x in xrange(conf_arr.shape[0]):
+        for y in xrange(conf_arr.shape[1]):
+            textcolor = 'black'
+            if conf_arr[x,y] >= 6:
+                textcolor = 'white'
+            if conf_arr[x,y]==0:
+                continue
+            ax.annotate(int(conf_arr[x,y]), xy=(y+0.5, x+0.5),  horizontalalignment='center', verticalalignment='center', color=textcolor, fontsize=12)
+    plt.tight_layout()
     plt.savefig(outputname)
-    #plt.show()
