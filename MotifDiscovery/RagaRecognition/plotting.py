@@ -37,27 +37,34 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     ax.set_aspect(1)
     ax.grid(which='major')
     cmap_local = plt.get_cmap('binary', np.max(conf_arr)-np.min(conf_arr)+1)
-    res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
-                    interpolation='nearest', aspect='1', cmap=cmap_local,
-                    ##Commenting out this line sets labels correctly,
-                    ##but the grid is off
-                    extent=[0, width, height, 0],
-                    vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
-                    )
-    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+1)
-    tickpos = np.linspace(ticks[0] , ticks[-1] , len(ticks));
+    #res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
+    #                interpolation='nearest', aspect='1', cmap=cmap_local,
+    #                ##Commenting out this line sets labels correctly,
+    #                ##but the grid is off
+    #                extent=[0, width, height, 0],
+    #                vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
+    #                )
+    res = ax.pcolor(np.array(conf_arr), cmap=cmap_local, edgecolor='black', linestyle=':', lw=1)
+    
+    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+2)
+    tickpos = np.linspace(ticks[0] , ticks[-2], len(ticks));
+
     #cax = plt.colorbar(mat, ticks=tickpos)
     #cax.set_ticklabels(ticks)
     
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("bottom", size="5%", pad=0.1)
-    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
+    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos+0.5)
+    cb.ax.set_xticklabels(np.arange(len(tickpos)))
 
     #Axes
-    ax.set_xticks(np.arange(width))
+    ax.invert_yaxis()
+    ax.xaxis.tick_top()
+
+    ax.set_xticks(np.arange(width)+0.5)
     ax.set_xticklabels(x_labels, rotation='vertical')
     #ax.xaxis.labelpad = 0.1
-    ax.set_yticks(np.arange(height))
+    ax.set_yticks(np.arange(height)+0.5)
     ax.set_yticklabels(y_labels , rotation='horizontal')
 
     for x in xrange(conf_arr.shape[0]):
