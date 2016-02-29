@@ -1,0 +1,19 @@
+tsFileExt: .pitchSilIntrpPPCompress_500
+tonicExt: .tonicFine
+blackTimeExt: .taniSegKNN
+srchListExt: .flist
+flatNoteFileExt: .flatSegNyas
+subSeqFileExt: .allPattData_2s_config2
+subSeqInfoFileExt: .allPatt_2s_config2
+srchMappFileExt: .srchMap_2s_config2
+srchQueryFileExt: .disPatt_2s_config2
+disOutFileExt: .disPatt_2s_config2
+srchOutFileExt: .srchPatt_2s_config2
+knnOutFileExt: .1NN_2s_config2
+distOutFileExt: .pattDistance_2s_config2
+disLogFileExt: .disLogs_2s_config2
+srchLogFileExt: .srchLogs_2s_config2
+dumpLogFileExt: .dumpLogs_2s_config2
+blackListSubSeqExt: .blackSubSeqs_2s_config2
+
+

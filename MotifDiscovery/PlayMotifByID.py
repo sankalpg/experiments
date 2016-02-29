@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import psycopg2 as psy
 
 
-root_path = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic10RagasISMIR2015DB/audio'
+root_path = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/'
 
 def playMotifForID(motifID, myDatabase):
     

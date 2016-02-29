@@ -1,0 +1,22 @@
+durMotif: 2
+sampleRate: 22.5
+binsPOct: 1200
+minPossiblePitch: 60
+varDur: -1
+threshold: -1
+flatThreshold: 0.2
+maxPauseDur: 0.1
+DTWBand: 0.1
+nInterpFac: 5
+removeTaniSegs: 1
+dumpLogs: 1
+normType: 8
+useFlatNoteFile: 1
+rankRefDistType: -1
+maxNMotifsPairs: 30
+distType: 1
+DTWType: 0
+pitchHop: 0.022222
+
+
+

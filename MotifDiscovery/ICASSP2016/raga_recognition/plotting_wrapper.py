@@ -39,8 +39,8 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     """
     cc, cc_rand = readClusterinCoffCurve(root_dir, nFiles)
     
-    cc = np.array(cc)
-    cc_rand = np.array(cc_rand)
+    cc = np.array(cc[1:])   #because of 0 bin is 1 file
+    cc_rand = np.array(cc_rand[1:])
     
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -66,14 +66,14 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     p, = plt.plot(cc-cc_rand, 'r', linewidth=0.5, marker = '.')
     pLeg.append(p)
 
-    ax.set_ylim([0,0.6])
-    ax.set_xlim([0,40])
+    ax.set_ylim([0,0.45])
+    ax.set_xlim([0,35])
     
     xLim = ax.get_xlim()
     yLim = ax.get_ylim()
     
     ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
-    plt.legend(pLeg, ['$C(\mathcal{G})$','$C(\mathcal{G}_r)$', '$C(\mathcal{G})-C(\mathcal{G}_r)$'], fontsize = 12, loc=2)
+    plt.legend(pLeg, ['$C(\mathcal{G})$','$C(\mathcal{G}_r)$', '$C(\mathcal{G})-C(\mathcal{G}_r)$'], fontsize = 15, loc=4, bbox_to_anchor=(1,0.1))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     
     if isinstance(plotName, int):
@@ -166,13 +166,13 @@ def plotPerThresholdAcuracy(cc_dir, thsld_dir, plotName=-1):
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twinx()
     plt.hold(True)
-    fsize = 18
-    fsize2 = 16
+    fsize = 20
+    fsize2 = 15
     font="Times New Roman"
     
     ax1.set_xlabel("$T_s$ (bin index)", fontsize = fsize, fontname=font)
-    ax1.set_ylabel("Clustering Coefficient $C$", fontsize = fsize, fontname=font, labelpad=fsize2)
-    ax2.set_ylabel("Accuracy (%)", fontsize = fsize, fontname=font, labelpad=fsize2)
+    ax1.set_ylabel("Clustering Coefficient $C$", fontsize = fsize, fontname=font,  labelpad=10)
+    ax2.set_ylabel("Accuracy (%)", fontsize = fsize, fontname=font,  labelpad=10)
     
     pLeg = []
     markers = ['.', 'o', 's', '^', '<', '>', 'p']    
@@ -184,20 +184,28 @@ def plotPerThresholdAcuracy(cc_dir, thsld_dir, plotName=-1):
     p, = ax2.plot(range_thslds, [accuracy[i]*100 for i in range_thslds], 'b', linewidth=2)
     pLeg.append(p)
     
-    ax1.set_ylim([.1,0.25])
-    ax1.set_xlim([5,16])
-    ax2.set_ylim([30,70])
+    ax1.set_ylim([.1,0.28])
+    ax1.set_xlim([6,15])
+    ax2.set_ylim([30,75])
     
     xLim = ax1.get_xlim()
-    yLim = ax1.get_ylim()
+    yLim = ax1.get_ylim()    
+    #ax1.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
     
-    ax1.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    ax1.set(adjustable='box-forced',
+    aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
+    
     xLim = ax2.get_xlim()
     yLim = ax2.get_ylim()
+    #ax2.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
     
-    ax2.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
-    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy'], fontsize = 12, loc=2)
-    plt.tick_params(axis='both', which='major', labelsize=fsize2)
+    ax2.set(adjustable='box-forced',
+    aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
+    
+    
+    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $M$'], fontsize = 14, loc=1)
+    ax1.tick_params(axis='both', which='major', labelsize=fsize2)
+    ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
     if isinstance(plotName, int):
         plt.show()
@@ -226,3 +234,75 @@ def plotPerThresholdAcuracy(cc_dir, thsld_dir, plotName=-1):
 #plt.show()
 
     
+def get_confusion_matrix_data_sertan(filename):
+    
+    data = json.load(open(filename,'r'))
+    
+    gt_label = []
+    pd_label = []
+    for d in data:
+        gt_label.append(d['annotated_mode'])
+        pd_label.append(d['estimated_mode'])
+    
+    raga_ind_map = {}
+    ind_raga_map = {}
+    
+    u_ragas = np.unique(np.array(gt_label))
+    
+    for ii, u in enumerate(u_ragas):
+        raga_ind_map[u] = ii
+        ind_raga_map[ii] = u
+    
+    cnf_mtx = np.zeros((len(u_ragas), len(u_ragas)))
+    
+    
+    for ii, gt in enumerate(gt_label):
+        cnf_mtx[raga_ind_map[gt], raga_ind_map[pd_label[ii]]]+=1
+    
+    return cnf_mtx, raga_ind_map
+
+def plot_confusion_matrix_sertan(raga_name_map_file, sertan_results_file, outputname):
+    
+    raga_name_map = json.load(open(raga_name_map_file,'r'))
+    conf_arr,raga_names =  get_confusion_matrix_data_sertan(sertan_results_file)
+    
+    y_labels = []
+    x_labels = []
+    for ii, r in enumerate(raga_names):
+        y_labels.append('R'+str(ii+1))
+        x_labels.append(y_labels[-1] + '-'+raga_name_map[r])
+    
+    width = len(conf_arr)
+    height = len(conf_arr[0])
+ 
+    fig = plt.figure(figsize=(14,14))
+    #fig = plt.figure()
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ax.set_aspect(1)
+    ax.grid(which='major')
+    cmap_local = plt.get_cmap('binary', np.max(conf_arr)-np.min(conf_arr)+1)
+    res = ax.matshow(np.array(conf_arr), #cmap=plt.cm.binary, 
+                    interpolation='nearest', aspect='1', cmap=cmap_local,
+                    ##Commenting out this line sets labels correctly,
+                    ##but the grid is off
+                    extent=[0, width, height, 0], vmin =np.min(conf_arr)-.5, vmax = np.max(conf_arr)+0.5,
+                    )
+    ticks = np.arange(np.min(conf_arr),np.max(conf_arr)+1)
+    tickpos = np.linspace(ticks[0] , ticks[-1] , len(ticks));
+    #cax = plt.colorbar(mat, ticks=tickpos)
+    #cax.set_ticklabels(ticks)
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("bottom", size="5%", pad=0.4)
+    cb = fig.colorbar(res, cax=cax, orientation = 'horizontal', ticks=tickpos)
+
+    #Axes
+    ax.set_xticks(range(width))
+    ax.set_xticklabels(x_labels, rotation='vertical')
+    ax.xaxis.labelpad = 0.5
+    ax.set_yticks(range(height))
+    ax.set_yticklabels(y_labels , rotation='horizontal')
+    #plt.tight_layout()
+    plt.savefig(outputname)
+    #plt.show()

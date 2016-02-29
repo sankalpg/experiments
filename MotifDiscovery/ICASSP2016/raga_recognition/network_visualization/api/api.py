@@ -1,16 +1,20 @@
 from __future__ import unicode_literals
 from flask import Flask, request, jsonify, current_app
+import requests
 import psycopg2 as psy
 from functools import wraps
 import sys
 import os.path
 import json
 from flask.ext.cors import CORS
+from compmusic import dunya as dn
+
+auth_token = "31fbb43414dedad8a9e9b4379be1a6c8992849b4"
 
 app = Flask(__name__)
 CORS(app)
 
-con = psy.connect(database='ISMIR2015_10RAGA_TONICNORM', user='sankalp') 
+con = psy.connect(database='ICASSP2016_10RAGA_2S', user='sankalp') 
 cur = con.cursor()
 
 @app.route('/')
@@ -35,12 +39,20 @@ def support_jsonp(f):
 @support_jsonp
 def get_phrase_data():
     nid = int(request.args.get('nid'))
-    cmd = "select file.mbid, file.raagaid, pattern.start_time, pattern.end_time from pattern join file on (file.id = pattern.file_id) where pattern.id = %d"
+    cmd = "select file.mbid, file.raagaid, file.tonic, pattern.start_time, pattern.end_time from pattern join file on (file.id = pattern.file_id) where pattern.id = %d"
     cur.execute(cmd%(nid))
-    mbid, raaga, start, end = cur.fetchone()
-    out = {'mbid':mbid, 'ragaid': raaga, 'start':start, 'end':end}
+    mbid, raaga, tonic, start, end = cur.fetchone()
+    out = {'mbid':mbid, 'ragaid': raaga, 'start':start, 'end':end, 'tonic': tonic}
     
     return jsonify(**out)
+
+@app.route('/get_rec_data', methods=['GET', 'POST'])
+@support_jsonp
+def get_rec_data():
+    mbid = request.args.get('mbid')
+    url = "http://dunya.compmusic.upf.edu/api/carnatic/recording/" + mbid
+    data = requests.get(url, headers = {"Authorization":"Token " + auth_token})
+    return jsonify(**(data.json()))
 
 
 if __name__ == '__main__':
