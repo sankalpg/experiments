@@ -101,6 +101,9 @@ def plotSurfacesExample(plotName = -1):
 
 
     feature =np.loadtxt(feature_file)
+    ind = np.where(feature > np.max(feature)*0.5)   ## The actual max is at 0,0 which is hided with ticks. To make other peaks look like max we have done these two lines. This is basically playing with colors and nothing else.
+    feature[ind] = np.max(feature)
+    print np.min(feature), np.max(feature), np.argmax(feature)
 
     fig, (ax1, ax2) = plt.subplots(1, 2)
     plt.tight_layout()
@@ -116,11 +119,13 @@ def plotSurfacesExample(plotName = -1):
     ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
     feature = feature/np.max(feature)
+    print np.min(feature), np.max(feature)
     ax1.imshow(feature**0.75)
     ax1.set_title('(a)', fontname=font, fontsize=fsize2)
 
     feature = np.power(feature, compression)
     feature = pse.ndimage.gaussian_filter(feature, smooth_gauss_sigma)
+    feature = feature-np.min(feature)
     feature = feature/np.max(feature)
 
     im = ax2.imshow(feature)
@@ -204,11 +209,23 @@ def plotAccuracyVsParameter(plotName = -1):
 
     configs_sigma_h = [1186, 1321, 1456, 1591]
     configs_sigma_c = [673, 808, 943, 1078]
-    vals_sigma = ['-', '1', '2', '3']
+    vals_sigma = ['-1', '1', '2', '3']
 
     configs_knn_h = [1456, 1457, 1458]
     configs_knn_c = [1078, 1079, 1080]
     vals_knn = ['1', '3', '5']
+
+    B_random_h = 3.3
+    B_random_c = 2.5
+    S_PCD_h = 91.7
+    S_PCD_c = 73.1
+    S_VSM_h = 83
+    S_VSM_c = 69.1
+
+    y_min = 0
+    y_max = 100
+
+
 
 
     acc_tau_h = []
@@ -284,17 +301,28 @@ def plotAccuracyVsParameter(plotName = -1):
     fsize2 = 24
     font="Times New Roman Bold"
     
-    ax1.hold(True)
-    ax1.plot(range(len(acc_tau_h)), acc_tau_h, marker = 'o', color = 'r', linestyle = 'dashed', linewidth = 0.5)
-    ax1.plot(range(len(acc_tau_c)), acc_tau_c, marker = 's', color = 'b', linestyle = 'dashed', linewidth = 0.5)
     
-    ax1.set_ylim([60, 100])
+    ax1.hold(True)
+    p1, = ax1.plot(range(len(acc_tau_h)), acc_tau_h, marker = 'o', color = 'r', linestyle = '-', linewidth = 0.7, markersize=7)
+    p2, = ax1.plot(range(len(acc_tau_c)), acc_tau_c, marker = 's', color = 'b', linestyle = '-', linewidth = 0.7, markersize=7)
+    p7, = ax1.plot([0, len(acc_tau_h)-1], [B_random_h, B_random_h], color = 'r', linestyle = ':', linewidth = 0.8)
+    p8, = ax1.plot([0, len(acc_tau_c)-1], [B_random_c, B_random_c], color = 'b', linestyle = ':', linewidth = 0.8)
+    p3, = ax1.plot([0, len(acc_tau_h)-1], [S_PCD_h, S_PCD_h], color = 'r', linestyle = '--', linewidth = 0.7)
+    p4, = ax1.plot([0, len(acc_tau_c)-1], [S_PCD_c, S_PCD_c], color = 'b', linestyle = '--', linewidth = 0.7)
+    p5, = ax1.plot([0, len(acc_tau_h)-1], [S_VSM_h, S_VSM_h], color = 'r', linestyle = '-.', linewidth = 0.8)
+    p6, = ax1.plot([0, len(acc_tau_c)-1], [S_VSM_c, S_VSM_c], color = 'b', linestyle = '-.', linewidth = 0.8)
+
+    p_leg = [p1,p2,p3,p4,p5,p6,p7,p8]
+
+    
+    ax1.set_ylim([y_min, y_max])
     yLim = ax1.get_ylim() 
     ax1.set_xticks(range(len(acc_tau_h)))
     ax1.set_xticklabels(vals_tau)
-    ax1.set_yticks(np.arange(yLim[0], yLim[1]+1, 10))
+    ax1.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
     ax1.set_ylabel("Accuracy (\%)", fontsize = fsize)
-    ax1.set_xlabel(r"$\tau$", fontsize = fsize2, fontname = font)
+    ax1.set_xlabel(r"$\tau$ (ms)", fontsize = fsize, fontname = font)
+    ax1.set_title('(a)', fontsize = fsize2, fontname = font)
     ax1.tick_params(axis='both', which='major', labelsize=fsize)
 
     # xLim = ax1.get_xlim()
@@ -302,17 +330,24 @@ def plotAccuracyVsParameter(plotName = -1):
     # ax1.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
     
     ax2.hold(True)
-    ax2.plot(range(len(acc_alpha_h)), acc_alpha_h, marker = 'o', color = 'r', linestyle = 'dashed', linewidth = 0.5)
-    ax2.plot(range(len(acc_alpha_c)), acc_alpha_c, marker = 's', color = 'b', linestyle = 'dashed', linewidth = 0.5)
+    ax2.plot(range(len(acc_alpha_h)), acc_alpha_h, marker = 'o', color = 'r', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax2.plot(range(len(acc_alpha_c)), acc_alpha_c, marker = 's', color = 'b', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax2.plot([0, len(acc_alpha_h)-1], [B_random_h, B_random_h], color = 'r', linestyle = ':', linewidth = 0.8)
+    ax2.plot([0, len(acc_alpha_c)-1], [B_random_c, B_random_c], color = 'b', linestyle = ':', linewidth = 0.8)
+    ax2.plot([0, len(acc_alpha_h)-1], [S_PCD_h, S_PCD_h], color = 'r', linestyle = '--', linewidth = 0.7)
+    ax2.plot([0, len(acc_alpha_c)-1], [S_PCD_c, S_PCD_c], color = 'b', linestyle = '--', linewidth = 0.7)
+    ax2.plot([0, len(acc_alpha_h)-1], [S_VSM_h, S_VSM_h], color = 'r', linestyle = '-.', linewidth = 0.8)
+    ax2.plot([0, len(acc_alpha_c)-1], [S_VSM_c, S_VSM_c], color = 'b', linestyle = '-.', linewidth = 0.8)
 
-    ax2.set_ylim([60, 100])
+    ax2.set_ylim([y_min, y_max])
     yLim = ax2.get_ylim() 
     ax2.set_xticks(range(len(acc_alpha_h)))
     ax2.set_xticklabels(vals_alpha)
-    ax2.set_yticks(np.arange(yLim[0], yLim[1]+1, 10))
-    ax2.set_xlabel(r"$\alpha$", fontsize = fsize2, fontname = font)
+    ax2.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
+    ax2.set_xlabel(r"$\alpha$", fontsize = fsize, fontname = font)
     ax2.tick_params(axis='both', which='major', labelsize=fsize)
 
+    ax2.set_title('(b)', fontsize = fsize2, fontname = font)
     # xLim = ax2.get_xlim()
     # yLim = ax2.get_ylim()    
     # ax2.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
@@ -320,41 +355,59 @@ def plotAccuracyVsParameter(plotName = -1):
     
 
     ax3.hold(True)
-    ax3.plot(range(len(acc_sigma_h)), acc_sigma_h, marker = 'o', color = 'r', linestyle = 'dashed', linewidth = 0.5)
-    ax3.plot(range(len(acc_sigma_c)), acc_sigma_c, marker = 's', color = 'b', linestyle = 'dashed', linewidth = 0.5)
+    ax3.plot(range(len(acc_sigma_h)), acc_sigma_h, marker = 'o', color = 'r', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax3.plot(range(len(acc_sigma_c)), acc_sigma_c, marker = 's', color = 'b', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax3.plot([0, len(acc_sigma_h)-1], [B_random_h, B_random_h], color = 'r', linestyle = ':', linewidth = 0.8)
+    ax3.plot([0, len(acc_sigma_c)-1], [B_random_c, B_random_c], color = 'b', linestyle = ':', linewidth = 0.8)
+    ax3.plot([0, len(acc_sigma_h)-1], [S_PCD_h, S_PCD_h], color = 'r', linestyle = '--', linewidth = 0.7)
+    ax3.plot([0, len(acc_sigma_c)-1], [S_PCD_c, S_PCD_c], color = 'b', linestyle = '--', linewidth = 0.7)
+    ax3.plot([0, len(acc_sigma_h)-1], [S_VSM_h, S_VSM_h], color = 'r', linestyle = '-.', linewidth = 0.8)
+    ax3.plot([0, len(acc_sigma_c)-1], [S_VSM_c, S_VSM_c], color = 'b', linestyle = '-.', linewidth = 0.8)
 
-    ax3.set_ylim([60, 100])
+    ax3.set_ylim([y_min, y_max])
     yLim = ax3.get_ylim() 
     ax3.set_xticks(range(len(acc_sigma_h)))
     ax3.set_xticklabels(vals_sigma)
-    ax3.set_yticks(np.arange(yLim[0], yLim[1]+1, 10))
-    ax3.set_xlabel(r"$\sigma$", fontsize = fsize2, fontname = font)
+    ax3.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
+    ax3.set_xlabel(r"$\sigma$ (bins)", fontsize = fsize, fontname = font)
     ax3.set_ylabel("Accuracy (\%)", fontsize = fsize)
     ax3.tick_params(axis='both', which='major', labelsize=fsize) 
 
+    ax3.set_title('(c)', fontsize = fsize2, fontname = font)
     # xLim = ax3.get_xlim()
     # yLim = ax3.get_ylim()    
     # ax3.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
     
 
     ax4.hold(True)
-    ax4.plot(range(len(acc_knn_h)), acc_knn_h, marker = 'o', color = 'r', linestyle = 'dashed', linewidth = 0.5)
-    ax4.plot(range(len(acc_knn_c)), acc_knn_c, marker = 's', color = 'b', linestyle = 'dashed', linewidth = 0.5)
+    ax4.plot(range(len(acc_knn_h)), acc_knn_h, marker = 'o', color = 'r', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax4.plot(range(len(acc_knn_c)), acc_knn_c, marker = 's', color = 'b', linestyle = '-', linewidth = 0.7, markersize=7)
+    ax4.plot([0, len(acc_knn_h)-1], [B_random_h, B_random_h], color = 'r', linestyle = ':', linewidth = 0.8)
+    ax4.plot([0, len(acc_knn_c)-1], [B_random_c, B_random_c], color = 'b', linestyle = ':', linewidth = 0.8)
+    ax4.plot([0, len(acc_knn_h)-1], [S_PCD_h, S_PCD_h], color = 'r', linestyle = '--', linewidth = 0.7)
+    ax4.plot([0, len(acc_knn_c)-1], [S_PCD_c, S_PCD_c], color = 'b', linestyle = '--', linewidth = 0.7)
+    ax4.plot([0, len(acc_knn_h)-1], [S_VSM_h, S_VSM_h], color = 'r', linestyle = '-.', linewidth = 0.8)
+    ax4.plot([0, len(acc_knn_c)-1], [S_VSM_c, S_VSM_c], color = 'b', linestyle = '-.', linewidth = 0.8)
 
-    ax4.set_ylim([60, 100])
+    ax4.set_ylim([y_min, y_max])
     yLim = ax4.get_ylim() 
     ax4.set_xticks(range(len(acc_knn_h)))
     ax4.set_xticklabels(vals_knn)
-    ax4.set_yticks(np.arange(yLim[0], yLim[1]+1, 10))
-    ax4.set_xlabel(r"$k$", fontsize = fsize2, fontname = font)
+    ax4.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
+    ax4.set_xlabel(r"$k$", fontsize = fsize, fontname = font)
     ax4.tick_params(axis='both', which='major', labelsize=fsize) 
 
+    ax4.set_title('(d)', fontsize = fsize2, fontname = font)
     # xLim = ax4.get_xlim()
     # yLim = ax4.get_ylim()    
     # ax4.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
     
     #fig.subplots_adjust(wspace=-0.6)
     fig.tight_layout(pad=0.4)
+
+    p_names = [r"$\mathcal{M}_{\mathrm{B}}$ (HMD)", r"$\mathcal{M}_{\mathrm{B}}$ (CMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (HMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (CMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (HMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (CMD)", r"$\mathcal{B}_{\mathrm{r}}$ (HMD)", r"$\mathcal{B}_{\mathrm{r}}$ (CMD)"]
+    fig.legend(p_leg, p_names, ncol = 4, fontsize = 16, scatterpoints=1, frameon=True, borderaxespad=0.6, bbox_to_anchor=(0.095, 1., 1., .1), loc=3, columnspacing=0.5, handletextpad=0.1)
+    
 
 
     

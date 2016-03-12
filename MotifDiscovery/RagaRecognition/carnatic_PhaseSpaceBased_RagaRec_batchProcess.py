@@ -13,7 +13,7 @@ import phaseSpaceEmbedding as p
 def run_raga_recognition_V1_gridSearch():
     
     #parameters
-    out_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch'
+    out_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch1'
     fileListFile = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/__dbInfo__/Carnatic40Raga480_FILE_MBID_RAGA.txt'
     root_dir = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/pitch_tonic'
     delay = [200 , 300 , 500, 1000, 1500]
@@ -41,7 +41,8 @@ def run_raga_recognition_V1_gridSearch():
                     for dist in dist_metric:
                         for k in KNN:
                             dir_name = os.path.join(out_dir, "config_%s"%str(cnt))
-                            result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name,
+                            results = pickle.load(open(os.path.join(dir_name, 'experiment_results.pkl'), 'r'))['var1']['accuracy']
+                            #result = p.ragaRecognitionPhaseSpaceKNN_V1(dir_name,
                                                             root_dir, 
                                                             fileListFile,
                                                             phase_ext = phase_ext[d],
