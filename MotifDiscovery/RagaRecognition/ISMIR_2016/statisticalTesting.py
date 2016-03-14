@@ -8,21 +8,21 @@ import json
 def readMyResults1(filename):
     data = pickle.load(open(filename, 'r'))
     len_samples = len(data['var1']['ind2mbid'].keys())
-    mbids = [data['var1']['ind2mbid'][key] for key in range(len_samples)]
+    mbids = np.array([data['var1']['ind2mbid'][key] for key in range(len_samples)])
     ind_sort = np.argsort(mbids)
-    return  np.array(data['var1']['pf_accuracy'])[ind_sort]
+    return  np.array(data['var1']['pf_accuracy'])[ind_sort], mbids[ind_sort]
 
 def readMyResults2(filename):
     data = pickle.load(open(filename, 'r'))
-    mbids = data['var2']['mbids']
+    mbids = np.array(data['var2']['mbids'])
     ind_sort = np.argsort(mbids)
-    return np.array(data['var2']['pf_accuracy'][0])[ind_sort]
+    return np.array(data['var2']['pf_accuracy'][0])[ind_sort], mbids[ind_sort]
 
 def readSertanResults(filename):
     data = json.load(open(filename, 'r'))
-    mbids = data['recording_mbid']
+    mbids = np.array(data['recording_mbid'])
     ind_sort = np.argsort(mbids)
-    return np.array(data['eval'])[ind_sort]
+    return np.array(data['eval'])[ind_sort], mbids[ind_sort]
 
 def performStatisticalSignificanceTestingISMIR2016(tradition, outputFile):
     
@@ -46,7 +46,8 @@ def performStatisticalSignificanceTestingISMIR2016(tradition, outputFile):
 
     per_file_acc = []
     for c in configs:
-        per_file_acc.append(c[2](c[0]))
+        accs, mbid = c[2](c[0])
+        per_file_acc.append(accs)
 
     nResults = len(configs)
     pVals = []
