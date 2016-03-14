@@ -1,6 +1,7 @@
 import os, sys
 import numpy as np
 from scipy.stats import wilcoxon
+from statsmodels.sandbox.stats.runs import mcnemar
 import pickle
 import json
 
@@ -57,7 +58,7 @@ def performStatisticalSignificanceTestingISMIR2016(tradition, outputFile):
             if np.sum(abs(per_file_acc[ii] - per_file_acc[jj]))==0:
                 pVals.append(1)    
             else:
-                pVals.append(wilcoxon(per_file_acc[ii], per_file_acc[jj])[1])
+                pVals.append(mcnemar(per_file_acc[ii], per_file_acc[jj], exact = False)[1])
             combinations.append([configs[ii][1], configs[jj][1]])
     
     pVals = np.array(pVals)
