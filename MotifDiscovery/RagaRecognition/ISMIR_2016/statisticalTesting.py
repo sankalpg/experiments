@@ -7,15 +7,22 @@ import json
 
 def readMyResults1(filename):
     data = pickle.load(open(filename, 'r'))
-    return  np.array(data['var1']['pf_accuracy'])
+    len_samples = len(data['var1']['ind2mbid'].keys())
+    mbids = [data['var1']['ind2mbid'][key] for key in range(len_samples)]
+    ind_sort = np.argsort(mbids)
+    return  np.array(data['var1']['pf_accuracy'])[ind_sort]
 
 def readMyResults2(filename):
     data = pickle.load(open(filename, 'r'))
-    return np.array(data['var2']['pf_accuracy'][0])
+    mbids = data['var2']['mbids']
+    ind_sort = np.argsort(mbids)
+    return np.array(data['var2']['pf_accuracy'][0])[ind_sort]
 
 def readSertanResults(filename):
     data = json.load(open(filename, 'r'))
-    return np.array(data['eval'])
+    mbids = data['recording_mbid']
+    ind_sort = np.argsort(mbids)
+    return np.array(data['eval'])[ind_sort]
 
 def performStatisticalSignificanceTestingISMIR2016(tradition, outputFile):
     
@@ -32,8 +39,8 @@ def performStatisticalSignificanceTestingISMIR2016(tradition, outputFile):
         config2 = ('/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/ISMIR_2016_Table_Results/carnatic/M_KL/experiment_results.pkl', 'M_KL', readMyResults1)
         config3 = ('/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/ISMIR_2016_Table_Results/carnatic/M_B/experiment_results.pkl', 'M_B', readMyResults1)
         config4 = ('/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/ISMIR_2016_Table_Results/carnatic/E_PCD/carnatic_40_classes_results.json', 'E_PCD', readSertanResults)
-        #config5 = ('/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/ISMIR_2016_Table_Results/carnatic/E_VSM/experiment_results.pkl', 'E_VSM', readMyResults2)
-        configs = [config1, config2, config3, config4]
+        config5 = ('/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/ISMIR_2016_Table_Results/carnatic/E_VSM/experiment_results.pkl', 'E_VSM', readMyResults2)
+        configs = [config1, config2, config3, config4, config5]
 
 
 

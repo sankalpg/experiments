@@ -199,20 +199,20 @@ def plotAccuracyVsParameter(plotName = -1):
     hind_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/results/PhaseSpaceEmbedding/V1/hindustani/gridsearch'
     carn_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch'
 
-    configs_tau_h = [376, 916, 1456, 1996, 2536]
-    configs_tau_c = [538, 1078, 1618, 2158, 2698]
+    configs_tau_h = [400, 940, 1480, 2020, 2560]
+    configs_tau_c = [400, 940, 1480, 2020, 2560]
     vals_tau = ['0.2', '0.3', '0.5', '1', '1.5']
     
-    configs_alpha_h = [1402, 1429, 1456, 1483, 1375]
-    configs_alpha_c = [997, 1024, 1051, 1078, 970]
+    configs_alpha_h = [859, 886, 913, 940, 967]
+    configs_alpha_c = [859, 886, 913, 940, 967]
     vals_alpha = ['0.1', '0.25', '0.5', '0.75', '1']
 
-    configs_sigma_h = [1186, 1321, 1456, 1591]
-    configs_sigma_c = [673, 808, 943, 1078]
+    configs_sigma_h = [670, 805, 940, 1075]
+    configs_sigma_c = [670, 805, 940, 1075]
     vals_sigma = ['-1', '1', '2', '3']
 
-    configs_knn_h = [1456, 1457, 1458]
-    configs_knn_c = [1078, 1079, 1080]
+    configs_knn_h = [940, 941, 942]
+    configs_knn_c = [940, 941, 942]
     vals_knn = ['1', '3', '5']
 
     B_random_h = 3.3
@@ -220,7 +220,7 @@ def plotAccuracyVsParameter(plotName = -1):
     S_PCD_h = 91.7
     S_PCD_c = 73.1
     S_VSM_h = 83
-    S_VSM_c = 69.1
+    S_VSM_c = 68.1
 
     y_min = 0
     y_max = 100

@@ -48,30 +48,30 @@ def run_raga_recognition_V2_gridSearch():
                         for s in smooth_idf:
                             for ii, c in enumerate(classifier):
                                 dir_name = os.path.join(out_dir, "config_%s"%str(cnt))
-                                ###TEMP: remove this step, it was done because the process was stopped in the middle
-                                if os.path.isdir(dir_name):
-                                    results_data = pickle.load(open(os.path.join(dir_name, 'experiment_results.pkl'),'r'))
-                                    result = results_data['var2']['accuracy']
-                                else:
-                                    result = RR.raga_recognition_V2(dir_name, 
-                                                                    scratch_dir,
-                                                                    fileListFile,
-                                                                    t,
-                                                                    ext,
-                                                                    network_wght_type = network_wght_type,
-                                                                    force_build_network=force_build_network,
-                                                                    feature_type = f,
-                                                                    pre_processing = p,
-                                                                    norm_tfidf = n,
-                                                                    smooth_idf = s,
-                                                                    classifier = c,
-                                                                    n_expts = n_expts,
-                                                                    var1 = False,
-                                                                    var2 = True,
-                                                                    myDatabase = database[ext],
-                                                                    myUser = 'sankalp',
-                                                                    type_eval = ("LeaveOneOut", -1),
-                                                                    balance_classes = 1)
+                                # ###TEMP: remove this step, it was done because the process was stopped in the middle
+                                # if os.path.isdir(dir_name):
+                                #     results_data = pickle.load(open(os.path.join(dir_name, 'experiment_results.pkl'),'r'))
+                                #     result = results_data['var2']['accuracy']
+                                # else:
+                                result = RR.raga_recognition_V2(dir_name, 
+                                                                scratch_dir,
+                                                                fileListFile,
+                                                                t,
+                                                                ext,
+                                                                network_wght_type = network_wght_type,
+                                                                force_build_network=force_build_network,
+                                                                feature_type = f,
+                                                                pre_processing = p,
+                                                                norm_tfidf = n,
+                                                                smooth_idf = s,
+                                                                classifier = c,
+                                                                n_expts = n_expts,
+                                                                var1 = False,
+                                                                var2 = True,
+                                                                myDatabase = database[ext],
+                                                                myUser = 'sankalp',
+                                                                type_eval = ("LeaveOneOut", -1),
+                                                                balance_classes = 1)
                                 cnt+=1
                                 fid.write("%s\t"*8%(str(t), ext, f, str(p), str(n), str(s), str(ii), str(result)))
                                 fid.write('\n')
