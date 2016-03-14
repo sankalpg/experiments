@@ -15,7 +15,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import codecs
 plt.switch_backend('agg')
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../library_pythonnew/melodyProcessing'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/melodyProcessing'))
 import phaseSpaceEmbedding as pse
 
 
@@ -196,8 +196,8 @@ def plotChalanExample(plotName = -1):
 
 def plotAccuracyVsParameter(plotName = -1):
 
-    hind_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/hindustani/gridsearch'
-    carn_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch'
+    hind_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/results/PhaseSpaceEmbedding/V1/hindustani/gridsearch'
+    carn_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ISMIR_2016/results/PhaseSpaceEmbedding/V1/carnatic/gridsearch'
 
     configs_tau_h = [376, 916, 1456, 1996, 2536]
     configs_tau_c = [538, 1078, 1618, 2158, 2698]
@@ -321,7 +321,7 @@ def plotAccuracyVsParameter(plotName = -1):
     ax1.set_xticklabels(vals_tau)
     ax1.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
     ax1.set_ylabel("Accuracy (\%)", fontsize = fsize)
-    ax1.set_xlabel(r"$\tau$ (ms)", fontsize = fsize, fontname = font)
+    ax1.set_xlabel(r"$\tau$ (seconds)", fontsize = fsize, fontname = font)
     ax1.set_title('(a)', fontsize = fsize2, fontname = font)
     ax1.tick_params(axis='both', which='major', labelsize=fsize)
 

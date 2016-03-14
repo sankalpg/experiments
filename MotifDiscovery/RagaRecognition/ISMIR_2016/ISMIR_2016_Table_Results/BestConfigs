@@ -1,7 +1,147 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ACCURACIES IN TABLE $$$$$$$$$$$$$$$$$$$$$$$$
+
+Educated guess	tau = 300	sigma = 2	alpha = 0.75	norm = 2	dist = Bhattacharya	 k=1	
+Hindustani: config = 940, 943
+300	2	0.75	2	KLD_symm	1	0.9766666667	940
+300	2	0.75	2	Bhattacharya	1	0.9766666667	943 
+
+Carnatic: config = 940, 943
+300	2	0.75	2	KLD_symm	1	0.8666666667	940
+300	2	0.75	2	Bhattacharya	1	0.8666666667	943
+
+
+
+Now keeping all these configs the same but varying one parameter
+
+Hindustani dataset
+
+varying delay
+
+200		2	0.75	2	KLD_symm	1	0.9666666667	400
+300		2	0.75	2	KLD_symm	1	0.9766666667	940
+500		2	0.75	2	KLD_symm	1	0.9733333333	1480
+1000	2	0.75	2	KLD_symm	1	0.9633333333	2020
+1500	2	0.75	2	KLD_symm	1	0.9666666667	2560
+
+
+varying sigma
+
+300		-1	0.75	2	KLD_symm	1	0.8466666667	670
+300		1	0.75	2	KLD_symm	1	0.98	805
+300		2	0.75	2	KLD_symm	1	0.9766666667	940
+300	3	0.75	2	KLD_symm	1	0.9666666667	1075
+
+varying k
+
+300	2	0.75	2	KLD_symm	1	0.9766666667	940
+300	2	0.75	2	KLD_symm	3	0.9633333333	941
+300	2	0.75	2	KLD_symm	5	0.97	942
+
+varying alpha
+
+300	2	0.1		2	KLD_symm	1	0.84			859
+300	2	0.25	2	KLD_symm	1	0.9333333333	886
+300	2	0.5		2	KLD_symm	1	0.9733333333	913
+300	2	0.75	2	KLD_symm	1	0.9766666667	940
+300	3	-1		2	KLD_symm	1	0.96			967
+
+
+Carnatic dataset
+
+varying delay
+
+200		2	0.75	2	KLD_symm	1	0.8479166667	400
+300		2	0.75	2	KLD_symm	1	0.8666666667	940
+500		2	0.75	2	KLD_symm	1	0.8479166667	1480
+1000	2	0.75	2	KLD_symm	1	0.8083333333	2020
+1500	2	0.75	2	KLD_symm	1	0.8145833333	2560
+
+varying sigma
+
+300	-1	0.75	2	KLD_symm	1	0.5104166667	670
+300	1	0.75	2	KLD_symm	1	0.8479166667	805
+300	2	0.75	2	KLD_symm	1	0.8666666667	940
+300	3	0.75	2	KLD_symm	1	0.8666666667	1075
+
+varying k 
+
+300	2	0.75	2	KLD_symm	1	0.8666666667	940
+300	2	0.75	2	KLD_symm	3	0.8395833333	941
+300	2	0.75	2	KLD_symm	5	0.84375			942
+
+varying alpha
+300	2	0.1		2	KLD_symm	1	0.7				859
+300	2	0.25	2	KLD_symm	1	0.8083333333	886
+300	2	0.5		2	KLD_symm	1	0.8395833333	913
+300	2	0.75	2	KLD_symm	1	0.8666666667	940
+300	3	-1		2	KLD_symm	1	0.8645833333	967
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hindustani
+
+300	2	0.75	2	Euclidean	1	0.9133333333	937
+300	2	0.75	2	KLD_symm	1	0.9766666667	940
+300	2	0.75	2	Bhattacharya	1	0.9766666667	943
+
+
+
+Carnatic
+
+300	2	0.75	2	Euclidean	1	0.8145833333	937
+300	2	0.75	2	KLD_symm	1	0.8666666667	940
+300	2	0.75	2	Bhattacharya	1	0.8666666667	943
+
+
+
+300	2	0.5	2	Euclidean	1	0.9666666667	910
+300	2	0.5	2	KLD_symm	1	0.9733333333	913
+300	2	0.5	2	Bhattacharya	1	0.9766666667	916
+
+300	2	0.5	2	Euclidean	1	0.8541666667	910
+300	2	0.5	2	KLD_symm	1	0.8395833333	913
+300	2	0.5	2	Bhattacharya	1	0.8395833333	916
+
+
+
+
+
+
+
+
+
+Best accuracies derved from doing an overall grid search on all the combinations of all the parameters.
+
+
 HINDUSTANI
 
 1456 top accuracy --->>>500	2	0.5	2	Bhattacharya	1	0.98	1456
 
+Keeping all the parameters to this best configuration but one. Accuracies for varying each of these features is listed below.
 
 200		2	0.5	2	Bhattacharya		1	0.9666666667	376
 300		2	0.5	2	Bhattacharya		1	0.9766666667	916
@@ -60,32 +200,6 @@ CARNATIC
 300	3	0.75	2	Bhattacharya	1	0.8666666667	1078
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ACCURACIES IN TABLE $$$$$$$$$$$$$$$$$$$$$$$$
-
-Hindustani
-
-300	2	0.75	2	Euclidean	1	0.9133333333	937
-300	2	0.75	2	KLD_symm	1	0.9766666667	940
-300	2	0.75	2	Bhattacharya	1	0.9766666667	943
-
-
-
-Carnatic
-
-300	2	0.75	2	Euclidean	1	0.8145833333	937
-300	2	0.75	2	KLD_symm	1	0.8666666667	940
-300	2	0.75	2	Bhattacharya	1	0.8666666667	943
-
-
-
-300	2	0.5	2	Euclidean	1	0.9666666667	910
-300	2	0.5	2	KLD_symm	1	0.9733333333	913
-300	2	0.5	2	Bhattacharya	1	0.9766666667	916
-
-300	2	0.5	2	Euclidean	1	0.8541666667	910
-300	2	0.5	2	KLD_symm	1	0.8395833333	913
-300	2	0.5	2	Bhattacharya	1	0.8395833333	916
 
 
 
