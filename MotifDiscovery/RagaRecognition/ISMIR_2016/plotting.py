@@ -110,6 +110,7 @@ def plotSurfacesExample(plotName = -1):
     fsize = 18
     fsize2 = 18
     font="FreeSerif"
+    myCmap = "jet"
 
     
     ax1.set_xlabel("Index", fontsize = fsize, fontname=font)
@@ -120,7 +121,7 @@ def plotSurfacesExample(plotName = -1):
     
     feature = feature/np.max(feature)
     print np.min(feature), np.max(feature)
-    ax1.imshow(feature**0.75)
+    ax1.imshow(feature**0.75, cmap=myCmap)
     ax1.set_title('(a)', fontname=font, fontsize=fsize2)
 
     feature = np.power(feature, compression)
@@ -128,7 +129,7 @@ def plotSurfacesExample(plotName = -1):
     feature = feature-np.min(feature)
     feature = feature/np.max(feature)
 
-    im = ax2.imshow(feature)
+    im = ax2.imshow(feature, cmap=myCmap)
     ax2.set_title('(b)', fontname=font, fontsize=fsize2)
 
     #cbar_ax = fig.add_axes([0.01, 0.01, 1, 0.01])
@@ -297,8 +298,8 @@ def plotAccuracyVsParameter(plotName = -1):
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharey = True)
     plt.tight_layout()
-    fsize = 20
-    fsize2 = 24
+    fsize = 16
+    fsize2 = 18
     font="Times New Roman Bold"
     
     
@@ -322,12 +323,12 @@ def plotAccuracyVsParameter(plotName = -1):
     ax1.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
     ax1.set_ylabel("Accuracy (\%)", fontsize = fsize)
     ax1.set_xlabel(r"$\tau$ (seconds)", fontsize = fsize, fontname = font)
-    ax1.set_title('(a)', fontsize = fsize2, fontname = font)
+    ax1.set_title('(a)', fontsize = fsize, fontname = font)
     ax1.tick_params(axis='both', which='major', labelsize=fsize)
 
-    # xLim = ax1.get_xlim()
-    # yLim = ax1.get_ylim()    
-    # ax1.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
+    xLim = ax1.get_xlim()
+    yLim = ax1.get_ylim()    
+    ax1.set_aspect(0.8*(xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])), adjustable='box-forced')
     
     ax2.hold(True)
     ax2.plot(range(len(acc_alpha_h)), acc_alpha_h, marker = 'o', color = 'r', linestyle = '-', linewidth = 0.7, markersize=7)
@@ -347,10 +348,10 @@ def plotAccuracyVsParameter(plotName = -1):
     ax2.set_xlabel(r"$\alpha$", fontsize = fsize, fontname = font)
     ax2.tick_params(axis='both', which='major', labelsize=fsize)
 
-    ax2.set_title('(b)', fontsize = fsize2, fontname = font)
-    # xLim = ax2.get_xlim()
-    # yLim = ax2.get_ylim()    
-    # ax2.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
+    ax2.set_title('(b)', fontsize = fsize, fontname = font)
+    xLim = ax2.get_xlim()
+    yLim = ax2.get_ylim()    
+    ax2.set_aspect(0.8*(xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])), adjustable='box-forced')
     
     
 
@@ -373,10 +374,10 @@ def plotAccuracyVsParameter(plotName = -1):
     ax3.set_ylabel("Accuracy (\%)", fontsize = fsize)
     ax3.tick_params(axis='both', which='major', labelsize=fsize) 
 
-    ax3.set_title('(c)', fontsize = fsize2, fontname = font)
-    # xLim = ax3.get_xlim()
-    # yLim = ax3.get_ylim()    
-    # ax3.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
+    ax3.set_title('(c)', fontsize = fsize, fontname = font)
+    xLim = ax3.get_xlim()
+    yLim = ax3.get_ylim()    
+    ax3.set_aspect(0.8*(xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])), adjustable='box-forced')
     
 
     ax4.hold(True)
@@ -397,16 +398,16 @@ def plotAccuracyVsParameter(plotName = -1):
     ax4.set_xlabel(r"$k$", fontsize = fsize, fontname = font)
     ax4.tick_params(axis='both', which='major', labelsize=fsize) 
 
-    ax4.set_title('(d)', fontsize = fsize2, fontname = font)
-    # xLim = ax4.get_xlim()
-    # yLim = ax4.get_ylim()    
-    # ax4.set_aspect((xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])))
+    ax4.set_title('(d)', fontsize = fsize, fontname = font)
+    xLim = ax4.get_xlim()
+    yLim = ax4.get_ylim()    
+    ax4.set_aspect(0.8*(xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])), adjustable='box-forced')
     
-    #fig.subplots_adjust(wspace=-0.6)
-    fig.tight_layout(pad=0.4)
+    fig.subplots_adjust(wspace=-0.55)
+    fig.tight_layout(pad = 0.1)
 
-    p_names = [r"$\mathcal{M}_{\mathrm{B}}$ (HMD)", r"$\mathcal{M}_{\mathrm{B}}$ (CMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (HMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (CMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (HMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (CMD)", r"$\mathcal{B}_{\mathrm{r}}$ (HMD)", r"$\mathcal{B}_{\mathrm{r}}$ (CMD)"]
-    fig.legend(p_leg, p_names, ncol = 4, fontsize = 16, scatterpoints=1, frameon=True, borderaxespad=0.6, bbox_to_anchor=(0.095, 1., 1., .1), loc=3, columnspacing=0.5, handletextpad=0.1)
+    p_names = [r"$\mathcal{M}_{\mathrm{KL}}$ (HMD)", r"$\mathcal{M}_{\mathrm{KL}}$ (CMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (HMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (CMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (HMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (CMD)", r"$\mathcal{B}_{\mathrm{r}}$ (HMD)", r"$\mathcal{B}_{\mathrm{r}}$ (CMD)"]
+    fig.legend(p_leg, p_names, ncol = 4, fontsize = 13, scatterpoints=1, frameon=True, borderaxespad=0.6, bbox_to_anchor=(0.09, 1., 1., .1), loc=3, columnspacing=0.5, handletextpad=0.1)
     
 
 

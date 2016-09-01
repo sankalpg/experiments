@@ -12,8 +12,8 @@ import ragaRecognition as rr
 
 
 
-local_database_path_hindustani = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/'
-local_database_path_carnatic = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016'
+local_database_path_hindustani = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio'
+local_database_path_carnatic = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/carnaticDB/Carnatic40RagaICASSP2016/audio'
 
 def quantizeOverlap(sets):
 	overlap = np.zeros((len(sets), len(sets)))
