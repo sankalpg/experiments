@@ -34,15 +34,15 @@ def readClusterinCoffCurve(root_dir, nFiles,suffix=''):
     
     return CC, CC_Rand
 
-def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
+def plotClusteringCoff(root_dir, nFiles, suffix = '', plotName=-1, legData = []):
     """
     This function plots clustering cofficient as a function of threshold using which the network was build. It also plots the CC corresponding to the randomized network.
     
     """
-    cc, cc_rand = readClusterinCoffCurve(root_dir, nFiles)
+    cc, cc_rand = readClusterinCoffCurve(root_dir, nFiles, suffix)
     
-    cc = np.array(cc[1:])   #because of 0 bin is 1 file
-    cc_rand = np.array(cc_rand[1:])
+    cc = np.array(cc)   #because of 0 bin is 1 file
+    cc_rand = np.array(cc_rand)
     
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -51,7 +51,7 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     fsize2 = 16
     font="Times New Roman"
     
-    plt.xlabel("$T_s$ (bin index)", fontsize = fsize, fontname=font)
+    plt.xlabel("$\Delta''$ (bin index)", fontsize = fsize, fontname=font)
     plt.ylabel("Clustering Coefficient $C$", fontsize = fsize, fontname=font, labelpad=fsize2)
     
     
@@ -62,20 +62,21 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     colors_dotted = ['r--', 'b--', 'm--', 'c--', 'g--', 'k--']
 
     p, = plt.plot(cc, 'b', linewidth=2)
+    plt.xticks(np.arange(0, len(cc)+2, 1))
     pLeg.append(p)
     p, = plt.plot(cc_rand, 'b--', linewidth=2)
     pLeg.append(p)
     p, = plt.plot(cc-cc_rand, 'r', linewidth=0.5, marker = '.')
     pLeg.append(p)
 
-    ax.set_ylim([0,0.45])
-    ax.set_xlim([0,35])
+    # ax.set_ylim([0,0.45])
+    # ax.set_xlim([0,35])
     
     xLim = ax.get_xlim()
     yLim = ax.get_ylim()
     
     ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
-    plt.legend(pLeg, ['$C(\mathcal{G})$','$C(\mathcal{G}_r)$', '$C(\mathcal{G})-C(\mathcal{G}_r)$'], fontsize = 15, loc=4, bbox_to_anchor=(1,0.1))
+    plt.legend(pLeg, ['$C(\mathcal{G})$','$C(\mathcal{G}_r)$', '$C(\mathcal{G})-C(\mathcal{G}_r)$'], fontsize = 15, loc=3,  ncol = 3,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.1, 1.))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     
     if isinstance(plotName, int):
@@ -220,7 +221,7 @@ def plotPerThresholdAcuracyHindustaniConfig2():
     aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
     
     
-    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=1)
+    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
     ax1.tick_params(axis='both', which='major', labelsize=fsize2)
     ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
@@ -296,7 +297,7 @@ def plotPerThresholdAcuracyCarnaticConfig3():
     aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
     
     
-    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=1)
+    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
     ax1.tick_params(axis='both', which='major', labelsize=fsize2)
     ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
