@@ -8,6 +8,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import json, pickle
 import codecs
 import matplotlib as mpl
+mpl.rcParams['text.usetex'] = True
+mpl.rcParams['text.latex.unicode'] = True
 mpl.rc('font',family='Times New Roman')
 
 baseClusterCoffFileName = '_ClusteringCoff'
@@ -37,6 +39,8 @@ def readClusterinCoffCurve(root_dir, nFiles,suffix=''):
 def plotClusteringCoff(root_dir, nFiles, suffix = '', plotName=-1, legData = []):
     """
     This function plots clustering cofficient as a function of threshold using which the network was build. It also plots the CC corresponding to the randomized network.
+    Hindustani: plt.plotClusteringCoff('ClusteringCoffs/hindustani/config2/clusteringCoffs_Sep2016/', 17, suffix='_config2', plotName='plots/CC_Evolution_Hindustani_Config2.pdf')
+    Carnatic: plt.plotClusteringCoff('ClusteringCoffs/carnatic/config3/clusteringCoffs_Sep2016/', 17, suffix='_config3', plotName='plots/CC_Evolution_Carnatic_Config3.pdf')
     
     """
     cc, cc_rand = readClusterinCoffCurve(root_dir, nFiles, suffix)
@@ -88,7 +92,7 @@ def plotClusteringCoff(root_dir, nFiles, suffix = '', plotName=-1, legData = [])
 #def plot_confusion_matrix(result_file, raga_uuid_name_file):
 
 
-def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
+def plot_confusion_matrix_Phrase(raga_name_map_file, result_file, outputname):
     
     raga_name_map = json.load(codecs.open(raga_name_map_file,'r', encoding = 'utf-8'))
     results = pickle.load(open(result_file, 'r'))
@@ -98,7 +102,7 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
     y_labels = []
     x_labels = []
     for ii, r in enumerate(raga_names):
-        y_labels.append('R'+str(ii+1))
+        y_labels.append(u'R'+str(ii+1))
         x_labels.append(y_labels[-1] + '-'+raga_name_map[r])
     
     width = len(conf_arr)
@@ -311,12 +315,9 @@ def get_confusion_matrix_data_sertan(filename):
     
     data = json.load(open(filename,'r'))
     
-    gt_label = []
-    pd_label = []
-    for d in data:
-        gt_label.append(d['annotated_mode'])
-        pd_label.append(d['estimated_mode'])
-    
+    gt_label = data['true_raag']
+    pd_label = data['estimated_raag']
+
     raga_ind_map = {}
     ind_raga_map = {}
     

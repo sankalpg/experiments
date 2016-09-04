@@ -91,7 +91,7 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname):
 def plotSurfacesExample(plotName = -1):
 
     #yaman
-    feature_file = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/pitch_tonic/48b37bed-e847-4882-8a01-5c721e07f07d/Ajoy_Chakrabarty/The_Genius_Of_Pt__Ajoy_Chakraborty/Raga_Yaman_e59642ca-72bc-466b-bf4b-d82bfbc7b4af.phasespace_500'
+    feature_file = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/48b37bed-e847-4882-8a01-5c721e07f07d/Ajoy_Chakrabarty/The_Genius_Of_Pt__Ajoy_Chakraborty/Raga_Yaman_e59642ca-72bc-466b-bf4b-d82bfbc7b4af.phasespace_500'
 
     #Bilaskhani todi
     #feature_file = '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/pitch_tonic/dd59147d-8775-44ff-a36b-0d9f15b31319/Ajoy_Chakrabarty/The_Genius_Of_Pt__Ajoy_Chakraborty/Raga_Bilaskhani_Todi_d7510269-b26c-4735-a491-245f3c732a58.phasespace_500'
@@ -107,8 +107,8 @@ def plotSurfacesExample(plotName = -1):
 
     fig, (ax1, ax2) = plt.subplots(1, 2)
     plt.tight_layout()
-    fsize = 18
-    fsize2 = 18
+    fsize = 14
+    fsize2 = 14
     font="FreeSerif"
     myCmap = "jet"
 
@@ -177,7 +177,6 @@ def plotChalanExample(plotName = -1):
     # pitch3[:,1]= 1200*np.log2(pitch3[:,1]/tonic3)
     # inds3 = getInds(pitch3[:,0], time_stamp3)
 
-    270
     file4 =     '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/64e5fb9e-5569-4e80-8e6c-f543af9469c7/Ulhas_Kashalkar/Masterpieces/Malkauns_Bada_Khyal_2d207bf5-90cf-4d74-8703-b3b0d52a531f.pitchSilIntrpPP'
     tonic4 =    '/media/Data/Datasets/PatternProcessing_DB/unsupervisedDBs/hindustaniDB/Hindustani30Ragas/audio/64e5fb9e-5569-4e80-8e6c-f543af9469c7/Ulhas_Kashalkar/Masterpieces/Malkauns_Bada_Khyal_2d207bf5-90cf-4d74-8703-b3b0d52a531f.tonicFine'
     time_stamp4 = (525.9, 528.2)
@@ -225,9 +224,6 @@ def plotAccuracyVsParameter(plotName = -1):
 
     y_min = 0
     y_max = 100
-
-
-
 
     acc_tau_h = []
     acc_tau_c = []
@@ -298,9 +294,9 @@ def plotAccuracyVsParameter(plotName = -1):
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharey = True)
     plt.tight_layout()
-    fsize = 16
-    fsize2 = 18
-    font="Times New Roman Bold"
+    fsize = 12
+    # fsize2 = 18
+    font="Times New Roman"
     
     
     ax1.hold(True)
@@ -345,7 +341,7 @@ def plotAccuracyVsParameter(plotName = -1):
     ax2.set_xticks(range(len(acc_alpha_h)))
     ax2.set_xticklabels(vals_alpha)
     ax2.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
-    ax2.set_xlabel(r"$\alpha$", fontsize = fsize, fontname = font)
+    ax2.set_xlabel(r"$\Lambda$", fontsize = fsize, fontname = font)
     ax2.tick_params(axis='both', which='major', labelsize=fsize)
 
     ax2.set_title('(b)', fontsize = fsize, fontname = font)
@@ -370,7 +366,7 @@ def plotAccuracyVsParameter(plotName = -1):
     ax3.set_xticks(range(len(acc_sigma_h)))
     ax3.set_xticklabels(vals_sigma)
     ax3.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
-    ax3.set_xlabel(r"$\sigma$ (bins)", fontsize = fsize, fontname = font)
+    ax3.set_xlabel(r"$\sigma_g$ (bins)", fontsize = fsize, fontname = font)
     ax3.set_ylabel("Accuracy (\%)", fontsize = fsize)
     ax3.tick_params(axis='both', which='major', labelsize=fsize) 
 
@@ -403,11 +399,16 @@ def plotAccuracyVsParameter(plotName = -1):
     yLim = ax4.get_ylim()    
     ax4.set_aspect(0.8*(xLim[1]-xLim[0])/(float(yLim[1]-yLim[0])), adjustable='box-forced')
     
-    fig.subplots_adjust(wspace=-0.55)
+    fig.subplots_adjust(wspace=-0.5)
     fig.tight_layout(pad = 0.1)
 
-    p_names = [r"$\mathcal{M}_{\mathrm{KL}}$ (HMD)", r"$\mathcal{M}_{\mathrm{KL}}$ (CMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (HMD)", r"$\mathcal{E}_{\mathrm{PCD}}$ (CMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (HMD)", r"$\mathcal{E}_{\mathrm{VSM}}$ (CMD)", r"$\mathcal{B}_{\mathrm{r}}$ (HMD)", r"$\mathcal{B}_{\mathrm{r}}$ (CMD)"]
-    fig.legend(p_leg, p_names, ncol = 4, fontsize = 13, scatterpoints=1, frameon=True, borderaxespad=0.6, bbox_to_anchor=(0.09, 1., 1., .1), loc=3, columnspacing=0.5, handletextpad=0.1)
+    HMD = "$\mathrm{RRDS}_\mathrm{HMD}$"
+    CMD = "$\mathrm{RRDS}_\mathrm{CMD}$"
+    p_names = [ r"$\mathrm{M}_{\mathrm{KL}}$ (%s)"%HMD, r"$\mathrm{M}_{\mathrm{KL}}$ (%s)"%CMD, 
+                r"$\mathfrak{B}_\mathrm{Chordia}$ (%s)"%HMD, r"$\mathfrak{B}_\mathrm{Chordia}$ (%s)"%CMD, 
+                r"$\mathrm{M}_{\mathrm{VSM}}$ (%s)"%HMD, r"$\mathrm{M}_{\mathrm{VSM}}$ (%s)"%CMD, 
+                r"$\mathfrak{B}_{\mathrm{r}}$ (%s)"%HMD, r"$\mathfrak{B}_{\mathrm{r}}$ (%s)"%CMD]
+    fig.legend(p_leg, p_names, ncol = 4, fontsize = 11, scatterpoints=1, frameon=True, borderaxespad=0.8, bbox_to_anchor=(0.035, 1., 1., .1), loc=3, columnspacing=0.3, handletextpad=0.1)
     
 
 
@@ -424,6 +425,7 @@ def getInds(array, time_stamps):
         inds.append(np.argmin(abs(array-t)))
     return inds
     
+
 
 
 
