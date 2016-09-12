@@ -260,9 +260,30 @@ def get_GT_PD_labels_VSM(filename, version):
         gt_labels.append(mapping[lab])
 
     for lab in data[version]['pred_label']:
-        pred_labels.append(mapping[lab[0]])
+        if version == 'var2':
+            pred_labels.append(mapping[lab[0]])
+        else:
+            pred_labels.append(mapping[lab])
 
     return gt_labels, pred_labels
+
+def get_GT_PD_labels_Gopala(filename, version):
+    """
+    To fetch ground truth and predicted labels in output files produced in VSM method
+    """
+    data = pickle.load(open(filename,'r'))
+    mapping = data['mapping']
+
+    gt_labels = []
+    pred_labels = []
+
+    for lab in data['gt_label']:
+        gt_labels.append(mapping[lab])
+
+    for lab in data['pred_label']:
+        pred_labels.append(mapping[lab[0]])
+
+    return gt_labels, pred_labels    
 
 
 def get_GT_PD_labels_TDMS(filename, version):
@@ -289,8 +310,12 @@ def plotAllConfusionMatricesThesis():
     """
     raga_name_map_file  = 'raga_name_mapping.json'
 
-    vsm_cmd = ['vsm', 'PhraseBased/Carnatic/paperTable_ONLYVAR2/config_20/experiment_results.pkl', 'var2', 'plots/CM_vsm_cmd_var2.pdf']
-    vsm_hmd = ['vsm', 'PhraseBased/Hindustani/paperTable_ONLYVAR2/config_20/experiment_results.pkl', 'var2', 'plots/CM_vsm_hmd_var2.pdf']
+    vsm_cmd_v1 = ['vsm', 'PhraseBased/Carnatic/paperTable/config_20/experiment_results.pkl', 'var1', 'plots/CM_vsm_cmd_var1.pdf']
+    vsm_hmd_v1 = ['vsm', 'PhraseBased/Hindustani/paperTable/config_20/experiment_results.pkl', 'var1', 'plots/CM_vsm_hmd_var1.pdf']
+
+    vsm_cmd_v2 = ['vsm', 'PhraseBased/Carnatic/paperTable_ONLYVAR2/config_20/experiment_results.pkl', 'var2', 'plots/CM_vsm_cmd_var2.pdf']
+    vsm_hmd_v2 = ['vsm', 'PhraseBased/Hindustani/paperTable_ONLYVAR2/config_20/experiment_results.pkl', 'var2', 'plots/CM_vsm_hmd_var2.pdf']
+
 
     tdms_cmd = ['tdms', '../ISMIR_2016/ISMIR_2016_Table_Results/carnatic/M_KL/experiment_results.pkl', 'var1', 'plots/CM_tdms_cmd_var1.pdf']
     tdms_hmd = ['tdms', '../ISMIR_2016/ISMIR_2016_Table_Results/hindustani/M_KL/experiment_results.pkl', 'var1', 'plots/CM_tdms_hmd_var1.pdf']
@@ -298,9 +323,10 @@ def plotAllConfusionMatricesThesis():
     pcd_cmd = ['pcd', '../ISMIR_2016/ISMIR_2016_Table_Results/carnatic/E_PCD/carnatic_40_classes_results.json', 'xxx', 'plots/CM_pcd_cmd.pdf']
     pcd_hmd = ['pcd', '../ISMIR_2016/ISMIR_2016_Table_Results/hindustani/E_PCD/hindustani_30_classes_results.json', 'xxx', 'plots/CM_pcd_hmd.pdf']
 
+    gopala1_context_cmd = ['gopala_context', 'Gopala/context_based/results/Config_7/experiment_results.pkl', 'xxx', 'plots/CM_gopala_context_cmd.pdf']
 
 
-    methods = [vsm_cmd, vsm_hmd, tdms_cmd, tdms_hmd, pcd_cmd, pcd_hmd]
+    methods = [vsm_cmd_v1, vsm_hmd_v1, vsm_cmd_v2, vsm_hmd_v2, tdms_cmd, tdms_hmd, pcd_cmd, pcd_hmd, gopala1_context_cmd]
 
     for m in methods:
         plot_confusion_matrix(raga_name_map_file, m[1], m[3], m[2], m[0])
@@ -309,7 +335,7 @@ def plotAllConfusionMatricesThesis():
             
 def plot_confusion_matrix(raga_name_map_file, result_file, outputname, version, id_method):
     
-    fncs = {'vsm': get_GT_PD_labels_VSM, 'tdms':get_GT_PD_labels_TDMS, 'pcd': get_GT_PD_labels_PCD}
+    fncs = {'vsm': get_GT_PD_labels_VSM, 'tdms':get_GT_PD_labels_TDMS, 'pcd': get_GT_PD_labels_PCD, 'gopala_context':get_GT_PD_labels_Gopala}
     raga_name_map = json.load(codecs.open(raga_name_map_file,'r', encoding = 'utf-8'))
     
     labels, predictions = fncs[id_method](result_file, version)

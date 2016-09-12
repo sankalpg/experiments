@@ -197,9 +197,10 @@ def run_raga_recognition_V2_THESIS_RESULT_PhraseSection_THRESHOLDS_CARNATIC():
                         for s in smooth_idf:
                             for ii, c in enumerate(classifier):
                                 dir_name = os.path.join(out_dir, "config_%s"%str(cnt))
+                                print dir_name
                                 if os.path.isdir(dir_name):
                                     results_data = pickle.load(open(os.path.join(dir_name, 'experiment_results.pkl'),'r'))
-                                    result = results_data['var2']['accuracy']
+                                    result = results_data['var1']['accuracy']
                                 else:
                                     result = RR.raga_recognition_V2(dir_name, 
                                                                     scratch_dir,

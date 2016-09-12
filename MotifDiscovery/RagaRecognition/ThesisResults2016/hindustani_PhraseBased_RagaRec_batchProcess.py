@@ -193,7 +193,7 @@ def run_raga_recognition_V2_THESIS_RESULT_PhraseSection_THRESHOLD_HINDUSTANI():
                                 ###TEMP: remove this step, it was done because the process was stopped in the middle
                                 if os.path.isdir(dir_name):
                                     results_data = pickle.load(open(os.path.join(dir_name, 'experiment_results.pkl'),'r'))
-                                    result = results_data['var2']['accuracy']
+                                    result = results_data['var1']['accuracy']
                                 else:
                                     result = RR.raga_recognition_V2(dir_name, 
                                                                     scratch_dir,
