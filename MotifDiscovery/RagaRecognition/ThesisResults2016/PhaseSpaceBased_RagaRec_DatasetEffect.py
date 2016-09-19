@@ -5,6 +5,11 @@ import copy
 import pickle
 from scipy.stats import wilcoxon
 import json
+import matplotlib as mpl
+mpl.rcParams['text.usetex'] = True
+mpl.rcParams['text.latex.unicode'] = True
+mpl.rc('font',family='Times New Roman')
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../library_pythonnew/melodyProcessing'))
 import phaseSpaceEmbedding as p
@@ -92,3 +97,127 @@ def run_raga_recognition_V1_PhaseSpace_HindustaniDatasetEffect():
                                                 normalize = normalize,
                                                 dist_metric = dist_metric,
                                                 KNN = KNN )        
+
+
+
+
+
+
+def plotAccuracyVsSizeCarnatic():
+    """
+    This is not a generic function. It plots basically the boxplot of accuracy Vs size 
+    """
+
+    cmd_root = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ThesisResults2016/DatasetEffect/fileLists/carnatic'
+    cmd_folders = {5: '5_classes', 10: '10_classes', 20:'20_classes', 30:'30_classes', 40:'40_classes'}
+    file_out_cmd = 'plots/Accuracy_Vs_Size_n_raagas_cmd.pdf'
+
+    result_ext = '.results'
+
+    results_carnatic = {}
+    box_inp = []
+    #Performing for carnatic
+    for n_set in cmd_folders.keys():
+        dirname = os.path.join(cmd_root, cmd_folders[n_set])
+        filenames = GetFileNamesInDir(dirname, result_ext)
+        accuracy = []
+        for filename in filenames:
+            data = pickle.load(open(filename,'r'))
+            accuracy.append(data['var1']['accuracy'])
+        results_carnatic[n_set] = accuracy
+    
+    for n_set in np.sort(results_carnatic.keys()):
+        box_inp.append(results_carnatic[n_set])
+    
+    #print 'CARNATIC', n_set, len(accuracy), np.mean(accuracy), np.std(accuracy)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    bp = ax.boxplot(box_inp,1, whis = [5, 95], patch_artist=True, showfliers=True)
+    for median in bp['medians']:
+        median.set(color='r', linewidth=3)
+    for box in bp['boxes']:
+        box.set( color='b', linewidth=1)        
+        box.set( facecolor = 'w' )
+    for flier in bp['fliers']:
+        flier.set(marker='o', color='g') 
+
+    ax.set_ylim([0.8, 1.01])
+    fsize = 16
+    fsize2 = 14
+    
+    plt.xlabel(r'Number of r\={a}gas', fontsize = fsize)
+    plt.ylabel(r'Accuracy (\%)', fontsize = fsize)
+    #plt.title('Scores by group and gender')
+    plt.xticks(1+np.arange(len(box_inp)), np.sort(results_carnatic.keys()), fontsize = fsize2)
+    #plt.legend(loc ='top right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    #plt.ylim(np.array([.25,0.8]))
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which = 'major', labelsize=fsize2)
+
+    fig.savefig(file_out_cmd, bbox_inches='tight')
+    
+    
+
+
+
+def plotAccuracyVsSizeHindustani():
+    """
+    This is not a generic function. It plots basically the boxplot of accuracy Vs size 
+    """
+
+    hmd_root = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ThesisResults2016/DatasetEffect/fileLists/hindustani'
+    hmd_folders = {5: '5_classes', 10: '10_classes', 15:'15_classes', 20:'20_classes', 25:'25_classes', 30:'30_classes'}
+    file_out_hmd = 'plots/Accuracy_Vs_Size_n_raagas_hmd.pdf'
+
+    result_ext = '.results'
+
+    results_hindustani = {}
+    box_inp = []
+    #Performing for carnatic
+    for n_set in hmd_folders.keys():
+        dirname = os.path.join(hmd_root, hmd_folders[n_set])
+        filenames = GetFileNamesInDir(dirname, result_ext)
+        accuracy = []
+        for filename in filenames:
+            data = pickle.load(open(filename,'r'))
+            accuracy.append(data['var1']['accuracy'])
+        results_hindustani[n_set] = accuracy
+        #print 'HINDUSTANI', n_set, len(accuracy), np.mean(accuracy), np.std(accuracy)
+    
+    for n_set in np.sort(results_hindustani.keys()):
+        box_inp.append(results_hindustani[n_set])
+    
+    #print 'CARNATIC', n_set, len(accuracy), np.mean(accuracy), np.std(accuracy)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    bp = ax.boxplot(box_inp,1, whis = [5, 95], patch_artist=True, showfliers=True)
+    for median in bp['medians']:
+        median.set(color='r', linewidth=3)
+    for box in bp['boxes']:
+        box.set( color='b', linewidth=1)        
+        box.set( facecolor = 'w' )
+    for flier in bp['fliers']:
+        flier.set(marker='o', color='g') 
+
+    ax.set_ylim([0.9, 1.01])
+    fsize = 16
+    fsize2 = 14
+    
+    plt.xlabel(r'Number of r\={a}gas', fontsize = fsize)
+    plt.ylabel(r'Accuracy (\%)', fontsize = fsize)
+    #plt.title('Scores by group and gender')
+    plt.xticks(1+np.arange(len(box_inp)), np.sort(results_hindustani.keys()), fontsize = fsize2)
+    #plt.legend(loc ='top right', ncol = 1, fontsize = fsize2, scatterpoints=1, frameon=True, borderaxespad=0.1)
+    #plt.ylim(np.array([.25,0.8]))
+    
+    xLim = ax.get_xlim()
+    yLim = ax.get_ylim()    
+    ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
+    plt.tick_params(axis='both', which = 'major', labelsize=fsize2)
+
+    fig.savefig(file_out_hmd, bbox_inches='tight')

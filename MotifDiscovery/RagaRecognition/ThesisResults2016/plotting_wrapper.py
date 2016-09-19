@@ -323,10 +323,11 @@ def plotAllConfusionMatricesThesis():
     pcd_cmd = ['pcd', '../ISMIR_2016/ISMIR_2016_Table_Results/carnatic/E_PCD/carnatic_40_classes_results.json', 'xxx', 'plots/CM_pcd_cmd.pdf']
     pcd_hmd = ['pcd', '../ISMIR_2016/ISMIR_2016_Table_Results/hindustani/E_PCD/hindustani_30_classes_results.json', 'xxx', 'plots/CM_pcd_hmd.pdf']
 
-    gopala1_context_cmd = ['gopala_context', 'Gopala/context_based/results/Config_7/experiment_results.pkl', 'xxx', 'plots/CM_gopala_context_cmd.pdf']
+    gopala1_context_cmd = ['gopala_context', 'Gopala/context_based_JNMR/results_gopals_param_suggestion/Config_7/experiment_results.pkl', 'xxx', 'plots/CM_gopala_context_cmd.pdf']
 
 
     methods = [vsm_cmd_v1, vsm_hmd_v1, vsm_cmd_v2, vsm_hmd_v2, tdms_cmd, tdms_hmd, pcd_cmd, pcd_hmd, gopala1_context_cmd]
+
 
     for m in methods:
         plot_confusion_matrix(raga_name_map_file, m[1], m[3], m[2], m[0])
