@@ -49,8 +49,8 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     fsize2 = 16
     font="Times New Roman"
     
-    plt.xlabel("$T_s$ (bin index)", fontsize = fsize, fontname=font)
-    plt.ylabel("Clustering Coefficient $C$", fontsize = fsize, fontname=font, labelpad=fsize2)
+    plt.xlabel(r"$\tilde{\Delta}$ (bin index)", fontsize = fsize, fontname=font)
+    plt.ylabel(r"Clustering Coefficient ($\mathbf{C}$)", fontsize = fsize, fontname=font, labelpad=fsize2)
     
     
     pLeg = []
@@ -73,7 +73,7 @@ def plotClusteringCoff(root_dir, nFiles, plotName=-1, legData = []):
     yLim = ax.get_ylim()
     
     ax.set_aspect((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0])))
-    plt.legend(pLeg, ['$C(\mathcal{G})$','$C(\mathcal{G}_r)$', '$C(\mathcal{G})-C(\mathcal{G}_r)$'], fontsize = 15, loc=4, bbox_to_anchor=(1,0.1))
+    plt.legend(pLeg, ['$\mathbf{C}(\mathcal{G})$','$\mathbf{C}(\mathcal{G}_r)$', '$\mathbf{C}(\mathcal{G})-\mathbf{C}(\mathcal{G}_r)$'], fontsize = 15, loc=4, bbox_to_anchor=(1,0.1))
     plt.tick_params(axis='both', which='major', labelsize=fsize2)
     
     if isinstance(plotName, int):

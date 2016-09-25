@@ -341,7 +341,7 @@ def plotAccuracyVsParameter(plotName = -1):
     ax2.set_xticks(range(len(acc_alpha_h)))
     ax2.set_xticklabels(vals_alpha)
     ax2.set_yticks(np.arange(yLim[0], yLim[1]+1, 20))
-    ax2.set_xlabel(r"$\Lambda$", fontsize = fsize, fontname = font)
+    ax2.set_xlabel(r"$\alpha$", fontsize = fsize, fontname = font)
     ax2.tick_params(axis='both', which='major', labelsize=fsize)
 
     ax2.set_title('(b)', fontsize = fsize, fontname = font)
@@ -408,7 +408,8 @@ def plotAccuracyVsParameter(plotName = -1):
                 r"$\mathfrak{B}_\mathrm{Chordia}$ (%s)"%HMD, r"$\mathfrak{B}_\mathrm{Chordia}$ (%s)"%CMD, 
                 r"$\mathrm{M}_{\mathrm{VSM}}$ (%s)"%HMD, r"$\mathrm{M}_{\mathrm{VSM}}$ (%s)"%CMD, 
                 r"$\mathfrak{B}_{\mathrm{r}}$ (%s)"%HMD, r"$\mathfrak{B}_{\mathrm{r}}$ (%s)"%CMD]
-    fig.legend(p_leg, p_names, ncol = 4, fontsize = 11, scatterpoints=1, frameon=True, borderaxespad=0.8, bbox_to_anchor=(0.035, 1., 1., .1), loc=3, columnspacing=0.3, handletextpad=0.1)
+    plt.tight_layout()
+    fig.legend(p_leg, p_names, ncol = 4, fontsize = 11, scatterpoints=1, frameon=True, borderaxespad=0.8, bbox_to_anchor=(0.015, 1., 1., .1), loc=3, columnspacing=0.3, handletextpad=0.1)
     
 
 

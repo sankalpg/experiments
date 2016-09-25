@@ -117,7 +117,7 @@ def plotPerThresholdAcuracyHindustaniConfig2():
     for ii in range_thslds:
         data = pickle.load(open(os.path.join(thsld_dir, 'config_%d'%cnt, 'experiment_results.pkl')))
         cnt+=1
-        accuracy[ii] = data['var2']['accuracy']
+        accuracy[ii] = data['var1']['accuracy']
     
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -126,9 +126,9 @@ def plotPerThresholdAcuracyHindustaniConfig2():
     fsize = 18
     fsize2 = 16
     
-    ax1.set_xlabel("$\Delta''$ (bin index)", fontsize = fsize)
-    ax1.set_ylabel("Clustering Coefficient $C$", fontsize = fsize, labelpad=10)
-    ax2.set_ylabel("Accuracy (%)", fontsize = fsize, labelpad=10)
+    ax1.set_xlabel(r"$\tilde{\Delta}$ (bin index)", fontsize = fsize)
+    ax1.set_ylabel(r"Clustering Coefficient ($\mathbf{C}$)", fontsize = fsize, labelpad=10)
+    ax2.set_ylabel(r"Accuracy (\%)", fontsize = fsize, labelpad=10)
     
     pLeg = []
     markers = ['.', 'o', 's', '^', '<', '>', 'p']    
@@ -160,7 +160,7 @@ def plotPerThresholdAcuracyHindustaniConfig2():
     aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
     
     
-    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
+    plt.legend(pLeg, [r'$\mathbf{C}(\mathcal{G})-\mathbf{C}(\mathcal{G}_r)$', r'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
     ax1.tick_params(axis='both', which='major', labelsize=fsize2)
     ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
@@ -193,7 +193,7 @@ def plotPerThresholdAcuracyCarnaticConfig3():
     for ii in range_thslds:
         data = pickle.load(open(os.path.join(thsld_dir, 'config_%d'%cnt, 'experiment_results.pkl')))
         cnt+=1
-        accuracy[ii] = data['var2']['accuracy']
+        accuracy[ii] = data['var1']['accuracy']
     
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -202,9 +202,9 @@ def plotPerThresholdAcuracyCarnaticConfig3():
     fsize = 18
     fsize2 = 16
     
-    ax1.set_xlabel("$\Delta''$ (bin index)", fontsize = fsize)
-    ax1.set_ylabel("Clustering Coefficient $C$", fontsize = fsize, labelpad=10)
-    ax2.set_ylabel("Accuracy (%)", fontsize = fsize, labelpad=10)
+    ax1.set_xlabel(r"$\tilde{\Delta}$ (bin index)", fontsize = fsize)
+    ax1.set_ylabel(r"Clustering Coefficient ($\mathbf{C}$)", fontsize = fsize, labelpad=10)
+    ax2.set_ylabel(r"Accuracy (\%)", fontsize = fsize, labelpad=10)
     
     pLeg = []
     markers = ['.', 'o', 's', '^', '<', '>', 'p']    
@@ -236,7 +236,7 @@ def plotPerThresholdAcuracyCarnaticConfig3():
     aspect=((xLim[1]-xLim[0])/(2*float(yLim[1]-yLim[0]))))
     
     
-    plt.legend(pLeg, ['$C(\mathcal{G})-C(\mathcal{G}_r)$', 'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
+    plt.legend(pLeg, [r'$\mathbf{C}(\mathcal{G})-\mathbf{C}(\mathcal{G}_r)$', r'Accuracy of $\mathrm{M}_\mathrm{VSM}$'], fontsize = fsize, loc=3,  ncol = 2,frameon=True, borderaxespad=0.6,bbox_to_anchor=(0.05, 1.))
     ax1.tick_params(axis='both', which='major', labelsize=fsize2)
     ax2.tick_params(axis='both', which='major', labelsize=fsize2)
     
@@ -327,8 +327,7 @@ def plotAllConfusionMatricesThesis():
 
 
     methods = [vsm_cmd_v1, vsm_hmd_v1, vsm_cmd_v2, vsm_hmd_v2, tdms_cmd, tdms_hmd, pcd_cmd, pcd_hmd, gopala1_context_cmd]
-
-
+    
     for m in methods:
         plot_confusion_matrix(raga_name_map_file, m[1], m[3], m[2], m[0])
 
@@ -397,7 +396,7 @@ def plot_confusion_matrix(raga_name_map_file, result_file, outputname, version, 
             textcolor = 'black'
             if conf_arr[x,y] >= 6:
                 textcolor = 'white'
-            if conf_arr[x,y]==0:
+            if conf_arr[x,y]==0 and not x==y:
                 continue
             ax.annotate(int(conf_arr[x,y]), xy=(y+0.5, x+0.5),  horizontalalignment='center', verticalalignment='center', color=textcolor, fontsize=12)
     plt.tight_layout()

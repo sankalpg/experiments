@@ -63,13 +63,27 @@ def stripPrefix(audiofile,localPrefix ):
     return audiofile_WOPre
 
 
-def get_feature_per_collection(root_dir, myDatabase, init_by=0, skew_type=0, feature_file_ext= '.params'):
+def filter_bins(bin_inds, bins_range):
+    """
+    To filter bins based on a range
+    """
+
+    ind1 = np.where(bin_inds>=bins_range[0])[0]
+    ind2 = np.where(bin_inds<=bins_range[1])[0]
+    ind = np.intersect1d(ind1,ind2)
+    return bin_inds[ind]
+
+def get_feature_per_collection(root_dir, myDatabase, init_by=0, skew_type=0, feature_file_ext= '.params', bins_range = []):
     """
     skew_type = 0 uses skew1, 1 uses skew2 and 2 uses skew1 and skew2 both
     """
     
     #fetch first the unique freq bins in the dataset
     bin_inds = get_all_bin_freqs(root_dir, feature_file_ext)
+
+    #filtering based on some frequencies. NOTE: not all the experiments that Gopal do have bins octave folded. So in some we just have to select bins between 0-1200
+    if len(bins_range) ==2:
+        bin_inds = filter_bins(bin_inds, bins_range)
     
     #generate a mapping of feature to bin
     if skew_type == 0:
@@ -272,6 +286,68 @@ def run_gopalas_Exp_40Raga_db_ContextBasedJNMR():
                         os.makedirs(out_dir)
                     
                     mbids, ragaids, features = get_feature_per_collection(root_dir, myDatabase, init_by=i, skew_type=s, feature_file_ext= '-grossparams.pickle')
+                    print features.shape
+                    mlObj  = ml.experimenter()
+                    mlObj.setExperimentParams(nExp = n_expts, typeEval = ("LeaveOneOut",n_fold), nInstPerClass = -1, classifier = c, balanceClasses=1)
+                    nans = np.isnan(features)
+                    features[nans] = 0
+                    infs = np.isinf(features)
+                    features[infs] = 0
+                    #making them all positives
+                    min_val = np.min(features)
+                    features = features - min_val
+                    mlObj.setFeaturesAndClassLabels(features, np.array(ragaids))
+                    mlObj.runExperiment()
+                    fid.write("%s\t"*4%(s,i,c,mlObj.overallAccuracy))
+                    fid.write("\n")
+                    results = {'cm': mlObj.cMTXExp, 'gt_label': mlObj.classLabelsInt, 'pred_label':mlObj.decArray, 'mbids': mbids, 'mapping':mlObj.cNames, 'accuracy': mlObj.overallAccuracy}
+                    pickle.dump(results, open(os.path.join(out_dir, 'experiment_results.pkl'),'w'))
+
+                cnt+=1
+    fid.close()    
+
+
+def run_gopalas_Exp_40Raga_db_ContextBasedJNMRFiltered():
+    root_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ThesisResults2016/Gopala/context_based_JNMR/features/grossparams_pickle'
+    output_dir = '/home/sankalp/Work/Work_PhD/experiments/MotifDiscovery/RagaRecognition/ThesisResults2016/Gopala/context_based_JNMR/results_0_1200_bins'
+    myDatabase = 'Raga_Rec_Carnatic_40Raga_Config0'
+    skew_types = [0]
+    init_bys = [0]
+    classifiers = [('svm', "default"),
+                    ('svm-lin', "default"),
+                    ('sgd', "default"),
+                    ('nb-multi', "default"),
+                    ('nb-gauss', "default"),
+                    ('nb-bern', "default"),
+                    ('randForest', "default"),
+                    ('logReg', "default"),
+                    ('kNN', {'n_neighbors':1}),
+                    ('kNN', {'n_neighbors':3}),
+                    ('kNN', {'n_neighbors':5})]    
+    n_fold = -1
+    n_expts = 1
+    
+    fid = open(os.path.join(output_dir, 'results_summary.txt'),'w')
+    fid.write("%s\t"*4%("Skew_type", "initialize_by", "classifier", "accuracy"))
+    fid.write('\n')
+    
+    cnt=1
+    
+    for s in skew_types:
+        for i in init_bys:
+            for c in classifiers:
+                out_dir = os.path.join(output_dir, 'Config_%s'%str(cnt))
+                
+                if os.path.isdir(out_dir):
+                    results = pickle.load(open(os.path.join(out_dir, 'experiment_results.pkl'),'r'))
+                    fid.write("%s\t"*4%(s,i,c,results['accuracy']))
+                    fid.write("\n")
+
+                else:
+                    if not os.path.isdir(out_dir):
+                        os.makedirs(out_dir)
+                    
+                    mbids, ragaids, features = get_feature_per_collection(root_dir, myDatabase, init_by=i, skew_type=s, feature_file_ext= '-grossparams.pickle', bins_range = [0, 1200])
                     print features.shape
                     mlObj  = ml.experimenter()
                     mlObj.setExperimentParams(nExp = n_expts, typeEval = ("LeaveOneOut",n_fold), nInstPerClass = -1, classifier = c, balanceClasses=1)

@@ -628,9 +628,9 @@ def plotMAPDurationTruncation(plotName=-1):
 if __name__ == "__main__":
     
 
-    carnatic_complexity_example(plotName='CarnaticComplexityExample.pdf')
-    hindustani_flat_note_compression_example(plotName='Hindusani_flat_note_compression_example.pdf')
+    #carnatic_complexity_example(plotName='CarnaticComplexityExample.pdf')
+    #hindustani_flat_note_compression_example(plotName='Hindusani_flat_note_compression_example.pdf')
     plotPerCategoryMAPCarnatic(plotName='carnaticPerCategoryPerformance.pdf')
     plotPerCategoryMAPHindustani(plotName='hindustaniPerCategoryPerformance.pdf')
-    plotMAPDurationTruncation(plotName='MAP_per_Duration_Truncation.pdf')
+    #plotMAPDurationTruncation(plotName='MAP_per_Duration_Truncation.pdf')
     
